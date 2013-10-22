@@ -159,9 +159,12 @@ static NOINLINE void send_extended_status1(mavlink_channel_t chan, uint16_t pack
     if (ap.rc_receiver_present) {
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_RC_RECEIVER;
     }
+    if (hal.util->safety_switch_state() != AP_HAL::Util::SAFETY_NONE) {
+        control_sensors_present |= MAV_SYS_STATUS_SENSOR_SAFETY_SWITCH;
+    }
 
     // all present sensors enabled by default except altitude and position control which we will set individually
-    control_sensors_enabled = control_sensors_present & (~MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL & ~MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL);
+    control_sensors_enabled = control_sensors_present & (~MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL & ~MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL & ~MAV_SYS_STATUS_SENSOR_SAFETY_SWITCH);
 
     switch (control_mode) {
     case ALT_HOLD:
@@ -182,6 +185,12 @@ static NOINLINE void send_extended_status1(mavlink_channel_t chan, uint16_t pack
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL;
         break;
     }
+
+    // safety switch enabled flag is used to convey status
+    if (hal.util->safety_switch_state() == AP_HAL::Util::SAFETY_ARMED) {
+        control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_SAFETY_SWITCH;
+    }
+     
 
     // default to all healthy except compass, gps and receiver which we set individually
     control_sensors_health = control_sensors_present & (~MAV_SYS_STATUS_SENSOR_3D_MAG & ~MAV_SYS_STATUS_SENSOR_GPS & ~MAV_SYS_STATUS_SENSOR_RC_RECEIVER);
