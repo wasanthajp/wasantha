@@ -372,6 +372,9 @@
                <entry value="65536" name="MAV_SYS_STATUS_SENSOR_RC_RECEIVER">
                     <description>0x10000 rc receiver</description>
                </entry>
+               <entry value="131072" name="MAV_SYS_STATUS_SENSOR_SAFETY_SWITCH">
+                    <description>0x20000 safety switch</description>
+               </entry>
           </enum>
           <enum name="MAV_FRAME">
                <entry value="0" name="MAV_FRAME_GLOBAL">
