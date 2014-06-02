@@ -205,6 +205,20 @@ public:
     /// get_distance_to_target - get horizontal distance to position target in cm (used for reporting)
     float get_distance_to_target() const;
 
+    /// xyz velocity controller
+
+    /// init_vel_controller_xyz - initialise the velocity controller - should be called once before the caller attempts to use the controller
+    void init_vel_controller_xyz();
+
+    /// set_vel_target - sets target velocity in cm/s in north, east and up directions
+    void set_vel_target(const Vector3f& vel_target);
+
+    /// update_velocity_controller_xyz - run the velocity controller - should be called at 100hz or higher
+    ///     velocity targets should we set using set_desired_velocity_xyz() method
+    ///     callers should use get_roll() and get_pitch() methods and sent to the attitude controller
+    ///     throttle targets will be sent directly to the motors
+    void update_vel_controller_xyz();
+
     /// get desired roll, pitch which should be fed into stabilize controllers
     float get_roll() const { return _roll_target; }
     float get_pitch() const { return _pitch_target; }
@@ -316,6 +330,7 @@ private:
     float       _dt;                    // time difference (in seconds) between calls from the main program
     uint32_t    _last_update_xy_ms;     // system time of last update_xy_controller call
     uint32_t    _last_update_z_ms;      // system time of last update_z_controller call
+    uint32_t    _last_update_vel_xyz_ms;// system time of last update_vel_controller_xyz call
     float       _speed_down_cms;        // max descent rate in cm/s
     float       _speed_up_cms;          // max climb rate in cm/s
     float       _speed_cms;             // max horizontal speed in cm/s
@@ -343,5 +358,8 @@ private:
     float       _distance_to_target;    // distance to position target - for reporting only
     uint8_t     _xy_step;               // used to decide which portion of horizontal position controller to run during this iteration
     float       _dt_xy;                 // time difference in seconds between horizontal position updates
+
+    // velocity controller internal variables
+    uint8_t     _vel_xyz_step;          // used to decide which portion of velocity controller to run during this iteration
 };
 #endif	// AC_POSCONTROL_H

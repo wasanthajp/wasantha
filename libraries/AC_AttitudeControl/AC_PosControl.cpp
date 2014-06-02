@@ -37,6 +37,7 @@ AC_PosControl::AC_PosControl(const AP_AHRS& ahrs, const AP_InertialNav& inav,
     _dt(POSCONTROL_DT_10HZ),
     _last_update_xy_ms(0),
     _last_update_z_ms(0),
+    _last_update_vel_xyz_ms(0),
     _speed_down_cms(POSCONTROL_SPEED_DOWN),
     _speed_up_cms(POSCONTROL_SPEED_UP),
     _speed_cms(POSCONTROL_SPEED),
@@ -48,7 +49,8 @@ AC_PosControl::AC_PosControl(const AP_AHRS& ahrs, const AP_InertialNav& inav,
     _alt_max(0),
     _distance_to_target(0),
     _xy_step(0),
-    _dt_xy(0)
+    _dt_xy(0),
+    _vel_xyz_step(0)
 {
     AP_Param::setup_object_defaults(this, var_info);
 
@@ -578,6 +580,59 @@ void AC_PosControl::update_xy_controller(bool use_desired_velocity)
             _xy_step++;
             break;
     }
+}
+
+/// init_vel_controller_xyz - initialise the velocity controller - should be called once before the caller attempts to use the controller
+void AC_PosControl::init_vel_controller_xyz()
+{
+    // force the xy velocity controller to run immediately
+    _vel_xyz_step = 3;
+}
+
+/// set_vel_target - sets target velocity in cm/s in north, east and up directions
+void AC_PosControl::set_vel_target(const Vector3f& vel_target)
+{
+    // set velocity target
+    _vel_target = vel_target;
+
+    // reset rate to accel to ensure feed forward which could cause twitches
+    _flags.reset_rate_to_accel_xy = true;
+}
+
+/// update_velocity_controller_xyz - run the velocity controller - should be called at 100hz or higher
+///     velocity targets should we set using set_desired_velocity_xyz() method
+///     callers should use get_roll() and get_pitch() methods and sent to the attitude controller
+///     throttle targets will be sent directly to the motors
+void AC_PosControl::update_vel_controller_xyz()
+{
+    // capture time since last iteration
+    uint32_t now = hal.scheduler->millis();
+    float dt = (now - _last_update_vel_xyz_ms) / 1000.0f;
+    _last_update_vel_xyz_ms = now;
+
+    // sanity check dt
+    if (dt > 1.0) {
+        dt = 0;
+        init_vel_controller_xyz();
+    }
+
+    // increment the step
+    _vel_xyz_step++;
+
+    // we will run the horizontal component every 4th iteration (i.e. 50hz on Pixhawk, 20hz on APM)
+    if (_vel_xyz_step >= 3) {
+        // run velocity to acceleration step
+        rate_to_accel_xy(dt);
+
+        // run acceleration to lean angle step
+        accel_to_lean_angles();
+
+        // reset the step to zero
+        _vel_xyz_step = 0;
+    }
+
+    // run z axis rate based throttle controller which will update accel based throttle controller targets
+    rate_to_accel_z();
 }
 
 ///
