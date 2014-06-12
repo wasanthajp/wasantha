@@ -38,6 +38,8 @@
 
 #define POSCONTROL_ACCEL_Z_DTERM_FILTER         20      // Z axis accel controller's D term filter (in hz)
 
+#define POSCONTROL_VEL_UPDATE_TIME              0.020f  // 50hz update rate on high speed CPUs (Pixhawk, Flymaple)
+
 class AC_PosControl
 {
 public:
@@ -169,12 +171,16 @@ public:
     void set_xy_target(float x, float y);
 
     /// get_desired_velocity - returns xy desired velocity (i.e. feed forward) in cm/s in lat and lon direction
-    const Vector2f& get_desired_velocity() { return _vel_desired; }
+    const Vector3f& get_desired_velocity() { return _vel_desired; }
 
-    /// set_desired_velocity - sets desired velocity in cm/s in lat and lon directions
+    /// set_desired_velocity_xy - sets desired velocity in cm/s in lat and lon directions
     ///     when update_xy_controller is next called the position target is moved based on the desired velocity and
     ///     the desired velocities are fed forward into the rate_to_accel step
-    void set_desired_velocity(float vel_lat_cms, float vel_lon_cms) {_vel_desired.x = vel_lat_cms; _vel_desired.y = vel_lon_cms; }
+    void set_desired_velocity_xy(float vel_lat_cms, float vel_lon_cms) {_vel_desired.x = vel_lat_cms; _vel_desired.y = vel_lon_cms; }
+
+    /// set_desired_velocity - sets desired velocity in cm/s in all 3 axis
+    ///     when update_vel_controller_xyz is next called the position target is moved based on the desired velocity
+    void set_desired_velocity(const Vector3f &des_vel) { _vel_desired = des_vel; freeze_ff_xy(); }
 
     /// trigger_xy - used to notify the position controller than an update has been made to the position or desired velocity so that the position controller will run as soon as possible after the update
     void trigger_xy() { _flags.force_recalc_xy = true; }
@@ -347,7 +353,7 @@ private:
     // position controller internal variables
     Vector3f    _pos_target;            // target location in cm from home
     Vector3f    _pos_error;             // error between desired and actual position in cm
-    Vector2f    _vel_desired;           // desired velocity in cm/s in lat and lon directions (provided by external callers of move_target_at_rate() method)
+    Vector3f    _vel_desired;           // desired velocity in cm/s
     Vector3f    _vel_target;            // velocity target in cm/s calculated by pos_to_rate step
     Vector3f    _vel_error;             // error between desired and actual acceleration in cm/s
     Vector3f    _vel_last;              // previous iterations velocity in cm/s

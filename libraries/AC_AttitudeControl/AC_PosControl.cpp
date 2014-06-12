@@ -587,16 +587,20 @@ void AC_PosControl::init_vel_controller_xyz()
 {
     // force the xy velocity controller to run immediately
     _vel_xyz_step = 3;
-}
 
-/// set_vel_target - sets target velocity in cm/s in north, east and up directions
-void AC_PosControl::set_vel_target(const Vector3f& vel_target)
-{
-    // set velocity target
-    _vel_target = vel_target;
+    // set roll, pitch lean angle targets to current attitude
+    _roll_target = _ahrs.roll_sensor;
+    _pitch_target = _ahrs.pitch_sensor;
 
-    // reset rate to accel to ensure feed forward which could cause twitches
+    // reset last velocity if this controller has just been engaged or dt is zero
+    lean_angles_to_accel(_accel_target.x, _accel_target.y);
+    _pid_rate_lat.set_integrator(_accel_target.x);
+    _pid_rate_lon.set_integrator(_accel_target.y);
+
+    // flag reset required in rate to accel step
+    _flags.reset_desired_vel_to_pos = true;
     _flags.reset_rate_to_accel_xy = true;
+
 }
 
 /// update_velocity_controller_xyz - run the velocity controller - should be called at 100hz or higher
@@ -607,32 +611,41 @@ void AC_PosControl::update_vel_controller_xyz()
 {
     // capture time since last iteration
     uint32_t now = hal.scheduler->millis();
-    float dt = (now - _last_update_vel_xyz_ms) / 1000.0f;
-    _last_update_vel_xyz_ms = now;
+    float dt_xy = (now - _last_update_vel_xyz_ms) / 1000.0f;
 
-    // sanity check dt
-    if (dt > 1.0) {
-        dt = 0;
-        init_vel_controller_xyz();
-    }
-
-    // increment the step
-    _vel_xyz_step++;
+    // check if xy leash needs to be recalculated
+    calc_leash_length_xy();
 
     // we will run the horizontal component every 4th iteration (i.e. 50hz on Pixhawk, 20hz on APM)
-    if (_vel_xyz_step >= 3) {
+    if (dt_xy >= POSCONTROL_VEL_UPDATE_TIME) {
+
+        // record update time
+        _last_update_vel_xyz_ms = now;
+
+        // sanity check dt
+        if (dt_xy >= POSCONTROL_ACTIVE_TIMEOUT_MS) {
+            dt_xy = 0.0f;
+            init_vel_controller_xyz();
+        }
+
+        // translate any adjustments from pilot to loiter target
+        desired_vel_to_pos(dt_xy);
+
+        // run position controller's position error to desired velocity step
+        pos_to_rate_xy(true, dt_xy);
+
         // run velocity to acceleration step
-        rate_to_accel_xy(dt);
+        rate_to_accel_xy(dt_xy);
 
         // run acceleration to lean angle step
         accel_to_lean_angles();
-
-        // reset the step to zero
-        _vel_xyz_step = 0;
     }
 
-    // run z axis rate based throttle controller which will update accel based throttle controller targets
-    rate_to_accel_z();
+    // update altitude target
+    set_alt_target_from_climb_rate(_vel_desired.z, _dt);
+
+    // run z-axis position controller
+    update_z_controller();
 }
 
 ///
