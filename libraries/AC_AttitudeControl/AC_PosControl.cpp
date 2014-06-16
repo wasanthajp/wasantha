@@ -601,6 +601,16 @@ void AC_PosControl::init_vel_controller_xyz()
     _flags.reset_desired_vel_to_pos = true;
     _flags.reset_rate_to_accel_xy = true;
 
+    // set target position in xy axis
+    const Vector3f& curr_pos = _inav.get_position();
+    set_xy_target(curr_pos.x, curr_pos.y);
+
+    // move current vehicle velocity into feed forward velocity
+    const Vector3f& curr_vel = _inav.get_velocity();
+    set_desired_velocity_xy(curr_vel.x, curr_vel.y);
+
+    // record update time
+    _last_update_vel_xyz_ms = hal.scheduler->millis();
 }
 
 /// update_velocity_controller_xyz - run the velocity controller - should be called at 100hz or higher
@@ -625,10 +635,9 @@ void AC_PosControl::update_vel_controller_xyz()
         // sanity check dt
         if (dt_xy >= POSCONTROL_ACTIVE_TIMEOUT_MS) {
             dt_xy = 0.0f;
-            init_vel_controller_xyz();
         }
 
-        // translate any adjustments from pilot to loiter target
+        // apply desired velocity request to position target
         desired_vel_to_pos(dt_xy);
 
         // run position controller's position error to desired velocity step
