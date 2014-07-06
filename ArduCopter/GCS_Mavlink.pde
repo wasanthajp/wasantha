@@ -1132,9 +1132,9 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             // param6 : y / lon
             // param7 : z / alt
             Location roi_loc;
-            roi_loc.lat = packet.param5;
-            roi_loc.lng = packet.param6;
-            roi_loc.alt = packet.param7;
+            roi_loc.lat = (int32_t)(packet.param5 * 1.0e7f);
+            roi_loc.lng = (int32_t)(packet.param6 * 1.0e7f);
+            roi_loc.alt = (int32_t)(packet.param7 * 100.0f);
             set_auto_yaw_roi(roi_loc);
             result = MAV_RESULT_ACCEPTED;
             break;
