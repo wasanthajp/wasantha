@@ -1018,9 +1018,9 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         // Sets the region of interest (ROI) for the camera
         case MAV_CMD_DO_SET_ROI:
             Location roi_loc;
-            roi_loc.lat = packet.param5;
-            roi_loc.lng = packet.param6;
-            roi_loc.alt = packet.param7;
+            roi_loc.lat = (int32_t)(packet.param5 * 1.0e7f);
+            roi_loc.lng = (int32_t)(packet.param6 * 1.0e7f);
+            roi_loc.alt = (int32_t)(packet.param7 * 100.0f);
             if (roi_loc.lat == 0 && roi_loc.lng == 0 && roi_loc.alt == 0) {
                 // switch off the camera tracking if enabled
                 if (camera_mount.get_mode() == MAV_MOUNT_MODE_GPS_POINT) {
