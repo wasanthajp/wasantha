@@ -82,11 +82,8 @@
 #define AP_MOTORS_HELI_FLYBAR                   1
 
 // throttle defaults
-#define AP_MOTORS_HELI_THROTTLE_MIN             1200
-#define AP_MOTORS_HELI_THROTTLE_IDLE            1250
-#define AP_MOTORS_HELI_THROTTLE_LOW             1300
-#define AP_MOTORS_HELI_THROTTLE_HIGH            1700
-#define AP_MOTORS_HELI_THROTTLE_MAX             1800
+#define AP_MOTORS_HELI_RSC_CURVE_IDLE_DEFAULT   80
+#define AP_MOTORS_HELI_RSC_CURVE_LOW_DEFAULT    160
 
 class AP_HeliControls;
 
@@ -189,6 +186,10 @@ public:
     // set_desired_rotor_speed - sets target rotor speed as a number from 0 ~ 1000
     void set_desired_rotor_speed(int16_t desired_speed);
 
+    // set_desired_rotor_speed_from_collective - sets target rotor speed as a number from 0 ~ 1000 based on the collective pitch
+    // should be used when rsc_mode is throttle curve
+    void set_desired_rotor_speed_from_collective();
+
     // return true if the main rotor is up to speed
     bool motor_runup_complete() const;
 
@@ -247,9 +248,6 @@ private:
 
     // write_rsc_range - outputs pwm onto output rsc channel (ch8).  servo_out parameter is of the range 0 ~ 1000
     void write_rsc_range(int16_t servo_out);
-    
-    // write_rsc_pwm - outputs pwm onto output rsc channel (ch8).  direct pass-through of pwm range 1000-2000
-    void write_rsc_pwm(int16_t pwm_out);
 
     // write_aux - outputs pwm onto output aux channel (ch7). servo_out parameter is of the range 0 ~ 1000
     void write_aux(int16_t servo_out);
@@ -291,11 +289,8 @@ private:
     AP_Int8         _flybar_mode;               // Flybar present or not.  Affects attitude controller used during ACRO flight mode
     AP_Int16        _land_collective_min;       // Minimum collective when landed or landing
     AP_Int16        _direct_drive_tailspeed;    // Direct Drive VarPitch Tail ESC speed (0 ~ 1000)
-    AP_Int16        _throttle_min_pwm;          // Minimum PWM value to send to motor throttle servo
-    AP_Int16        _throttle_idle_pwm;         // PWM value to send to motor throttle servo to idle motor
-    AP_Int16        _throttle_low_pwm;          // PWM value to send to motor throttle servo at 0 collective pitch
-    AP_Int16        _throttle_high_pwm;         // PWM value to send to motor throttle servo at maximum collective pitch
-    AP_Int16        _throttle_max_pwm;          // Maximum PWM value to send to motor throttle servo
+    AP_Int16        _rsc_curve_idle;            // rotor speed when RSC mode is throttle curve and output to motor should be idle (i.e. almost stopped)
+    AP_Int16        _rsc_curve_low;             // rotor speed when RSC mode is throttle curve and collective is at minimum pitch
 
     // internal variables
     float           _rollFactor[AP_MOTORS_HELI_NUM_SWASHPLATE_SERVOS];
@@ -315,8 +310,6 @@ private:
     int16_t         _tail_direct_drive_out;     // current ramped speed of output on ch7 when using direct drive variable pitch tail type
     float           _dt;                        // main loop time
     int16_t         _delta_phase_angle;         // phase angle dynamic compensation
-    int16_t         _throttle_range;            // range of throttle movement
-    int16_t         _collective_range;          // range of collective movement
 };
 
 #endif  // AP_MOTORSHELI

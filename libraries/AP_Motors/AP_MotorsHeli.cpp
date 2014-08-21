@@ -206,50 +206,23 @@ const AP_Param::GroupInfo AP_MotorsHeli::var_info[] PROGMEM = {
     // @User: Standard
     AP_GROUPINFO("TAIL_SPEED", 24, AP_MotorsHeli,  _direct_drive_tailspeed, AP_MOTOR_HELI_DDTAIL_DEFAULT),
     
-    // @Param: THROTTLE_MIN
-    // @DisplayName: Minimum Throttle Servo Position
-    // @Description: PWM sent to throttle servo when disarmed.
-    // @Range: 1000 2000
+    // @Param: RSC_CURVE_IDLE
+    // @DisplayName: RSC Curve Idle
+    // @Description: RSC output when idling
+    // @Range: 0 1000
     // @Units: PWM
     // @Increment: 10
     // @User: Standard
-    AP_GROUPINFO("THROTTLE_MIN", 25, AP_MotorsHeli, _throttle_min_pwm, AP_MOTORS_HELI_THROTTLE_MIN),
+    AP_GROUPINFO("RSC_CURVE_IDLE", 25, AP_MotorsHeli, _rsc_curve_idle, AP_MOTORS_HELI_RSC_CURVE_IDLE_DEFAULT),
     
-    // @Param: THROTTLE_IDLE
-    // @DisplayName: Throttle Servo Idle Position
-    // @Description: PWM sent to throttle servo for idle.
-    // @Range: 1000 2000
+    // @Param: RSC_CURVE_LOW
+    // @DisplayName: RSC Curve Low
+    // @Description: RSC output when collective is at minimum pitch
+    // @Range: 0 1000
     // @Units: PWM
     // @Increment: 10
     // @User: Standard
-    AP_GROUPINFO("THROTTLE_IDLE", 26, AP_MotorsHeli, _throttle_idle_pwm, AP_MOTORS_HELI_THROTTLE_IDLE),
-    
-    // @Param: THROTTLE_LOW
-    // @DisplayName: Throttle Servo Low Power Position
-    // @Description: PWM sent to throttle servo at zero pitch.
-    // @Range: 1000 2000
-    // @Units: PWM
-    // @Increment: 10
-    // @User: Standard
-    AP_GROUPINFO("THROTTLE_LOW", 27, AP_MotorsHeli, _throttle_low_pwm, AP_MOTORS_HELI_THROTTLE_LOW),
-    
-    // @Param: THROTTLE_HIGH
-    // @DisplayName: Throttle Servo High Power Position
-    // @Description: PWM sent to throttle servo at max collective pitch.
-    // @Range: 1000 2000
-    // @Units: PWM
-    // @Increment: 10
-    // @User: Standard
-    AP_GROUPINFO("THROTTLE_HIGH", 28, AP_MotorsHeli, _throttle_high_pwm, AP_MOTORS_HELI_THROTTLE_HIGH),
-    
-    // @Param: THROTTLE_MAX
-    // @DisplayName: Maximum Throttle Servo Position
-    // @Description: Maximum permissible throttle servo position.
-    // @Range: 1000 2000
-    // @Units: PWM
-    // @Increment: 10
-    // @User: Standard
-    AP_GROUPINFO("THROTTLE_MAX", 29, AP_MotorsHeli, _throttle_max_pwm, AP_MOTORS_HELI_THROTTLE_MAX),
+    AP_GROUPINFO("RSC_CURVE_LOW", 26, AP_MotorsHeli, _rsc_curve_low, AP_MOTORS_HELI_RSC_CURVE_LOW_DEFAULT),
 
     AP_GROUPEND
 };
@@ -378,6 +351,28 @@ void AP_MotorsHeli::set_desired_rotor_speed(int16_t desired_speed)
     _rotor_desired = desired_speed;
 }
 
+// set_desired_rotor_speed_from_collective - sets target rotor speed as a number from 0 ~ 1000 based on the collective pitch
+// should be used when rsc_mode is throttle curve
+void AP_MotorsHeli::set_desired_rotor_speed_from_collective()
+{
+    // Throttle Curve is a simple open-loop rotor speed control system similar to what used to be built into computer radios in the days
+    // before throttle governors.  It requires the user to input the high throttle to use at max pitch (positive and negative), and low throttle
+    // to use at zero pitch.  In this implementation, it includes an idle setting, and minimum and maximum settings which is the limit of throttle servo travel.
+    // In operation, throttle servo output is linearly ramped between low and high, corresponding to zero pitch, and max pitch.
+
+    // calculate collective distance from the zero pitch mid point as a number from 0 to 1000
+    int16_t dist_from_mid = abs(_collective_out - _collective_mid_pwm);
+
+    // calculate range from mid collective to top (we use this for scaling in both directions
+    int16_t collective_upper_range = (1000 - _collective_mid_pwm);
+
+    // calculate
+    int16_t rotor_range = (1000 - _rsc_curve_low);
+
+    // we want to scale the basic throttle output is always low setting.  Load throttle is added on top, damped during run-up.
+    _rotor_desired = _rsc_curve_low + ((float)dist_from_mid / (float)collective_upper_range) * (float)rotor_range;
+}
+
 // return true if the main rotor is up to speed
 bool AP_MotorsHeli::motor_runup_complete() const
 {
@@ -409,9 +404,6 @@ void AP_MotorsHeli::recalc_scalers()
     
     // calculate collective mid point as a number from 0 to 1000
     _collective_mid_pwm = ((float)(_collective_mid-_collective_min))/((float)(_collective_max-_collective_min))*1000.0f;
-
-    _throttle_range = _throttle_high_pwm - _throttle_low_pwm;    
-    _collective_range = 1000 - _collective_mid_pwm;
 }
 
 // get_motor_mask - returns a bitmask of which outputs are being used for motors or servos (1 means being used)
@@ -701,14 +693,10 @@ void AP_MotorsHeli::rsc_control()
         switch (_rsc_mode){
             case AP_MOTORS_HELI_RSC_MODE_CH8_PASSTHROUGH:
             case AP_MOTORS_HELI_RSC_MODE_SETPOINT:
-                _rotor_out = 0;
-                _rotor_speed_estimate = 0;
-                write_rsc_range(_rotor_out);
-                break;
             case AP_MOTORS_HELI_RSC_MODE_THROTTLE_CURVE:
                 _rotor_out = 0;
                 _rotor_speed_estimate = 0;
-                write_rsc_pwm(_throttle_min_pwm);
+                write_rsc_range(_rotor_out);
                 break;
             default:
                 break;
@@ -720,6 +708,7 @@ void AP_MotorsHeli::rsc_control()
         case AP_MOTORS_HELI_RSC_MODE_NONE:
         case AP_MOTORS_HELI_RSC_MODE_CH8_PASSTHROUGH:
         case AP_MOTORS_HELI_RSC_MODE_SETPOINT:
+        case AP_MOTORS_HELI_RSC_MODE_THROTTLE_CURVE:
             // ramp up or down main rotor and tail
             if (_rotor_desired > 0) {
                 // ramp up tail rotor (this does nothing if not using direct drive variable pitch tail)
@@ -739,31 +728,8 @@ void AP_MotorsHeli::rsc_control()
                 tail_ramp(0);
             }
             break;
-        case AP_MOTORS_HELI_RSC_MODE_THROTTLE_CURVE:
-            // Throttle Curve is a simple open-loop rotor speed control system similar to what used to be built into computer radios in the days
-            // before throttle governors.  It requires the user to input the high throttle to use at max pitch (positive and negative), and low throttle
-            // to use at zero pitch.  In this implementation, it includes an idle setting, and minimum and maximum settings which is the limit of throttle servo travel.
-            // In operation, throttle servo output is linearly ramped between low and high, corresponding to zero pitch, and max pitch.  It also features a damper
-            // softens the hit on the clutch when transitioning from idle to full speed.
-            int16_t throttle_out;
-            float throttle_rate_damper;
-            if (_rotor_desired > 0){
-                rotor_ramp(_rotor_desired);
-                // throttle rate damper is a simple 0 to 1 float multiplier which is used to scale the throttle output
-                throttle_rate_damper = _rotor_out/_rotor_desired;
-                // basic throttle output is always idle setting.  Load throttle is added on top, damped during run-up.
-                throttle_out = _throttle_idle_pwm + ((_throttle_low_pwm - _throttle_idle_pwm) +
-                                (_throttle_range * (abs(_collective_out - _collective_mid_pwm)) / _collective_range))*throttle_rate_damper;
-                throttle_out = constrain_int16(throttle_out, _throttle_idle_pwm, _throttle_max_pwm);
-            }else{
-                // shut down main rotor, return to idle
-                rotor_ramp(0);
-                throttle_out = _throttle_idle_pwm;
-            }
-            write_rsc_pwm(throttle_out);
-            break;
     }
-        
+
     // direct drive fixed pitch tail servo gets copy of yaw servo out (ch4) while main rotor is running
     if (_tail_type == AP_MOTORS_HELI_TAILTYPE_DIRECTDRIVE_FIXEDPITCH) {
         // output fixed-pitch speed control if Ch8 is high
@@ -876,13 +842,6 @@ void AP_MotorsHeli::write_rsc_range(int16_t servo_out)
     _servo_rsc.servo_out = servo_out;
     _servo_rsc.calc_pwm();
     hal.rcout->write(AP_MOTORS_HELI_RSC, _servo_rsc.radio_out);
-}
-
-// write_rsc_pwm - outputs pwm onto output rsc channel (ch8)
-// direct pass-through of pwm range 1000-2000
-void AP_MotorsHeli::write_rsc_pwm(int16_t pwm_out)
-{
-    hal.rcout->write(AP_MOTORS_HELI_RSC, pwm_out);
 }
 
 // write_aux - outputs pwm onto output aux channel (ch7)
