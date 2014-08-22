@@ -159,7 +159,7 @@ static void heli_update_rotor_speed_targets()
             if (rsc_control_deglitched > 0) {
                 motors.set_desired_rotor_speed_from_collective();
             }else{
-                motors.set_desired_rotor_speed(0);
+                motors.set_desired_rotor_speed_to_idle();
             }
             break;
     }
