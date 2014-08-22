@@ -190,6 +190,9 @@ public:
     // should be used when rsc_mode is throttle curve
     void set_desired_rotor_speed_from_collective();
 
+    // set_desired_rotor_speed_to_idle - sets target rotor speed to idle - only used when rsc_mode is throttle curve
+    void set_desired_rotor_speed_to_idle() { _rotor_desired = _rsc_curve_idle; }
+
     // return true if the main rotor is up to speed
     bool motor_runup_complete() const;
 

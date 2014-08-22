@@ -371,6 +371,9 @@ void AP_MotorsHeli::set_desired_rotor_speed_from_collective()
 
     // we want to scale the basic throttle output is always low setting.  Load throttle is added on top, damped during run-up.
     _rotor_desired = _rsc_curve_low + ((float)dist_from_mid / (float)collective_upper_range) * (float)rotor_range;
+
+    // range check final desired speed
+    _rotor_desired = constrain_int16(_rotor_desired, _rsc_curve_low, 1000);
 }
 
 // return true if the main rotor is up to speed
