@@ -66,6 +66,10 @@
 #define AP_MOTORS_HELI_RSC_MODE_SETPOINT        2       // main rotor speed is controlled by an ESC connected to RC8 (out), desired speed is held in RSC_SETPOINT parameter
 #define AP_MOTORS_HELI_RSC_MODE_THROTTLE_CURVE  3       // main rotor speed is controlled open-loop by a throttle servo or ESC connected to RC8(out)
 
+// default rsc servo min and max pwm
+#define AP_MOTORS_HELI_RSC_MIN_DEFAULT          1100    // RSC servo's default minimum pwm
+#define AP_MOTORS_HELI_RSC_MAX_DEFAULT          1900    // RSC servo's default maximum pwm
+
 // default main rotor speed (ch8 out) as a number from 0 ~ 1000
 #define AP_MOTORS_HELI_RSC_SETPOINT             500
 
@@ -284,7 +288,7 @@ private:
     AP_Int16        _ext_gyro_gain;             // PWM sent to external gyro on ch7 when tail type is Servo w/ ExtGyro
     AP_Int8         _servo_manual;              // Pass radio inputs directly to servos during set-up through mission planner
     AP_Int16        _phase_angle;               // Phase angle correction for rotor head.  If pitching the swash forward induces a roll, this can be correct the problem
-    AP_Int16        _collective_yaw_effect;     // Feed-forward compensation to automatically add rudder input when collective pitch is increased. Can be positive or negative depending on mechanics.    
+    AP_Int16        _collective_yaw_effect;     // Feed-forward compensation to automatically add rudder input when collective pitch is increased. Can be positive or negative depending on mechanics.
     AP_Int16        _rsc_setpoint;              // rotor speed when RSC mode is set to is enabledv
     AP_Int8         _rsc_mode;                  // Which main rotor ESC control mode is active
     AP_Int8         _rsc_ramp_time;             // Time in seconds for the output to the main rotor's ESC to reach full speed
@@ -292,6 +296,8 @@ private:
     AP_Int8         _flybar_mode;               // Flybar present or not.  Affects attitude controller used during ACRO flight mode
     AP_Int16        _land_collective_min;       // Minimum collective when landed or landing
     AP_Int16        _direct_drive_tailspeed;    // Direct Drive VarPitch Tail ESC speed (0 ~ 1000)
+    AP_Int16        _rsc_min;                   // rotor speed control servo's minimum pwm
+    AP_Int16        _rsc_max;                   // rotor speed control servo's maximum pwm
     AP_Int16        _rsc_curve_idle;            // rotor speed when RSC mode is throttle curve and output to motor should be idle (i.e. almost stopped)
     AP_Int16        _rsc_curve_low;             // rotor speed when RSC mode is throttle curve and collective is at minimum pitch
 

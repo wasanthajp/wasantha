@@ -205,7 +205,25 @@ const AP_Param::GroupInfo AP_MotorsHeli::var_info[] PROGMEM = {
     // @Increment: 1
     // @User: Standard
     AP_GROUPINFO("TAIL_SPEED", 24, AP_MotorsHeli,  _direct_drive_tailspeed, AP_MOTOR_HELI_DDTAIL_DEFAULT),
-    
+
+    // @Param: RSC_MIN
+    // @DisplayName: Rotor Speed Control Minimum
+    // @Description: Rotor Speed Control's lowest possible servo position
+    // @Range: 1000 2000
+    // @Units: PWM
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("RSC_MIN", 25, AP_MotorsHeli, _rsc_min, AP_MOTORS_HELI_RSC_MIN_DEFAULT),
+
+    // @Param: RSC_MAX
+    // @DisplayName: Rotor Speed Control Maximum
+    // @Description: Rotor Speed Control's highest possible servo position
+    // @Range: 1000 2000
+    // @Units: PWM
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("RSC_MAX", 26, AP_MotorsHeli, _rsc_max, AP_MOTORS_HELI_RSC_MAX_DEFAULT),
+
     // @Param: RSC_CURVE_IDLE
     // @DisplayName: RSC Curve Idle
     // @Description: RSC output when idling
@@ -213,7 +231,7 @@ const AP_Param::GroupInfo AP_MotorsHeli::var_info[] PROGMEM = {
     // @Units: PWM
     // @Increment: 10
     // @User: Standard
-    AP_GROUPINFO("RSC_CURVE_IDLE", 25, AP_MotorsHeli, _rsc_curve_idle, AP_MOTORS_HELI_RSC_CURVE_IDLE_DEFAULT),
+    AP_GROUPINFO("RSC_CURVE_IDLE", 27, AP_MotorsHeli, _rsc_curve_idle, AP_MOTORS_HELI_RSC_CURVE_IDLE_DEFAULT),
     
     // @Param: RSC_CURVE_LOW
     // @DisplayName: RSC Curve Low
@@ -222,7 +240,7 @@ const AP_Param::GroupInfo AP_MotorsHeli::var_info[] PROGMEM = {
     // @Units: PWM
     // @Increment: 10
     // @User: Standard
-    AP_GROUPINFO("RSC_CURVE_LOW", 26, AP_MotorsHeli, _rsc_curve_low, AP_MOTORS_HELI_RSC_CURVE_LOW_DEFAULT),
+    AP_GROUPINFO("RSC_CURVE_LOW", 28, AP_MotorsHeli, _rsc_curve_low, AP_MOTORS_HELI_RSC_CURVE_LOW_DEFAULT),
 
     AP_GROUPEND
 };
@@ -842,9 +860,12 @@ bool AP_MotorsHeli::tail_rotor_runup_complete()
 // servo_out parameter is of the range 0 ~ 1000
 void AP_MotorsHeli::write_rsc_range(int16_t servo_out)
 {
-    _servo_rsc.servo_out = servo_out;
-    _servo_rsc.calc_pwm();
-    hal.rcout->write(AP_MOTORS_HELI_RSC, _servo_rsc.radio_out);
+    // convert servo_out (which is range of 0~1000) to a pwm value which is between _rsc_min and _rsc_max
+    int16_t pwm_out = _rsc_min + (int16_t)((float)(_rsc_max-_rsc_min) * (float)servo_out/1000.0f);
+    // sanity check result
+    pwm_out = constrain_int16(pwm_out, _rsc_min, _rsc_max);
+    // write output to servo
+    hal.rcout->write(AP_MOTORS_HELI_RSC, pwm_out);
 }
 
 // write_aux - outputs pwm onto output aux channel (ch7)
