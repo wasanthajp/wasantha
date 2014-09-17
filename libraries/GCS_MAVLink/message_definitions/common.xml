@@ -1115,6 +1115,17 @@
                     <description>Point toward of given id.</description>
                </entry>
           </enum>
+          <enum name="PARACHUTE_ACTION">
+               <entry name="PARACHUTE_DISABLE" value="0">
+                    <description>Disable parachute release</description>
+               </entry>
+               <entry name="PARACHUTE_ENABLE" value="1">
+                    <description>Enable parachute release</description>
+               </entry>
+               <entry name="PARACHUTE_RELEASE" value="2">
+                    <description>Release parachute</description>
+               </entry>
+          </enum>
           <enum name="MAV_CMD_ACK">
                <description>ACK / NACK / ERROR values as a result of MAV_CMDs and for mission item transmission.</description>
                <entry name="MAV_CMD_ACK_OK">
