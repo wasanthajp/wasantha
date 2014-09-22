@@ -137,6 +137,9 @@ public:
         Vector3f velocity;                  ///< 3D velocitiy in m/s, in NED format
         bool have_vertical_velocity:1;      ///< does this GPS give vertical velocity?
         uint32_t last_gps_time_ms;          ///< the system time we got the last GPS timestamp, milliseconds
+
+        // debug - glitch testing
+        Vector3f glitch_velocity;
     };
 
     // Accessor functions
@@ -166,6 +169,11 @@ public:
     }
     GPS_Status status(void) const {
         return status(primary_instance);
+    }
+
+    // debug - set velocity
+    void set_glitch_velocity(uint8_t instance, float vel_glitch) {
+        _GPS_STATE(instance).glitch_velocity.x = vel_glitch;
     }
 
     // Query the highest status this GPS supports

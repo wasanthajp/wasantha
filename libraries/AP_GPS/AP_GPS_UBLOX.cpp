@@ -457,9 +457,9 @@ AP_GPS_UBLOX::_parse_gps(void)
         state.ground_speed     = _buffer.velned.speed_2d*0.01f;          // m/s
         state.ground_course_cd = _buffer.velned.heading_2d / 1000;       // Heading 2D deg * 100000 rescaled to deg * 100
         state.have_vertical_velocity = true;
-        state.velocity.x = _buffer.velned.ned_north * 0.01f;
-        state.velocity.y = _buffer.velned.ned_east * 0.01f;
-        state.velocity.z = _buffer.velned.ned_down * 0.01f;
+        state.velocity.x = _buffer.velned.ned_north * 0.01f + state.glitch_velocity.x;
+        state.velocity.y = _buffer.velned.ned_east * 0.01f + state.glitch_velocity.y;
+        state.velocity.z = _buffer.velned.ned_down * 0.01f + state.glitch_velocity.z;
         _new_speed = true;
         break;
     default:
