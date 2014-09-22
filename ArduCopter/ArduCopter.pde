@@ -1248,6 +1248,16 @@ static void update_GPS(void)
     bool report_gps_glitch;
     bool gps_updated = false;
 
+    // pass on glitch
+    static uint8_t counter = 0;
+    counter++;
+    if (counter > 10) {
+        counter = 0;
+        float glitch_rate = (float)g.rc_6.control_in / 50;
+        gps.set_glitch_velocity(0, glitch_rate);
+        cliSerial->printf_P(PSTR("\nGPSVel: %4.2f"),(float)glitch_rate);
+    }
+
     gps.update();
 
     // logging and glitch protection run after every gps message
