@@ -725,6 +725,7 @@ void SITL_State::_update_gps(double latitude, double longitude, float altitude,
 	struct gps_data d;
 	char c;
     Vector3f glitch_offsets = _sitl->gps_glitch;
+    Vector3f glitch_rate = _sitl->gps_glitch_rate;
 
     //Capture current position as basestation location for 
     if (!_gps_has_basestation_position) {
@@ -759,9 +760,9 @@ void SITL_State::_update_gps(double latitude, double longitude, float altitude,
 	d.latitude = latitude + glitch_offsets.x;
 	d.longitude = longitude + glitch_offsets.y;
 	d.altitude = altitude + glitch_offsets.z;
-	d.speedN = speedN;
-	d.speedE = speedE;
-	d.speedD = speedD;
+	d.speedN = speedN + glitch_rate.x;
+	d.speedE = speedE + glitch_rate.y;
+	d.speedD = speedD + glitch_rate.z;
 	d.have_lock = have_lock;
 
 	// add in some GPS lag
