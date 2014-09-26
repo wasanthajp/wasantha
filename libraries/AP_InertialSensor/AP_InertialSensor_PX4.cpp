@@ -163,6 +163,14 @@ bool AP_InertialSensor_PX4::update(void)
         _accel[k].y *= _accel_scale[k].get().y;
         _accel[k].z *= _accel_scale[k].get().z;
         _accel[k]   -= _accel_offset[k];
+
+        // debug
+        if (_crazy && k==0) {
+            float temp = _accel[k].y;
+            _accel[k].x *= 8.0f;
+            _accel[k].y = _accel[k].z * 8.0f;
+            _accel[k].z = temp * 8.0f;
+        }
     }
 
     for (uint8_t k=0; k<_num_gyro_instances; k++) {

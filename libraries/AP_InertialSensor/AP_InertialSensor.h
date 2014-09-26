@@ -174,6 +174,9 @@ public:
 
     virtual uint8_t get_primary_accel(void) const { return 0; }
 
+    // debug - make accels go crazy
+    void go_crazy(bool b) { _crazy = b; }
+
 protected:
 
     virtual uint8_t _get_primary_gyro(void) const { return 0; }
@@ -224,6 +227,9 @@ protected:
 
     // board orientation from AHRS
     enum Rotation			_board_orientation;
+
+    // debug
+    bool _crazy;
 };
 
 #include "AP_InertialSensor_Oilpan.h"

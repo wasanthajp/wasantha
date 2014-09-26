@@ -1214,6 +1214,14 @@ static void one_hz_loop()
 #if AP_TERRAIN_AVAILABLE
     terrain.update();
 #endif
+
+    // debug
+    if (g.rc_6.control_in > 500) {
+        ins.go_crazy(true);
+        cliSerial->printf_P(PSTR("\ncrazy"));
+    } else {
+        ins.go_crazy(false);
+    }
 }
 
 // called at 100hz but data from sensor only arrives at 20 Hz
