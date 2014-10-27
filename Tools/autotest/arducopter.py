@@ -132,6 +132,85 @@ def change_alt(mavproxy, mav, alt_min, climb_throttle=1920, descend_throttle=108
     return True
 
 # fly a square in stabilize mode
+def fly_acro_flip(mavproxy, mav):
+    '''perform a back-flip but recover in stabilize mode'''
+    tstart = time.time()
+    failed = False
+
+    # ensure all sticks in the middle
+    mavproxy.send('rc 1 1500\n')
+    mavproxy.send('rc 2 1500\n')
+    mavproxy.send('rc 3 1500\n')
+    mavproxy.send('rc 4 1500\n')
+
+    # disable ACRO_TRAINER
+    mavproxy.send('param set ACRO_TRAINER 1\n')
+    mavproxy.send('param set ACRO_RP_P 9\n')
+    mavproxy.send('param set ATC_RATE_RP_MAX 250000\n')
+    mavproxy.send('param set ATC_RATE_Y_MAX 180000\n')
+    mavproxy.send('param set PILOT_VELZ_MAX 500\n')
+
+    for pitch_target in [0, 0, 0]:
+        # display target
+        print("testing back flip to %s degrees" % pitch_target)
+
+        # switch to loiter mode temporarily to stop us from rising
+        mavproxy.send('LOITER\n')
+        wait_mode(mav, 'LOITER')
+
+        # climb to 100m
+        print("climb to 100m")
+        mavproxy.send('rc 3 2000\n')
+        if not wait_altitude(mav, 200, 2000, 90):
+            return False
+
+        # move throttle back to mid
+        mavproxy.send('rc 3 1500\n')
+        mav.recv_match(condition='RC_CHANNELS_RAW.chan3_raw==1500', blocking=True)
+
+        # switch to ACRO
+        print("switch to ACRO")
+        mavproxy.send('ACRO\n')
+        wait_mode(mav, 'ACRO')
+
+        # start flip backwards
+        mavproxy.send('rc 2 1700\n')
+
+        # wait until we become inverted
+        if not wait_roll(mav, 180, 20, 5):
+            print ("Failed to reach roll:180 degrees while flipping")
+
+        # wait until become un-inverted
+        if not wait_roll(mav, 0, 20, 5):
+            print ("Failed to reach roll:0 degrees while flipping")
+
+        # wait until we reach pitch target
+        if not wait_pitch(mav, pitch_target, 10, 5):
+            print ("Failed to reach %u pitch while flipping" % pitch_target)
+
+        # re-center pitch stick
+        mavproxy.send('rc 2 1500\n')
+        mav.recv_match(condition='RC_CHANNELS_RAW.chan2_raw==1500', blocking=True)
+
+        # switch back to stabilize mode
+        mavproxy.send('STABILIZE\n')
+        wait_mode(mav, 'STABILIZE')
+
+        # wait for recovery in roll and pitch
+        if not wait_roll(mav, 0, 10, 5):
+             print ("Failed to recover roll")
+        if not wait_pitch(mav, 0, 10, 5):
+             print ("Failed to recover pitch")
+
+        # wait for an additional 5 seconds
+        tstart = time.time()
+        while time.time() < tstart + 5:
+            m = mav.recv_match(type='VFR_HUD', blocking=True)
+
+    # return success
+    return not failed
+
+# fly a square in stabilize mode
 def fly_square(mavproxy, mav, side=50, timeout=120):
     '''fly a square, flying N then E'''
     tstart = time.time()
@@ -989,6 +1068,21 @@ def fly_ArduCopter(viewerip=None, map=False):
             print(failed_test_msg)
             failed = True
 
+        print("# Acro back-flip")
+        if not fly_acro_flip(mavproxy, mav):
+            failed_test_msg = "acro backflip failed"
+            print(failed_test_msg)
+            failed = True
+
+        # RTL
+        print("#")
+        print("########## Test RTL ##########")
+        print("#")
+        if not fly_RTL(mavproxy, mav):
+            failed_test_msg = "fly_RTL failed"
+            print(failed_test_msg)
+            failed = True
+        '''
         # Fly a square in Stabilize mode
         print("#")
         print("########## Fly a square and save WPs with CH7 switch ##########")
@@ -1233,6 +1327,7 @@ def fly_ArduCopter(viewerip=None, map=False):
         else:
             print("Flew copter mission OK")
 
+        '''
         if not log_download(mavproxy, mav, util.reltopdir("../buildlogs/ArduCopter-log.bin")):
             failed_test_msg = "log_download failed"
             print(failed_test_msg)
