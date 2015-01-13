@@ -7,6 +7,9 @@
 // acro_init - initialise acro controller
 static bool acro_init(bool ignore_checks)
 {
+    // desired climb rate not supported in acro so set to zero
+    set_desired_climb_rate(0);
+
     // always successfully enter acro
     return true;
 }

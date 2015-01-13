@@ -164,6 +164,7 @@ static void guided_run()
         attitude_control.relax_bf_rate_controller();
         attitude_control.set_yaw_target_to_current_heading();
         attitude_control.set_throttle_out(0, false);
+        set_desired_climb_rate(0);
         // To-Do: handle take-offs - these may not only be immediately after auto_armed becomes true
         return;
     }
@@ -190,6 +191,13 @@ static void guided_run()
         // run position-velocity controller
         guided_posvel_control_run();
         break;
+    }
+
+    // record desired climb rate for all guided modes
+    if (pos_control.is_active_z()) {
+        set_desired_climb_rate(pos_control.get_vel_target().z);
+    } else {
+        set_desired_climb_rate(0);
     }
  }
 

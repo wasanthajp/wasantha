@@ -87,6 +87,9 @@ static bool flip_init(bool ignore_checks)
     flip_orig_attitude.y = constrain_float(ahrs.pitch_sensor, -aparm.angle_max, aparm.angle_max);
     flip_orig_attitude.z = ahrs.yaw_sensor;
 
+    // desired climb rate is not supported in drift to set to zero
+    set_desired_climb_rate(0);
+
     return true;
 }
 

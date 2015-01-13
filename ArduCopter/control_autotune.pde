@@ -212,7 +212,6 @@ static void autotune_run()
 {
     int16_t target_roll, target_pitch;
     float target_yaw_rate;
-    int16_t target_climb_rate;
 
     // if not auto armed set throttle to zero and exit immediately
     // this should not actually be possible because of the autotune_init() checks
@@ -221,6 +220,7 @@ static void autotune_run()
         attitude_control.set_yaw_target_to_current_heading();
         attitude_control.set_throttle_out(0, false);
         pos_control.set_alt_target_to_current_alt();
+        set_desired_climb_rate(0);
         return;
     }
 
@@ -234,10 +234,10 @@ static void autotune_run()
     target_yaw_rate = get_pilot_desired_yaw_rate(g.rc_4.control_in);
 
     // get pilot desired climb rate
-    target_climb_rate = get_pilot_desired_climb_rate(g.rc_3.control_in);
+    desired_climb_rate = get_pilot_desired_climb_rate(g.rc_3.control_in);
 
     // check for pilot requested take-off - this should not actually be possible because of autotune_init() checks
-    if (ap.land_complete && target_climb_rate > 0) {
+    if (ap.land_complete && desired_climb_rate > 0) {
         // indicate we are taking off
         set_land_complete(false);
         // clear i term when we're taking off
@@ -253,7 +253,7 @@ static void autotune_run()
         pos_control.set_alt_target_to_current_alt();
     }else{
         // check if pilot is overriding the controls
-        if (target_roll != 0 || target_pitch != 0 || target_yaw_rate != 0.0f || target_climb_rate != 0) {
+        if (target_roll != 0 || target_pitch != 0 || target_yaw_rate != 0.0f || desired_climb_rate != 0) {
             if (!autotune_state.pilot_override) {
                 autotune_state.pilot_override = true;
                 // set gains to their original values
@@ -281,7 +281,7 @@ static void autotune_run()
         }
 
         // call position controller
-        pos_control.set_alt_target_from_climb_rate(target_climb_rate, G_Dt);
+        pos_control.set_alt_target_from_climb_rate(desired_climb_rate, G_Dt);
         pos_control.update_z_controller();
     }
 }

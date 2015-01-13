@@ -27,6 +27,8 @@
 static bool drift_init(bool ignore_checks)
 {
     if (GPS_ok() || ignore_checks) {
+        // desired climb rate is not supported in drift to set to zero
+        set_desired_climb_rate(0);
         return true;
     }else{
         return false;

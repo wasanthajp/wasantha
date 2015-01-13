@@ -86,6 +86,13 @@ static void auto_run()
         auto_loiter_run();
         break;
     }
+
+    // record desired climb rate for all auto modes
+    if (pos_control.is_active_z()) {
+        set_desired_climb_rate(pos_control.get_vel_target().z);
+    } else {
+        set_desired_climb_rate(0);
+    }
 }
 
 // auto_takeoff_start - initialises waypoint controller to implement take-off

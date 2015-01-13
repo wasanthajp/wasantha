@@ -11,6 +11,9 @@ static bool stabilize_init(bool ignore_checks)
     // To-Do: make pos controller aware when it's active/inactive so it can always report the altitude error?
     pos_control.set_alt_target(0);
 
+    // desired climb rate not supported in stabilize so set to zero
+    set_desired_climb_rate(0);
+
     // stabilize should never be made to fail
     return true;
 }

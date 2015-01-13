@@ -42,6 +42,13 @@ static void land_run()
     }else{
         land_nogps_run();
     }
+
+    // record desired climb rate for all guided modes
+    if (pos_control.is_active_z()) {
+        set_desired_climb_rate(pos_control.get_vel_target().z);
+    } else {
+        set_desired_climb_rate(0);
+    }
 }
 
 // land_run - runs the land controller

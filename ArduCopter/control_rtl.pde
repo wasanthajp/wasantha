@@ -70,6 +70,13 @@ static void rtl_run()
         rtl_land_run();
         break;
     }
+
+    // record desired climb rate for all RTL states
+    if (pos_control.is_active_z()) {
+        set_desired_climb_rate(pos_control.get_vel_target().z);
+    } else {
+        set_desired_climb_rate(0);
+    }
 }
 
 // rtl_climb_start - initialise climb to RTL altitude

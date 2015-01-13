@@ -30,7 +30,6 @@ static bool circle_init(bool ignore_checks)
 static void circle_run()
 {
     float target_yaw_rate = 0;
-    float target_climb_rate = 0;
 
     // if not auto armed set throttle to zero and exit immediately
     if(!ap.auto_armed || ap.land_complete) {
@@ -39,6 +38,7 @@ static void circle_run()
         attitude_control.set_yaw_target_to_current_heading();
         attitude_control.set_throttle_out(0, false);
         pos_control.set_alt_target_to_current_alt();
+        set_desired_climb_rate(0);
         return;
     }
 
@@ -51,10 +51,10 @@ static void circle_run()
         }
 
         // get pilot desired climb rate
-        target_climb_rate = get_pilot_desired_climb_rate(g.rc_3.control_in);
+        desired_climb_rate = get_pilot_desired_climb_rate(g.rc_3.control_in);
 
         // check for pilot requested take-off
-        if (ap.land_complete && target_climb_rate > 0) {
+        if (ap.land_complete && desired_climb_rate > 0) {
             // indicate we are taking off
             set_land_complete(false);
             // clear i term when we're taking off
@@ -75,9 +75,9 @@ static void circle_run()
     // run altitude controller
     if (sonar_alt_health >= SONAR_ALT_HEALTH_MAX) {
         // if sonar is ok, use surface tracking
-        target_climb_rate = get_throttle_surface_tracking(target_climb_rate, pos_control.get_alt_target(), G_Dt);
+        desired_climb_rate = get_throttle_surface_tracking(desired_climb_rate, pos_control.get_alt_target(), G_Dt);
     }
     // update altitude target and call position controller
-    pos_control.set_alt_target_from_climb_rate(target_climb_rate, G_Dt);
+    pos_control.set_alt_target_from_climb_rate(desired_climb_rate, G_Dt);
     pos_control.update_z_controller();
 }
