@@ -183,10 +183,13 @@ static int16_t get_pilot_desired_climb_rate(int16_t throttle_control)
         desired_rate = 0;
     }
 
-    // desired climb rate for logging
-    desired_climb_rate = desired_rate;
-
     return desired_rate;
+}
+
+// set_pilot_desired_climb_rate - sets desired climb rate for landing_detection and logging
+static void set_desired_climb_rate(int16_t rate_cms)
+{
+    desired_climb_rate = rate_cms;
 }
 
 // get_non_takeoff_throttle - a throttle somewhere between min and mid throttle which should not lead to a takeoff
