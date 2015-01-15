@@ -1619,6 +1619,10 @@ static void tuning(){
     case CH6_RATE_ROLL_KD:
         g.pid_rate_roll.kD(tuning_value);
         break;
+
+    case CH6_MOTOR_FAIL_PCT:
+        motors.set_motor_fail_pct(g.rc_6.control_in / 10);
+        break;
     }
 }
 
