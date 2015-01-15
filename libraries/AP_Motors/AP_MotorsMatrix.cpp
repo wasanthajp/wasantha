@@ -326,6 +326,11 @@ void AP_MotorsMatrix::output_armed()
         }
     }
 
+    // check for simulated motor failure
+    if ((_motor_fail_number > 0) && (_motor_fail_number < AP_MOTORS_MAX_NUM_MOTORS) && (_motor_fail_percent < 100)) {
+        motor_out[_motor_fail_number-1] = _rc_throttle.radio_min + ((motor_out[_motor_fail_number-1] - _rc_throttle.radio_min) * ((float)_motor_fail_percent/100.0f));
+    }
+
     // send output to each motor
     for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
         if( motor_enabled[i] ) {

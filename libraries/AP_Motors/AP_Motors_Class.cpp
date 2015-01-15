@@ -67,6 +67,20 @@ const AP_Param::GroupInfo AP_Motors::var_info[] PROGMEM = {
     // @User: Standard
     AP_GROUPINFO("SPIN_ARMED", 5, AP_Motors, _spin_when_armed, AP_MOTORS_SPIN_WHEN_ARMED),
 
+    // @Param: FAIL_NUM
+    // @DisplayName: Motor Fail Number
+    // @Description: Controls which motor will slow when simulating a motor-failure
+    // @Range: 1 8
+    // @User: Advanced
+    AP_GROUPINFO("FAIL_NUM", 30, AP_Motors, _motor_fail_number, 0),
+
+    // @Param: FAIL_PCT
+    // @DisplayName: Motor Fail Percentage
+    // @Description: Controls how much slow (as a percentage of it's regular speed) the failed motor will run (0 = stopped, 100 = normal)
+    // @Values: 0:Stopped, 10:10, 20:20, 30:30, 40:40, 50:Half Speed, 60:60, 70:70, 80:80, 90:90, 100:NormalSpeed
+    // @User: Advanced
+    AP_GROUPINFO("FAIL_PCT", 31, AP_Motors, _motor_fail_percent, 100),
+
     AP_GROUPEND
 };
 
@@ -190,6 +204,19 @@ void AP_Motors::slow_start(bool true_false)
 
     // initialise maximum throttle to current throttle
     _max_throttle = constrain_int16(_rc_throttle.servo_out, 0, AP_MOTORS_DEFAULT_MAX_THROTTLE);
+}
+
+// set_motor_fail_pct - controls how much slow (as a percentage of it's regular speed) the failed motor will run (0 = stopped, 100 = normal)
+void AP_Motors::set_motor_fail_pct(uint8_t fail_pct)
+{
+    // sanity check fail pct
+    if (fail_pct < 0) {
+        fail_pct = 0;
+    }
+    if (fail_pct > 100) {
+        fail_pct = 100;
+    }
+    _motor_fail_percent = fail_pct;
 }
 
 // update_max_throttle - updates the limits on _max_throttle if necessary taking into account slow_start_throttle flag

@@ -141,6 +141,9 @@ public:
     //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
     virtual uint16_t    get_motor_mask() = 0;
 
+    // set_motor_fail_pct - controls how much slow (as a percentage of it's regular speed) the failed motor will run (0 = stopped, 100 = normal)
+    void                set_motor_fail_pct(uint8_t fail_pct);
+
     // structure for holding motor limit flags
     struct AP_Motors_limit {
         uint8_t roll_pitch      : 1; // we have reached roll or pitch limit
@@ -167,6 +170,7 @@ protected:
         uint8_t frame_orientation   : 4;    // PLUS_FRAME 0, X_FRAME 1, V_FRAME 2, H_FRAME 3, NEW_PLUS_FRAME 10, NEW_X_FRAME, NEW_V_FRAME, NEW_H_FRAME
         uint8_t slow_start          : 1;    // 1 if slow start is active
         uint8_t slow_start_low_end  : 1;    // 1 just after arming so we can ramp up the spin_when_armed value
+        uint8_t motor_fail          : 1;    // 1 when a simulated motor-failure is invoked
     } _flags;
 
     // mapping of motor number (as received from upper APM code) to RC channel output - used to account for differences between APM1 and APM2
@@ -178,6 +182,8 @@ protected:
     AP_Int8             _throttle_curve_mid;    // throttle which produces 1/2 the maximum thrust.  expressed as a percentage (i.e. 0 ~ 100 ) of the full throttle range
     AP_Int8             _throttle_curve_max;    // throttle which produces the maximum thrust.  expressed as a percentage (i.e. 0 ~ 100 ) of the full throttle range
     AP_Int16            _spin_when_armed;       // used to control whether the motors always spin when armed.  pwm value above radio_min
+    AP_Int8             _motor_fail_number;     // Controls which motor will slow when simulating a motor-failure
+    AP_Int8             _motor_fail_percent;    // Controls how much slow (as a percentage of it's regular speed) the failed motor will run (0 = stopped, 100 = normal)
 
     // internal variables
     RC_Channel&         _rc_roll;               // roll input in from users is held in servo_out
