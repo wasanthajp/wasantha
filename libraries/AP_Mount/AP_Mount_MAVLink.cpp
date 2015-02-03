@@ -13,7 +13,8 @@
 AP_Mount_MAVLink::AP_Mount_MAVLink(AP_Mount &frontend, AP_Mount::mount_state &state, uint8_t instance) :
     AP_Mount_Backend(frontend, state, instance),
     _initialised(false),
-    _ekf(frontend._ahrs)
+    _ekf(frontend._ahrs),
+    yawRateDem(0.0f)
 {}
 
 // init - performs any required initialisation for this instance
@@ -160,6 +161,13 @@ void AP_Mount_MAVLink::handle_gimbal_report(mavlink_channel_t chan, mavlink_mess
                                     msg->compid,
                                     rateDemand.x, rateDemand.y, rateDemand.z, // demanded rates
                                     gyroBias.x, gyroBias.y, gyroBias.z);
+
+    // calculate a yaw rate demand for the copter
+    // calculate the sensor to NED cosine matrix and use the last row to calcuate the earth frame z component
+    Matrix3f Tsn;
+    quatEst.rotation_matrix(Tsn);
+    yawRateDem = Tsn.c.x * rateDemand.x + Tsn.c.y * rateDemand.y + Tsn.c.z * rateDemand.z;
+
 }
 
 /*
@@ -189,5 +197,12 @@ void AP_Mount_MAVLink::send_gimbal_report(mavlink_channel_t chan)
              (velocity.x), (velocity.y), (velocity.z));
 #endif
 }
+
+// provide a vehicle yaw rate demand
+float AP_Mount_MAVLink::vehicleYawRateDemand(void)
+{
+    return yawRateDem;
+}
+
 
 #endif // AP_AHRS_NAVEKF_AVAILABLE

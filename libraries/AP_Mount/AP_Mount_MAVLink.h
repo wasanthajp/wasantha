@@ -47,6 +47,9 @@ public:
     // send a GIMBAL_REPORT message to the GCS
     virtual void send_gimbal_report(mavlink_channel_t chan);
 
+    // provide a vehicle yaw rate demand
+    virtual float vehicleYawRateDemand(void);
+
 private:
     // internal variables
     bool _initialised;              // true once the driver has been initialised
@@ -56,6 +59,9 @@ private:
 
     // keep last gimbal report
     mavlink_gimbal_report_t _gimbal_report;
+
+    // vehicle yaw rate demand
+    float yawRateDem;
 };
 #endif // AP_AHRS_NAVEKF_AVAILABLE
 
