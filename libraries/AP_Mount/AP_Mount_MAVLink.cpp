@@ -132,6 +132,9 @@ void AP_Mount_MAVLink::handle_gimbal_report(mavlink_channel_t chan, mavlink_mess
     float scaler = 1.0f-quatErr[0]*quatErr[0];
     if (scaler > 1e-12) {
         scaler = 1.0f/sqrtf(scaler);
+        if (quatErr[0] < 0.0f) {
+            scaler *= -1.0f;
+        }
         deltaAngErr.x = quatErr[1] * scaler;
         deltaAngErr.y = quatErr[2] * scaler;
         deltaAngErr.z = quatErr[3] * scaler;
