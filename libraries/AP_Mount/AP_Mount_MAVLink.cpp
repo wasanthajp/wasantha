@@ -145,6 +145,9 @@ void AP_Mount_MAVLink::handle_gimbal_report(mavlink_channel_t chan, mavlink_mess
     // multiply the angle error vector by a gain to calculate a demanded gimbal rate
     Vector3f rateDemand = deltaAngErr * 1.0f;
 
+    // zero the rate demand if the EKF has not completed alignment
+    if (!_ekf.getStatus()) rateDemand.zero();
+
     // Constrain the demanded rate to a length of 0.5 rad /sec
     float length = rateDemand.length();
     if (length > 0.5f) {
