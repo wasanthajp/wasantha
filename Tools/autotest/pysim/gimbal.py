@@ -217,8 +217,9 @@ class Gimbal3Axis(object):
         if now - self.last_print_t >= 1.0:
             self.last_print_t = now
             # calculate joint angles (euler312 order)
-            Euler312 = Vector3(*self.dcm.to_euler312())
-            print("Euler Angles 312 %6.1f %6.1f %6.1f" % (degrees(Euler312.z), degrees(Euler312.x), degrees(Euler312.y)))
+            #Euler312 = Vector3(*self.dcm.to_euler312())
+            #print("Euler Angles 312 %6.1f %6.1f %6.1f" % (degrees(Euler312.z), degrees(Euler312.x), degrees(Euler312.y)))
+            print('ekf_gyro_bias ', self.supplied_gyro_bias*degrees(1))
 
     def send_report(self):
         '''send a report to the vehicle control code over MAVLink'''
