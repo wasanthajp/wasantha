@@ -908,4 +908,10 @@ void SmallEKF::getQuat(Quaternion &quat) const
     quat = state.quat;
 }
 
+// get filter status - true is aligned
+bool SmallEKF::getStatus() const
+{
+    return YawAligned;
+}
+
 #endif // HAL_CPU_CLASS
