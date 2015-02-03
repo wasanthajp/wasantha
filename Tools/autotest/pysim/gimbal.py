@@ -96,7 +96,7 @@ class Gimbal3Axis(object):
             self.dcm = self.vehicle.dcm.copy()
 
         # take a copy of the demanded rates to bypass the limiter function for testing
-        demRateRaw = self.demanded_angular_rate
+        # demRateRaw = self.demanded_angular_rate
 
         # 1)  Rotate the copters rotation rates into the gimbals frame of reference
         # copterAngRate_G = transpose(DCMgimbal)*DCMcopter*copterAngRate
@@ -184,7 +184,8 @@ class Gimbal3Axis(object):
         #    print("demandedGimbalRatesInertial ", demandedGimbalRatesInertial)
             
         # for the moment we will set gyros equal to demanded_angular_rate
-        self.gimbal_angular_rate = demRateRaw  + self.true_gyro_bias - self.supplied_gyro_bias #demandedGimbalRatesInertial + self.true_gyro_bias - self.supplied_gyro_bias
+        self.gimbal_angular_rate = demandedGimbalRatesInertial + self.true_gyro_bias - self.supplied_gyro_bias
+        #self.gimbal_angular_rate = demRateRaw  + self.true_gyro_bias - self.supplied_gyro_bias
 
         # update rotation of the gimbal
         self.dcm.rotate(self.gimbal_angular_rate*delta_t)
