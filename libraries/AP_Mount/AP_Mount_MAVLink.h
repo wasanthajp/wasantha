@@ -62,6 +62,16 @@ private:
 
     // vehicle yaw rate demand
     float yawRateDem;
+
+    // gain from angle error to gimbal rate demand
+    float const K_gimbalRate = 1.0f;
+
+    // gain from angle error to vehicle yaw rate demand
+    float const K_vehicleRate = 1.0f;
+
+    // maximum gimbal anglular rate in rad/sec
+    float const angRatelimit = 0.5f;
+
 };
 #endif // AP_AHRS_NAVEKF_AVAILABLE
 

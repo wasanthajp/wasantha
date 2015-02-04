@@ -144,14 +144,14 @@ void AP_Mount_MAVLink::handle_gimbal_report(mavlink_channel_t chan, mavlink_mess
     }
 
     // multiply the angle error vector by a gain to calculate a demanded gimbal rate
-    Vector3f rateDemand = deltaAngErr * 1.0f;
+    Vector3f rateDemand = deltaAngErr * K_gimbalRate;
 
     // zero the rate demand if the EKF has not completed alignment
     if (!_ekf.getStatus()) rateDemand.zero();
 
     // Constrain the demanded rate to a length of 0.5 rad /sec
     float length = rateDemand.length();
-    if (length > 0.5f) {
+    if (length > angRatelimit) {
         rateDemand = rateDemand * (0.5f / length);
     }
 
@@ -162,11 +162,14 @@ void AP_Mount_MAVLink::handle_gimbal_report(mavlink_channel_t chan, mavlink_mess
                                     rateDemand.x, rateDemand.y, rateDemand.z, // demanded rates
                                     gyroBias.x, gyroBias.y, gyroBias.z);
 
-    // calculate a yaw rate demand for the copter
     // calculate the sensor to NED cosine matrix and use the last row to calcuate the earth frame z component
+    // this is the vehicle yaw rate required to keep the vehicle and gimbal rotating at the same rate
     Matrix3f Tsn;
     quatEst.rotation_matrix(Tsn);
     yawRateDem = Tsn.c.x * rateDemand.x + Tsn.c.y * rateDemand.y + Tsn.c.z * rateDemand.z;
+
+    // cprrect the vehicle yaw rate demand to keep the yaw gimbal joint centred
+    yawRateDem += _gimbal_report.joint_yaw * K_vehicleRate;
 
 }
 
