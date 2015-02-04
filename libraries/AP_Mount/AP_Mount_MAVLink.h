@@ -72,6 +72,9 @@ private:
     // maximum gimbal anglular rate in rad/sec
     float const angRatelimit = 0.5f;
 
+    // gimbal yaw offset relative to vehicle reference frame in radians, used to centre relative to visual or mechanical limits
+    float const gimbalYawOffset = 0.03f;
+
 };
 #endif // AP_AHRS_NAVEKF_AVAILABLE
 

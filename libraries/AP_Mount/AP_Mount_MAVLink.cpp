@@ -168,8 +168,8 @@ void AP_Mount_MAVLink::handle_gimbal_report(mavlink_channel_t chan, mavlink_mess
     quatEst.rotation_matrix(Tsn);
     yawRateDem = Tsn.c.x * rateDemand.x + Tsn.c.y * rateDemand.y + Tsn.c.z * rateDemand.z;
 
-    // cprrect the vehicle yaw rate demand to keep the yaw gimbal joint centred
-    yawRateDem += _gimbal_report.joint_yaw * K_vehicleRate;
+    // correct the vehicle yaw rate demand to keep the yaw gimbal joint centred relative to mechanical and visual limits
+    yawRateDem += (_gimbal_report.joint_yaw - gimbalYawOffset) * K_vehicleRate;
 
 }
 
