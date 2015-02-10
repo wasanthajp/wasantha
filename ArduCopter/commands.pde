@@ -106,6 +106,11 @@ static bool set_home(const Location& loc)
         }
     }
 
+    // debug
+    cliSerial->printf_P(PSTR("home: %ld %ld %ld f:%x|"),(long)loc.lat,(long)loc.lng,(long)loc.alt,(int)loc.flags.relative_alt);
+    Location orig_loc = inertial_nav.get_origin();
+    cliSerial->printf_P(PSTR("orig: %ld %ld %ld f:%x|"),(long)orig_loc.lat,(long)orig_loc.lng,(long)orig_loc.alt,(int)orig_loc.flags.relative_alt);
+
     // return success
     return true;
 }
