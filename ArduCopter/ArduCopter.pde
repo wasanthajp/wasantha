@@ -381,6 +381,7 @@ static union {
         uint8_t system_time_set     : 1; // 20  // true if the system time has been set from the GPS
         uint8_t gps_base_pos_set    : 1; // 21  // true when the gps base position has been set (used for RTK gps only)
         enum HomeState home_state   : 2; // 22,23 - home status (unset, set, locked)
+        uint8_t land_repo_active    : 1; // 24  // true if pilot has applied roll or pitch inputs during landing (used to disable automatic precision landing)
     };
     uint32_t value;
 } ap;
