@@ -314,7 +314,8 @@ public:
         k_param_pid_throttle_accel,
         k_param_acro_balance_roll,
         k_param_acro_balance_pitch,
-        k_param_acro_yaw_p, // 244
+        k_param_acro_yaw_p,
+        k_param_pid_precland,   // 245
 
         // 254,255: reserved
     };
@@ -462,6 +463,8 @@ public:
     AC_P                    p_stabilize_yaw;
     AC_P                    p_alt_hold;
 
+    AC_PID                  pid_precland;
+
     // Note: keep initializers here in the same order as they are declared
     // above.
     Parameters() :
@@ -514,6 +517,8 @@ public:
 
         p_throttle_rate         (THROTTLE_RATE_P),
         pid_throttle_accel      (THROTTLE_ACCEL_P,      THROTTLE_ACCEL_I,       THROTTLE_ACCEL_D,       THROTTLE_ACCEL_IMAX),
+
+        pid_precland            (PRECLAND_P,            PRECLAND_I,             PRECLAND_D,             PRECLAND_IMAX),
 
         // P controller	        initial P
         //----------------------------------------------------------------------
