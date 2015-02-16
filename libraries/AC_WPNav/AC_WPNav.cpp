@@ -142,6 +142,24 @@ void AC_WPNav::init_loiter_target(const Vector3f& position, bool reset_I)
     _pilot_accel_rgt_cms = 0;
 }
 
+/// shift_loiter_target - shifts the loiter target by the given pos_adjustment
+///     used by precision landing to adjust horizontal position target
+void AC_WPNav::shift_loiter_target(const Vector3f &pos_adjustment)
+{
+    Vector3f new_target = _pos_control.get_pos_target() + pos_adjustment;
+
+    // move pos controller target
+    _pos_control.set_pos_target(new_target);
+
+    // disable feed forward
+    if (fabs(pos_adjustment.x) > 0.0f || fabs(pos_adjustment.y) > 0.0f) {
+        _pos_control.freeze_ff_xy();
+    }
+    if (fabs(pos_adjustment.z) > 0.0f) {
+        _pos_control.freeze_ff_z();
+    }
+}
+
 /// init_loiter_target - initialize's loiter position and feed-forward velocity from current pos and velocity
 void AC_WPNav::init_loiter_target()
 {
