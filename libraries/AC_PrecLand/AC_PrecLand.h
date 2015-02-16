@@ -1,6 +1,6 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
-#ifndef AC_PRECLAND_H
-#define AC_PRECLAND_H
+#ifndef __AC_PRECLAND_H__
+#define __AC_PRECLAND_H__
 
 #include <AP_Common.h>
 #include <AP_Math.h>
@@ -9,6 +9,10 @@
 
 // definitions
 #define AC_PRECLAND_SPEED_XY_DEFAULT            100.0f  // maximum horizontal speed
+#define PRECLAND_P                              2.0f    // velocity controller P gain default
+#define PRECLAND_I                              1.0f    // velocity controller I gain default
+#define PRECLAND_D                              0.0f    // velocity controller D gain default
+#define PRECLAND_IMAX                         500.0f    // velocity controller IMAX default
 
 // declare backend classes
 class AC_PrecLand_Backend;
@@ -81,4 +85,4 @@ private:
     } _backend_state;
     AC_PrecLand_Backend         *_backend;  // pointers to backend precision landing driver
 };
-#endif	// AC_PRECLAND_H
+#endif	// __AC_PRECLAND_H__
