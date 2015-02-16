@@ -158,6 +158,9 @@
 #endif
 #include <AP_LandingGear.h>     // Landing Gear library
 #include <AP_Terrain.h>
+#if PRECISION_LANDING == ENABLED
+ #include <AC_PrecLand.h>
+#endif
 
 // AP_HAL to Arduino compatibility layer
 #include "compat.h"
