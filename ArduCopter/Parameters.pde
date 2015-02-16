@@ -730,6 +730,32 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Standard
     GGROUP(pid_accel_z, "ACCEL_Z_", AC_PID),
 
+    // @Param: PRECLNDVEL_P
+    // @DisplayName: Precision landing velocity controller P gain
+    // @Description: Precision landing velocity controller P gain
+    // @Range: 0.100 5.000
+    // @User: Advanced
+
+    // @Param: PRECLNDVEL_I
+    // @DisplayName: Precision landing velocity controller I gain
+    // @Description: Precision landing velocity controller I gain
+    // @Range: 0.100 5.000
+    // @User: Advanced
+
+    // @Param: PRECLNDVEL_IMAX
+    // @DisplayName: Precision landing velocity controller I gain maximum
+    // @Description: Precision landing velocity controller I gain maximum
+    // @Range: 0 1000
+    // @Units: cm/s
+    // @User: Standard
+
+    // @Param: PRECLNDVEL_D
+    // @DisplayName: Precision landing velocity controller D gain
+    // @Description: Precision landing velocity controller D gain
+    // @Range: 0.000 0.400
+    // @User: Standard
+    GGROUP(pid_precland,"PRECLNDVEL_", AC_PID),
+
     // P controllers
     //--------------
     // @Param: STB_RLL_P

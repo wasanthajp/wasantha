@@ -157,9 +157,6 @@
 #endif
 #include <AP_LandingGear.h>     // Landing Gear library
 #include <AP_Terrain.h>
-#if PRECISION_LANDING == ENABLED
- #include <AC_PrecLand.h>
-#endif
 
 // AP_HAL to Arduino compatibility layer
 #include "compat.h"
@@ -167,6 +164,10 @@
 #include "defines.h"
 #include "config.h"
 #include "config_channels.h"
+
+#if PRECISION_LANDING == ENABLED
+ #include <AC_PrecLand.h>
+#endif
 
 // key aircraft parameters passed to multiple libraries
 static AP_Vehicle::MultiCopter aparm;
@@ -688,6 +689,11 @@ static AP_LandingGear landinggear;
 #if AP_TERRAIN_AVAILABLE
 AP_Terrain terrain(ahrs, mission, rally);
 #endif
+
+////////////////////////////////////////////////////////////////////////////////
+// Precision Landing
+////////////////////////////////////////////////////////////////////////////////
+static AC_PrecLand precland(ahrs, inertial_nav, g.pid_precland, MAIN_LOOP_SECONDS);
 
 ////////////////////////////////////////////////////////////////////////////////
 // function definitions to keep compiler from complaining about undeclared functions
