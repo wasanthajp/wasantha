@@ -25,7 +25,12 @@
 
 #include "AP_AHRS.h"
 
-#define IRLOCK_MAX_BLOCKS_PER_FRAME 135
+#define IRLOCK_MAX_BLOCKS_PER_FRAME 135    // max number of blobs that can be detected by IR-LOCK sensor
+#define IRLOCK_CENTER_X  159               // the center x pixel value
+#define IRLOCK_CENTER_Y  99                // the center y pixel value
+#define IRLOCK_NOBLOB_FRAME 10             // the number of consecutive similar frames that will cause the sensor validity variable to turn false
+#define IRLOCK_X_PIXEL_PER_DEGREE 5.374f   // the x pixel to angle calibration variable
+#define IRLOCK_Y_PIXEL_PER_DEGREE 5.698f   // the y pixel to angle calibration variable
 
 struct _irlock_block {
 	uint16_t signature;
@@ -64,6 +69,18 @@ public:
 
 	// copies the current data frame
 	void get_current_frame(irlock_block data[IRLOCK_MAX_BLOCKS_PER_FRAME]) const;
+
+	// converts the irlock pixel value into the markers relative x position
+	int16_t irlock_center_x_to_pos(int16_t irlock_current_x, int32_t baro_alt);
+
+	// converts the irlock pixel value into the markers relative y position
+	int16_t irlock_center_y_to_pos(int16_t irlock_current_y, int32_t baro_alt);
+
+	// converts the markers relative x position into lat/lon coordinates
+	float irlock_xy_pos_to_lat(int16_t irlock_x_pos, int16_t irlock_y_pos);
+
+	// converts the markers relative y position into lat/lon coordinates
+	float irlock_xy_pos_to_lon(int16_t irlock_x_pos, int16_t irlock_y_pos);
 
 	// parameter var info table
 	static const struct AP_Param::GroupInfo var_info[];
