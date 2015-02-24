@@ -232,18 +232,8 @@ void AC_WPNav::calc_loiter_desired_velocity(float nav_dt, float ekfGndSpdLimit)
     desired_accel.x = (_pilot_accel_fwd_cms*_ahrs.cos_yaw() - _pilot_accel_rgt_cms*_ahrs.sin_yaw());
     desired_accel.y = (_pilot_accel_fwd_cms*_ahrs.sin_yaw() + _pilot_accel_rgt_cms*_ahrs.cos_yaw());
 
-    // calculate the difference
-    Vector2f des_accel_diff = (desired_accel - _loiter_desired_accel);
-
     // constrain and scale the desired acceleration
-    float des_accel_change_total = pythagorous2(des_accel_diff.x, des_accel_diff.y);
-    float accel_change_max = _loiter_jerk_max_cmsss * nav_dt;
-    if (des_accel_change_total > accel_change_max && des_accel_change_total > 0.0f) {
-        des_accel_diff.x = accel_change_max * des_accel_diff.x/des_accel_change_total;
-        des_accel_diff.y = accel_change_max * des_accel_diff.y/des_accel_change_total;
-    }
-    // adjust the desired acceleration
-    _loiter_desired_accel += des_accel_diff;
+    _loiter_desired_accel = constrain_vector2f(desired_accel, _loiter_desired_accel, _loiter_jerk_max_cmsss * nav_dt);
 
     // get pos_control's feed forward velocity
     Vector3f desired_vel = _pos_control.get_desired_velocity();
