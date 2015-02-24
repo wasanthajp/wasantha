@@ -266,7 +266,7 @@ void test_frame_transforms(void)
 // generate a random float between -1 and 1
 static float rand_num(void)
 {
-    float ret = ((unsigned)random()) % 2000000;
+    float ret = ((unsigned long)random()) % 2000000;
     return (ret - 1.0e6) / 1.0e6;
 }
 
@@ -309,6 +309,45 @@ void test_matrix_rotate(void)
     }
 }
 
+void test_constrain_vec(void)
+{
+    Vector2f prev_vec;
+    Vector2f new_vec;
+
+    float lim = 0.5f;
+
+    for (uint16_t i = 0; i<20; i++) {
+        // find random numbers for vector
+        new_vec.x = prev_vec.x + rand_num();
+        hal.scheduler->delay(1);
+        new_vec.y = prev_vec.y + rand_num();
+        hal.scheduler->delay(2);
+
+        // capture new_vec before being limited
+        Vector2f unlimited_new_vec = new_vec;
+
+        // constrain new_vec
+        bool limited = constrain_vector2f(new_vec, prev_vec, lim);
+
+        // calc movement for testing
+        Vector2f unlimited_new_prev_diff = unlimited_new_vec - prev_vec;
+        Vector2f limited_new_prev_diff = new_vec - prev_vec;
+
+        // display output
+        hal.console->printf("NewX:%4.2f Y:%4.2f  PrevX:%4.2f Y:%4.2f  LimNewX:%4.2f Y:%4.2f  DiffLen:%4.2f atan2 new/res:%4.2f/%4.2f Limited:%d\n",
+                (float)unlimited_new_vec.x,(float)unlimited_new_vec.y,
+                (float)prev_vec.x,(float)prev_vec.y,
+                (float)new_vec.x,(float)new_vec.y,
+                (float)limited_new_prev_diff.length(),
+                (float)degrees(atan2(unlimited_new_prev_diff.x,unlimited_new_prev_diff.y)),
+                (float)degrees(atan2(limited_new_prev_diff.x,limited_new_prev_diff.y)),
+                (int)limited);
+
+        // move vector
+        prev_vec = new_vec;
+    }
+}
+
 /*
  *  euler angle tests
  */
@@ -323,6 +362,7 @@ void setup(void)
     test_quaternion_eulers();
     test_matrix_eulers();
     test_matrix_rotate();
+    test_constrain_vec();
 }
 
 void loop(void){}
