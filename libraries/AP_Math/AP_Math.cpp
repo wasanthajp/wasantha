@@ -140,6 +140,35 @@ int16_t constrain_int16(int16_t amt, int16_t low, int16_t high) {
 int32_t constrain_int32(int32_t amt, int32_t low, int32_t high) {
 	return ((amt)<(low)?(low):((amt)>(high)?(high):(amt)));
 }
+// constrain a 2d float vector
+bool constrain_vector2f(Vector2f& vec, const Vector2f& prev_vec, float change_limit)
+{
+    // set vec to prev_vec if change_limit is zero
+    if (change_limit <= 0.0f) {
+        if (vec != prev_vec) {
+            vec = prev_vec;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // calc difference
+    Vector2f change_vec = vec - prev_vec;
+
+    // return false (i.e. no change) if change is within limits
+    float change_len = change_vec.length();
+    if (change_len <= change_limit) {
+        return false;
+    }
+
+    // scale difference to fit within change_limit
+    change_vec *= (change_limit / change_len);
+
+    // limit vector and return true (to indicate it was limited)
+    vec = (prev_vec + change_vec);
+    return true;
+}
 
 // degrees -> radians
 float radians(float deg) {
