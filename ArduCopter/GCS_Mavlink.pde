@@ -1570,6 +1570,12 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         gcs[chan-MAVLINK_COMM_0].send_autopilot_version();
         break;
 
+    case MAVLINK_MSG_ID_LED_CONTROL:
+        // send received pattern to Notify
+        mavlink_led_control_t packet;
+        mavlink_msg_led_control_decode(msg, &packet);
+        AP_Notify::show_pattern(packet.pattern);
+        break;
 
     }     // end switch
 } // end handle mavlink
