@@ -168,6 +168,7 @@
 
 #if PRECISION_LANDING == ENABLED
  #include <AC_PrecLand.h>
+ #include <AP_IRLock.h>
 #endif
 
 // key aircraft parameters passed to multiple libraries
