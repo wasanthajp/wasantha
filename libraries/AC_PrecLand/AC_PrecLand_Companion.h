@@ -21,10 +21,11 @@ public:
     // init - perform any required initialisation of backend controller
     void init();
 
-    // get_target_rad - returns 2D body frame angles (in radians) to target
-    //  x : body-frame roll direction, positive = target is to right (looking down)
-    //  y : body-frame pitch direction, postiive = target is forward (looking down)
-    Vector2f get_target_rad();
+    // get_angle_to_target - returns body frame angles (in radians) to target
+    //  returns true if angles are available, false if not (i.e. no target)
+    //  x_angle_rad : body-frame roll direction, positive = target is to right (looking down)
+    //  y_angle_rad : body-frame pitch direction, postiive = target is forward (looking down)
+    bool get_angle_to_target(float &x_angle_rad, float &y_angle_rad);
 
 private:
 
