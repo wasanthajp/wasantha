@@ -6,21 +6,31 @@ extern const AP_HAL::HAL& hal;
 
 // Constructor
 AC_PrecLand_IRLock::AC_PrecLand_IRLock(const AC_PrecLand& frontend, AC_PrecLand::precland_state& state)
-: AC_PrecLand_Backend(frontend, state)
+    : AC_PrecLand_Backend(frontend, state),
+      irlock()
 {
 }
 
 // init - perform initialisation of this backend
 void AC_PrecLand_IRLock::init()
 {
+    irlock.init();
+
     // set healthy
-    _state.healthy = true;
+    _state.healthy = irlock.healthy();
 }
 
-// get_target_rad - returns 2D body frame angles (in radians) to target
-//  x : body-frame roll direction, positive = target is to right (looking down)
-//  y : body-frame pitch direction, postiive = target is forward (looking down)
-Vector2f AC_PrecLand_IRLock::get_target_rad()
+// update - give chance to driver to get updates from sensor
+void AC_PrecLand_IRLock::update()
 {
-    return Vector2f(0,0);
+    irlock.update();
+}
+
+// get_angle_to_target - returns body frame angles (in radians) to target
+//  returns true if angles are available, false if not (i.e. no target)
+//  x_angle_rad : body-frame roll direction, positive = target is to right (looking down)
+//  y_angle_rad : body-frame pitch direction, postiive = target is forward (looking down)
+bool AC_PrecLand_IRLock::get_angle_to_target(float &x_angle_rad, float &y_angle_rad)
+{
+    return irlock.get_angle_to_target(x_angle_rad, y_angle_rad);
 }
