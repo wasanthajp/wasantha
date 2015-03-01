@@ -13,10 +13,12 @@
 class AP_IRLock_PX4 : public IRLock
 {
 public:
-	AP_IRLock_PX4(const AP_AHRS &ahrs);
+	AP_IRLock_PX4();
 
+	// init - initialize sensor library
 	virtual void init();
 
+	// retrieve latest sensor data
 	virtual void update();
 
 private:
