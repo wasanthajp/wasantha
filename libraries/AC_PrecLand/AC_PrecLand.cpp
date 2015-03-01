@@ -86,18 +86,47 @@ void AC_PrecLand::init()
     }
 }
 
+// update - give chance to driver to get updates from sensor
+void AC_PrecLand::update()
+{
+    // run backend update
+    if (_backend != NULL) {
+        _backend->update();
+    }
+}
+
 // get_target_shift - returns 3D vector of earth-frame position adjustments to target
 Vector3f AC_PrecLand::get_target_shift(const Vector3f &orig_target)
 {
     // exit immediately if not enabled
+    if (_backend == NULL) {
+        return orig_target;
+    }
 
     // get body-frame angles to target from backend
+    float x_rad, y_rad;
+    if (!_backend->get_angle_to_target(x_rad, y_rad)) {
+        // return orig_target if not target found
+        return orig_target;
+    }
+
+    // get current altitude (constrained to no lower than 50cm)
+    float alt = max(_inav.get_altitude(), 50.0f);
 
     // convert body-frame angles to earth-frame angles
+    float bf_x_pos = alt*tanf(x_rad - _ahrs.roll);
+    float bf_y_pos = alt*tanf(y_rad + _ahrs.pitch);
+
+    // rotate into lat/lon frame
+    float ef_x_pos = bf_y_pos*_ahrs.cos_yaw() - bf_x_pos*_ahrs.sin_yaw();
+    float ef_y_pos = bf_y_pos*_ahrs.sin_yaw() + bf_x_pos*_ahrs.cos_yaw();
 
     // convert earth-frame angles to desired velocity
 
-    // convert desired velocity to position shift using dt
+    // convert desired velocity to position shift
+    _target_shift.x = ef_x_pos;
+    _target_shift.y = ef_y_pos;
+    _target_shift.z = 0.0f;
 
     // return adjusted target
     return _target_shift;

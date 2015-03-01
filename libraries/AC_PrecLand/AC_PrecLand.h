@@ -51,6 +51,9 @@ public:
     // healthy - returns true if precision landing is healthy
     bool healthy() { return _backend_state.healthy; }
 
+    // update - give chance to driver to get updates from sensor
+    void update();
+
     // get_target_shift - returns 3D vector of earth-frame position adjustments to target
     Vector3f get_target_shift(const Vector3f& orig_target);
 
