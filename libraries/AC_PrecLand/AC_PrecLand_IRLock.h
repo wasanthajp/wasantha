@@ -5,6 +5,7 @@
 #include <AP_Common.h>
 #include <AP_Math.h>
 #include <AC_PrecLand_Backend.h>    // Precision Landing backend
+#include <AP_IRLock.h>
 
 /*
  * AC_PrecLand_IRLock - implements precision landing using target vectors provided
@@ -21,14 +22,17 @@ public:
     // init - perform any required initialisation of backend controller
     void init();
 
-    // get_target_rad - returns 2D body frame angles (in radians) to target
-    //  x : body-frame roll direction, positive = target is to right (looking down)
-    //  y : body-frame pitch direction, postiive = target is forward (looking down)
-    Vector2f get_target_rad();
+    // update - give chance to driver to get updates from sensor
+    void update();
+
+    // get_angle_to_target - returns body frame angles (in radians) to target
+    //  returns true if angles are available, false if not (i.e. no target)
+    //  x_angle_rad : body-frame roll direction, positive = target is to right (looking down)
+    //  y_angle_rad : body-frame pitch direction, postiive = target is forward (looking down)
+    bool get_angle_to_target(float &x_angle_rad, float &y_angle_rad);
 
 private:
-
-    mavlink_channel_t   _chan;      // mavlink channel used to communicate with companion computer
+    AP_IRLock_PX4 irlock;
 
 };
 #endif	// __AC_PRECLAND_IRLOCK_H__
