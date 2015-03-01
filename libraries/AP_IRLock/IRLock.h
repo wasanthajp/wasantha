@@ -32,28 +32,23 @@
 #define IRLOCK_X_PIXEL_PER_DEGREE 5.374f   // the x pixel to angle calibration variable
 #define IRLOCK_Y_PIXEL_PER_DEGREE 5.698f   // the y pixel to angle calibration variable
 
-struct _irlock_block {
+typedef struct {
 	uint16_t signature;
 	uint16_t center_x;
 	uint16_t center_y;
 	uint16_t width;
 	uint16_t height;
-};
-
-typedef struct _irlock_block irlock_block;
+} irlock_block;
 
 class IRLock
 {
 public:
-	IRLock(const AP_AHRS &ahrs);
+	IRLock();
 	virtual ~IRLock();
 
 	// init - initialize sensor library
 	// library won't be useable unless this is first called
 	virtual void init() = 0;
-
-	// true if irlock is enabled
-	bool enabled() const { return _enabled; }
 
 	// true if irlock sensor is online and healthy
 	bool healthy() const { return _flags.healthy; }
@@ -70,35 +65,18 @@ public:
 	// copies the current data frame
 	void get_current_frame(irlock_block data[IRLOCK_MAX_BLOCKS_PER_FRAME]) const;
 
-	// converts the irlock pixel value into the markers relative x position
-	int16_t irlock_center_x_to_pos(int16_t irlock_current_x, int32_t baro_alt);
-
-	// converts the irlock pixel value into the markers relative y position
-	int16_t irlock_center_y_to_pos(int16_t irlock_current_y, int32_t baro_alt);
-
-	// converts the markers relative x position into lat/lon coordinates
-	float irlock_xy_pos_to_lat(int16_t irlock_x_pos, int16_t irlock_y_pos);
-
-	// converts the markers relative y position into lat/lon coordinates
-	float irlock_xy_pos_to_lon(int16_t irlock_x_pos, int16_t irlock_y_pos);
-
-	// parameter var info table
-	static const struct AP_Param::GroupInfo var_info[];
+	// get_angle_to_target - retrieve body frame x and y angles (in radians) to target
+	//  returns true if angles are available, false if not (i.e. no target)
+	bool get_angle_to_target(float &x_angle_rad, float &y_angle_rad) const;
 
 protected:
 	struct AP_IRLock_Flags {
 		uint8_t healthy : 1; // true if sensor is healthy
 	} _flags;
 
-	// external references
-	const AP_AHRS &_ahrs;
-
-	// parameters
-	AP_Int8 _enabled;
-
 	// internals
 	uint32_t _last_update;
-	size_t _num_blocks;
+	uint16_t _num_blocks;
 	irlock_block _current_frame[IRLOCK_MAX_BLOCKS_PER_FRAME];
 };
 
