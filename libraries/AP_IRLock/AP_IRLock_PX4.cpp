@@ -29,21 +29,19 @@
 
 #include "AP_HAL.h"
 #include "drivers/drv_irlock.h"
-#include "uORB/topics/irlock.h"
 
 extern const AP_HAL::HAL& hal;
 
-AP_IRLock_PX4::AP_IRLock_PX4(const AP_AHRS &ahrs) :
-		IRLock(ahrs),
+AP_IRLock_PX4::AP_IRLock_PX4() :
 		_fd(0),
 		_last_timestamp(0)
 {}
 
 void AP_IRLock_PX4::init()
 {
-	_fd = open(IRLOCK_DEVICE_PATH, O_RDONLY);
+	_fd = open(IRLOCK0_DEVICE_PATH, O_RDONLY);
 	if (_fd < 0) {
-		hal.console->printf("Unable to open " IRLOCK_DEVICE_PATH "\n");
+		hal.console->printf("Unable to open " IRLOCK0_DEVICE_PATH "\n");
 		return;
 	}
 
@@ -52,19 +50,12 @@ void AP_IRLock_PX4::init()
 
 void AP_IRLock_PX4::update()
 {
-	if (!_flags.healthy)
+    // return immediately if not healthy
+	if (!_flags.healthy) {
 		return;
+	}
 
-//	struct irlock_s {
-//		uint64_t timestamp; // microseconds since system start
-//
-//		uint16_t signature;
-//		uint16_t center_x;
-//		uint16_t center_y;
-//		uint16_t width;
-//		uint16_t height;
-//		uint16_t angle;
-//	};
+	// read position of all objects
 	struct irlock_s report;
 	_num_blocks = 0;
 	while(::read(_fd, &report, sizeof(struct irlock_s)) == sizeof(struct irlock_s) && report.timestamp >_last_timestamp) {
