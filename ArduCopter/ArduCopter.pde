@@ -724,7 +724,9 @@ AP_Terrain terrain(ahrs, mission, rally);
 ////////////////////////////////////////////////////////////////////////////////
 // Precision Landing
 ////////////////////////////////////////////////////////////////////////////////
+#if PRECISION_LANDING == ENABLED
 static AC_PrecLand precland(ahrs, inertial_nav, g.pid_precland, MAIN_LOOP_SECONDS);
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // function definitions to keep compiler from complaining about undeclared functions
@@ -772,6 +774,9 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { three_hz_loop,       133,      9 },
     { compass_accumulate,    8,     42 },
     { barometer_accumulate,  8,     25 },
+#if PRECISION_LANDING == ENABLED
+    { update_precland,       8,     50 },
+#endif
 #if FRAME_CONFIG == HELI_FRAME
     { check_dynamic_flight,  8,     10 },
 #endif
