@@ -13,7 +13,9 @@ class AC_PrecLand_Backend
 public:
 
     // Constructor
-    AC_PrecLand_Backend(const AC_PrecLand& frontend, AC_PrecLand::precland_state& state);
+    AC_PrecLand_Backend(const AC_PrecLand& frontend, AC_PrecLand::precland_state& state) :
+        _frontend(frontend),
+        _state(state) {}
 
     // destructor
     virtual ~AC_PrecLand_Backend() {}
