@@ -25,7 +25,7 @@
 
 #include "AP_AHRS.h"
 
-#define IRLOCK_MAX_BLOCKS_PER_FRAME 135    // max number of blobs that can be detected by IR-LOCK sensor
+#define IRLOCK_MAX_BLOCKS_PER_FRAME 5      // max number of blobs that can be detected by IR-LOCK sensor (should match PX4Firmware's irlock driver's IRLOCK_OBJECTS_MAX)
 #define IRLOCK_CENTER_X  159               // the center x pixel value
 #define IRLOCK_CENTER_Y  99                // the center y pixel value
 #define IRLOCK_NOBLOB_FRAME 10             // the number of consecutive similar frames that will cause the sensor validity variable to turn false
