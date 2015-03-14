@@ -34,6 +34,7 @@ void AP_Compass_Backend::publish_field(const Vector3f &mag, uint8_t instance)
     apply_corrections(state.field, instance);
 
     state.last_update_ms = hal.scheduler->millis();
+    _compass.last_update = hal.scheduler->micros();
 }
 
 /*
