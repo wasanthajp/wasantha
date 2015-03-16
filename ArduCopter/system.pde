@@ -16,7 +16,7 @@ static int8_t   reboot_board(uint8_t argc, const Menu::arg *argv);
 // This is the help function
 static int8_t   main_menu_help(uint8_t argc, const Menu::arg *argv)
 {
-    cliSerial->printf_P(PSTR("Commands:\n"
+    cliSerial->print_P(PSTR("Commands:\n"
                          "  logs\n"
                          "  setup\n"
                          "  test\n"

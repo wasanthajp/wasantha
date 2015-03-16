@@ -1000,7 +1000,7 @@ const AP_Param::ConversionInfo conversion_table[] PROGMEM = {
 static void load_parameters(void)
 {
     if (!AP_Param::check_var_info()) {
-        cliSerial->printf_P(PSTR("Bad var table\n"));
+        cliSerial->print_P(PSTR("Bad var table\n"));
         hal.scheduler->panic(PSTR("Bad var table"));
     }
 
@@ -1026,7 +1026,7 @@ static void load_parameters(void)
         g.format_version != Parameters::k_format_version) {
 
         // erase all parameters
-        cliSerial->printf_P(PSTR("Firmware change: erasing EEPROM...\n"));
+        cliSerial->print_P(PSTR("Firmware change: erasing EEPROM...\n"));
         AP_Param::erase_all();
 
         // save the current format version

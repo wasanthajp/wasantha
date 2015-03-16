@@ -82,7 +82,7 @@ test_compass(uint8_t argc, const Menu::arg *argv)
     uint8_t medium_loopCounter = 0;
 
     if (!g.compass_enabled) {
-        cliSerial->printf_P(PSTR("Compass: "));
+        cliSerial->print_P(PSTR("Compass: "));
         print_enabled(false);
         return (0);
     }
@@ -167,13 +167,13 @@ test_ins(uint8_t argc, const Menu::arg *argv)
 {
     Vector3f gyro, accel;
     print_hit_enter();
-    cliSerial->printf_P(PSTR("INS\n"));
+    cliSerial->print_P(PSTR("INS\n"));
     delay(1000);
 
     ahrs.init();
     ins.init(AP_InertialSensor::COLD_START, 
              ins_sample_rate);
-    cliSerial->printf_P(PSTR("...done\n"));
+    cliSerial->print_P(PSTR("...done\n"));
 
     delay(50);
 
@@ -218,7 +218,7 @@ test_optflow(uint8_t argc, const Menu::arg *argv)
             }
         }
     } else {
-        cliSerial->printf_P(PSTR("OptFlow: "));
+        cliSerial->print_P(PSTR("OptFlow: "));
         print_enabled(false);
     }
     return (0);
@@ -233,14 +233,14 @@ static int8_t test_relay(uint8_t argc, const Menu::arg *argv)
     delay(1000);
 
     while(1) {
-        cliSerial->printf_P(PSTR("Relay on\n"));
+        cliSerial->print_P(PSTR("Relay on\n"));
         relay.on(0);
         delay(3000);
         if(cliSerial->available() > 0) {
             return (0);
         }
 
-        cliSerial->printf_P(PSTR("Relay off\n"));
+        cliSerial->print_P(PSTR("Relay off\n"));
         relay.off(0);
         delay(3000);
         if(cliSerial->available() > 0) {
@@ -293,7 +293,7 @@ test_sonar(uint8_t argc, const Menu::arg *argv)
 
 static void print_hit_enter()
 {
-    cliSerial->printf_P(PSTR("Hit Enter to exit.\n\n"));
+    cliSerial->print_P(PSTR("Hit Enter to exit.\n\n"));
 }
 
 #endif // CLI_ENABLED

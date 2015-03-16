@@ -34,7 +34,7 @@ static int8_t
 setup_mode(uint8_t argc, const Menu::arg *argv)
 {
     // Give the user some guidance
-    cliSerial->printf_P(PSTR("Setup Mode\n\n\n"));
+    cliSerial->print_P(PSTR("Setup Mode\n\n\n"));
 
     // Run the setup menu.  When the menu exits, we will return to the main menu.
     setup_menu.run();
@@ -48,7 +48,7 @@ setup_factory(uint8_t argc, const Menu::arg *argv)
 {
     int16_t c;
 
-    cliSerial->printf_P(PSTR("\n'Y' = factory reset, any other key to abort:\n"));
+    cliSerial->print_P(PSTR("\n'Y' = factory reset, any other key to abort:\n"));
 
     do {
         c = cliSerial->read();
@@ -58,7 +58,7 @@ setup_factory(uint8_t argc, const Menu::arg *argv)
         return(-1);
 
     AP_Param::erase_all();
-    cliSerial->printf_P(PSTR("\nReboot board"));
+    cliSerial->print_P(PSTR("\nReboot board"));
 
     delay(1000);
 
@@ -80,7 +80,7 @@ static int8_t setup_set(uint8_t argc, const Menu::arg *argv)
 
     if(argc!=3)
     {
-        cliSerial->printf_P(PSTR("Invalid command. Usage: set <name> <value>\n"));
+        cliSerial->print_P(PSTR("Invalid command. Usage: set <name> <value>\n"));
         return 0;
     }
 
@@ -97,7 +97,7 @@ static int8_t setup_set(uint8_t argc, const Menu::arg *argv)
             value_int8 = (int8_t)(argv[2].i);
             if(argv[2].i!=value_int8)
             {
-                cliSerial->printf_P(PSTR("Value out of range for type INT8\n"));
+                cliSerial->print_P(PSTR("Value out of range for type INT8\n"));
                 return 0;
             }
             ((AP_Int8*)param)->set_and_save(value_int8);
@@ -106,7 +106,7 @@ static int8_t setup_set(uint8_t argc, const Menu::arg *argv)
             value_int16 = (int16_t)(argv[2].i);
             if(argv[2].i!=value_int16)
             {
-                cliSerial->printf_P(PSTR("Value out of range for type INT16\n"));
+                cliSerial->print_P(PSTR("Value out of range for type INT16\n"));
                 return 0;
             }
             ((AP_Int16*)param)->set_and_save(value_int16);
@@ -189,7 +189,7 @@ esc_calib(uint8_t argc,const Menu::arg *argv)
 
 
 	if (argc < 2) {
-		cliSerial->printf_P(PSTR("Pls provide Channel Mask\n"
+		cliSerial->print_P(PSTR("Pls provide Channel Mask\n"
                                     "\tusage: esc_calib 1010 - enables calibration for 2nd and 4th Motor\n"));
         return(0);
 	}
@@ -198,14 +198,14 @@ esc_calib(uint8_t argc,const Menu::arg *argv)
 	
     set_mask = strtol (argv[1].str, NULL, 2);
 	if (set_mask == 0)
-		cliSerial->printf_P(PSTR("no channels chosen"));
+		cliSerial->print_P(PSTR("no channels chosen"));
     //cliSerial->printf_P(PSTR("\n%d\n"),set_mask);
     set_mask<<=1;
 	/* wait 50 ms */
 	hal.scheduler->delay(50);
 
 
-	cliSerial->printf_P(PSTR("\nATTENTION, please remove or fix propellers before starting calibration!\n"
+	cliSerial->print_P(PSTR("\nATTENTION, please remove or fix propellers before starting calibration!\n"
 	       "\n"
 	       "Make sure\n"
 	       "\t - that the ESCs are not powered\n"
@@ -222,11 +222,11 @@ esc_calib(uint8_t argc,const Menu::arg *argv)
 				break;
 
 			} else if (c == 0x03 || c == 0x63 || c == 'q') {
-				cliSerial->printf_P(PSTR("ESC calibration exited\n"));
+				cliSerial->print_P(PSTR("ESC calibration exited\n"));
 				return(0);
 
 			} else if (c == 'n' || c == 'N') {
-				cliSerial->printf_P(PSTR("ESC calibration aborted\n"));
+				cliSerial->print_P(PSTR("ESC calibration aborted\n"));
 				return(0);
 
 			} 
@@ -243,7 +243,7 @@ esc_calib(uint8_t argc,const Menu::arg *argv)
 	motors.armed(true);
 
 
-	cliSerial->printf_P(PSTR("Outputs armed\n"));
+	cliSerial->print_P(PSTR("Outputs armed\n"));
 
 
 	/* wait for user confirmation */
@@ -266,7 +266,7 @@ esc_calib(uint8_t argc,const Menu::arg *argv)
             break;
 
 		} else if (c == 0x03 || c == 0x63 || c == 'q') {
-			cliSerial->printf_P(PSTR("ESC calibration exited\n"));
+			cliSerial->print_P(PSTR("ESC calibration exited\n"));
 			return(0);
 		}
         
@@ -294,7 +294,7 @@ esc_calib(uint8_t argc,const Menu::arg *argv)
 			break;
 
 		} else if (c == 0x03 || c == 0x63 || c == 'q') {
-			cliSerial->printf_P(PSTR("ESC calibration exited\n"));
+			cliSerial->print_P(PSTR("ESC calibration exited\n"));
 			return(0);
 		}
 		
@@ -305,9 +305,9 @@ esc_calib(uint8_t argc,const Menu::arg *argv)
 	/* disarm */
 	motors.armed(false);
     
-	cliSerial->printf_P(PSTR("Outputs disarmed\n"));
+	cliSerial->print_P(PSTR("Outputs disarmed\n"));
 
-	cliSerial->printf_P(PSTR("ESC calibration finished\n"));
+	cliSerial->print_P(PSTR("ESC calibration finished\n"));
 
 	return(0);
 }
@@ -320,35 +320,35 @@ esc_calib(uint8_t argc,const Menu::arg *argv)
 
 static void report_batt_monitor()
 {
-    cliSerial->printf_P(PSTR("\nBatt Mon:\n"));
+    cliSerial->print_P(PSTR("\nBatt Mon:\n"));
     print_divider();
     if (battery.num_instances() == 0) {
         print_enabled(false);
     } else if (!battery.has_current()) {
-        cliSerial->printf_P(PSTR("volts"));
+        cliSerial->print_P(PSTR("volts"));
     } else {
-        cliSerial->printf_P(PSTR("volts and cur"));
+        cliSerial->print_P(PSTR("volts and cur"));
     }
     print_blanks(2);
 }
 
 static void report_frame()
 {
-    cliSerial->printf_P(PSTR("Frame\n"));
+    cliSerial->print_P(PSTR("Frame\n"));
     print_divider();
 
  #if FRAME_CONFIG == QUAD_FRAME
-    cliSerial->printf_P(PSTR("Quad frame\n"));
+    cliSerial->print_P(PSTR("Quad frame\n"));
  #elif FRAME_CONFIG == TRI_FRAME
-    cliSerial->printf_P(PSTR("TRI frame\n"));
+    cliSerial->print_P(PSTR("TRI frame\n"));
  #elif FRAME_CONFIG == HEXA_FRAME
-    cliSerial->printf_P(PSTR("Hexa frame\n"));
+    cliSerial->print_P(PSTR("Hexa frame\n"));
  #elif FRAME_CONFIG == Y6_FRAME
-    cliSerial->printf_P(PSTR("Y6 frame\n"));
+    cliSerial->print_P(PSTR("Y6 frame\n"));
  #elif FRAME_CONFIG == OCTA_FRAME
-    cliSerial->printf_P(PSTR("Octa frame\n"));
+    cliSerial->print_P(PSTR("Octa frame\n"));
  #elif FRAME_CONFIG == HELI_FRAME
-    cliSerial->printf_P(PSTR("Heli frame\n"));
+    cliSerial->print_P(PSTR("Heli frame\n"));
  #endif
 
     print_blanks(2);
@@ -356,7 +356,7 @@ static void report_frame()
 
 static void report_radio()
 {
-    cliSerial->printf_P(PSTR("Radio\n"));
+    cliSerial->print_P(PSTR("Radio\n"));
     print_divider();
     // radio
     print_radio_values();
@@ -365,7 +365,7 @@ static void report_radio()
 
 static void report_ins()
 {
-    cliSerial->printf_P(PSTR("INS\n"));
+    cliSerial->print_P(PSTR("INS\n"));
     print_divider();
 
     print_gyro_offsets();
@@ -375,7 +375,7 @@ static void report_ins()
 
 static void report_flight_modes()
 {
-    cliSerial->printf_P(PSTR("Flight modes\n"));
+    cliSerial->print_P(PSTR("Flight modes\n"));
     print_divider();
 
     for(int16_t i = 0; i < 6; i++ ) {
@@ -387,7 +387,7 @@ static void report_flight_modes()
 void report_optflow()
 {
  #if OPTFLOW == ENABLED
-    cliSerial->printf_P(PSTR("OptFlow\n"));
+    cliSerial->print_P(PSTR("OptFlow\n"));
     print_divider();
 
     print_enabled(optflow.enabled());
@@ -418,11 +418,11 @@ print_switch(uint8_t p, uint8_t m, bool b)
 {
     cliSerial->printf_P(PSTR("Pos %d:\t"),p);
     print_flight_mode(cliSerial, m);
-    cliSerial->printf_P(PSTR(",\t\tSimple: "));
+    cliSerial->print_P(PSTR(",\t\tSimple: "));
     if(b)
-        cliSerial->printf_P(PSTR("ON\n"));
+        cliSerial->print_P(PSTR("ON\n"));
     else
-        cliSerial->printf_P(PSTR("OFF\n"));
+        cliSerial->print_P(PSTR("OFF\n"));
 }
 
 static void
@@ -454,7 +454,7 @@ print_gyro_offsets(void)
 // report_compass - displays compass information.  Also called by compassmot.pde
 static void report_compass()
 {
-    cliSerial->printf_P(PSTR("Compass\n"));
+    cliSerial->print_P(PSTR("Compass\n"));
     print_divider();
 
     print_enabled(g.compass_enabled);

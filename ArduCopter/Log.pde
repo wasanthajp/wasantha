@@ -30,25 +30,25 @@ MENU2(log_menu, "Log", log_menu_commands, print_log_menu);
 static bool
 print_log_menu(void)
 {
-    cliSerial->printf_P(PSTR("logs enabled: "));
+    cliSerial->print_P(PSTR("logs enabled: "));
 
     if (0 == g.log_bitmask) {
-        cliSerial->printf_P(PSTR("none"));
+        cliSerial->print_P(PSTR("none"));
     }else{
-        if (g.log_bitmask & MASK_LOG_ATTITUDE_FAST) cliSerial->printf_P(PSTR(" ATTITUDE_FAST"));
-        if (g.log_bitmask & MASK_LOG_ATTITUDE_MED) cliSerial->printf_P(PSTR(" ATTITUDE_MED"));
-        if (g.log_bitmask & MASK_LOG_GPS) cliSerial->printf_P(PSTR(" GPS"));
-        if (g.log_bitmask & MASK_LOG_PM) cliSerial->printf_P(PSTR(" PM"));
-        if (g.log_bitmask & MASK_LOG_CTUN) cliSerial->printf_P(PSTR(" CTUN"));
-        if (g.log_bitmask & MASK_LOG_NTUN) cliSerial->printf_P(PSTR(" NTUN"));
-        if (g.log_bitmask & MASK_LOG_RCIN) cliSerial->printf_P(PSTR(" RCIN"));
-        if (g.log_bitmask & MASK_LOG_IMU) cliSerial->printf_P(PSTR(" IMU"));
-        if (g.log_bitmask & MASK_LOG_CMD) cliSerial->printf_P(PSTR(" CMD"));
-        if (g.log_bitmask & MASK_LOG_CURRENT) cliSerial->printf_P(PSTR(" CURRENT"));
-        if (g.log_bitmask & MASK_LOG_RCOUT) cliSerial->printf_P(PSTR(" RCOUT"));
-        if (g.log_bitmask & MASK_LOG_OPTFLOW) cliSerial->printf_P(PSTR(" OPTFLOW"));
-        if (g.log_bitmask & MASK_LOG_COMPASS) cliSerial->printf_P(PSTR(" COMPASS"));
-        if (g.log_bitmask & MASK_LOG_CAMERA) cliSerial->printf_P(PSTR(" CAMERA"));
+        if (g.log_bitmask & MASK_LOG_ATTITUDE_FAST) cliSerial->print_P(PSTR(" ATTITUDE_FAST"));
+        if (g.log_bitmask & MASK_LOG_ATTITUDE_MED) cliSerial->print_P(PSTR(" ATTITUDE_MED"));
+        if (g.log_bitmask & MASK_LOG_GPS) cliSerial->print_P(PSTR(" GPS"));
+        if (g.log_bitmask & MASK_LOG_PM) cliSerial->print_P(PSTR(" PM"));
+        if (g.log_bitmask & MASK_LOG_CTUN) cliSerial->print_P(PSTR(" CTUN"));
+        if (g.log_bitmask & MASK_LOG_NTUN) cliSerial->print_P(PSTR(" NTUN"));
+        if (g.log_bitmask & MASK_LOG_RCIN) cliSerial->print_P(PSTR(" RCIN"));
+        if (g.log_bitmask & MASK_LOG_IMU) cliSerial->print_P(PSTR(" IMU"));
+        if (g.log_bitmask & MASK_LOG_CMD) cliSerial->print_P(PSTR(" CMD"));
+        if (g.log_bitmask & MASK_LOG_CURRENT) cliSerial->print_P(PSTR(" CURRENT"));
+        if (g.log_bitmask & MASK_LOG_RCOUT) cliSerial->print_P(PSTR(" RCOUT"));
+        if (g.log_bitmask & MASK_LOG_OPTFLOW) cliSerial->print_P(PSTR(" OPTFLOW"));
+        if (g.log_bitmask & MASK_LOG_COMPASS) cliSerial->print_P(PSTR(" COMPASS"));
+        if (g.log_bitmask & MASK_LOG_CAMERA) cliSerial->print_P(PSTR(" CAMERA"));
     }
 
     cliSerial->println();
@@ -75,11 +75,11 @@ dump_log(uint8_t argc, const Menu::arg *argv)
         DataFlash.DumpPageInfo(cliSerial);
         return(-1);
     } else if (dump_log <= 0) {
-        cliSerial->printf_P(PSTR("dumping all\n"));
+        cliSerial->print_P(PSTR("dumping all\n"));
         Log_Read(0, 1, 0);
         return(-1);
     } else if ((argc != 2) || ((uint16_t)dump_log <= (last_log_num - DataFlash.get_num_logs())) || (static_cast<uint16_t>(dump_log) > last_log_num)) {
-        cliSerial->printf_P(PSTR("bad log number\n"));
+        cliSerial->print_P(PSTR("bad log number\n"));
         return(-1);
     }
 
@@ -104,7 +104,7 @@ select_logs(uint8_t argc, const Menu::arg *argv)
     uint16_t bits;
 
     if (argc != 2) {
-        cliSerial->printf_P(PSTR("missing log type\n"));
+        cliSerial->print_P(PSTR("missing log type\n"));
         return(-1);
     }
 
