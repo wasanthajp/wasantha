@@ -319,10 +319,10 @@ public:
         k_param_acro_balance_roll,
         k_param_acro_balance_pitch,
         k_param_acro_yaw_p,
-        k_param_pid_precland,   // 245
         k_param_autotune_axis_bitmask,  // 245
         k_param_autotune_aggressiveness,  // 246
         k_param_pi_vel_xy,  // 247
+        k_param_pi_precland,   // 248
 
         // 254,255: reserved
     };
@@ -470,7 +470,7 @@ public:
     AC_P                    p_stabilize_yaw;
     AC_P                    p_alt_hold;
 
-    AC_PID                  pid_precland;
+    AC_PI_2D                pi_precland;
 
     // Autotune
     AP_Int8                 autotune_axis_bitmask;
@@ -528,7 +528,7 @@ public:
         p_vel_z                 (VEL_Z_P),
         pid_accel_z             (ACCEL_Z_P,       ACCEL_Z_I,        ACCEL_Z_D,      ACCEL_Z_IMAX,       ACCEL_Z_FILT_HZ,    MAIN_LOOP_SECONDS),
 
-        pid_precland            (PRECLAND_P,            PRECLAND_I,             PRECLAND_D,             PRECLAND_IMAX),
+        pi_precland             (PRECLAND_P,      PRECLAND_I,                       PRECLAND_IMAX,      VEL_XY_FILT_HZ,     PRECLAND_UPDATE_TIME),
 
         // P controller	        initial P
         //----------------------------------------------------------------------

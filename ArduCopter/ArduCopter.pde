@@ -695,7 +695,7 @@ AP_Terrain terrain(ahrs, mission, rally);
 // Precision Landing
 ////////////////////////////////////////////////////////////////////////////////
 #if PRECISION_LANDING == ENABLED
-static AC_PrecLand precland(ahrs, inertial_nav, g.pid_precland, MAIN_LOOP_SECONDS);
+static AC_PrecLand precland(ahrs, inertial_nav, g.pi_precland, MAIN_LOOP_SECONDS);
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
