@@ -36,10 +36,10 @@ const AP_Param::GroupInfo AC_PrecLand::var_info[] PROGMEM = {
 // their values.
 //
 AC_PrecLand::AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav,
-                         AC_PID& pid_precland_xy, float dt) :
+                         AC_PI_2D& pi_precland_xy, float dt) :
     _ahrs(ahrs),
     _inav(inav),
-    _pid_precland_xy(pid_precland_xy),
+    _pi_precland_xy(pi_precland_xy),
     _dt(dt),
     _last_update_ms(0),
     _backend(NULL)

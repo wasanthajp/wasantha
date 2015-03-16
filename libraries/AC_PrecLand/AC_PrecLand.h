@@ -4,15 +4,15 @@
 
 #include <AP_Common.h>
 #include <AP_Math.h>
-#include <AC_PID.h>             // PID library
+#include <AC_PI_2D.h>             // PID library
 #include <AP_InertialNav.h>     // Inertial Navigation library
 
 // definitions
 #define AC_PRECLAND_SPEED_XY_DEFAULT            100.0f  // maximum horizontal speed
 #define PRECLAND_P                              2.0f    // velocity controller P gain default
 #define PRECLAND_I                              1.0f    // velocity controller I gain default
-#define PRECLAND_D                              0.0f    // velocity controller D gain default
 #define PRECLAND_IMAX                         500.0f    // velocity controller IMAX default
+#define PRECLAND_UPDATE_TIME                    0.02f   // precland runs at 50hz
 
 // declare backend classes
 class AC_PrecLand_Backend;
@@ -43,7 +43,7 @@ public:
     };
 
     // Constructor
-    AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav, AC_PID& pid_precland_xy, float dt);
+    AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav, AC_PI_2D& pi_precland_xy, float dt);
 
     // init - perform any required initialisation of landing controllers
     void init();
@@ -68,7 +68,7 @@ private:
     // references to inertial nav and ahrs libraries
     const AP_AHRS&              _ahrs;
     const AP_InertialNav&       _inav;
-    AC_PID&                     _pid_precland_xy;   // horizontal PID controller
+    AC_PI_2D&                   _pi_precland_xy;    // horizontal velocity PI controller
 
     // parameters
     AP_Int8                     _enabled;           // enabled/disabled and behaviour
