@@ -104,8 +104,7 @@ Vector3f AC_PrecLand::get_target_shift(const Vector3f &orig_target)
     }
 
     // get body-frame angles to target from backend
-    float x_rad, y_rad;
-    if (!_backend->get_angle_to_target(x_rad, y_rad)) {
+    if (!_backend->get_angle_to_target(_bf_angle_to_target.x, _bf_angle_to_target.y)) {
         // return orig_target if not target found
         return orig_target;
     }
@@ -114,8 +113,8 @@ Vector3f AC_PrecLand::get_target_shift(const Vector3f &orig_target)
     float alt = max(_inav.get_altitude(), 50.0f);
 
     // convert body-frame angles to earth-frame angles
-    float bf_x_pos = alt*tanf(x_rad - _ahrs.roll);
-    float bf_y_pos = alt*tanf(y_rad + _ahrs.pitch);
+    float bf_x_pos = alt*tanf(_bf_angle_to_target.x - _ahrs.roll);
+    float bf_y_pos = alt*tanf(_bf_angle_to_target.y + _ahrs.pitch);
 
     // rotate into lat/lon frame
     float ef_x_pos = bf_y_pos*_ahrs.cos_yaw() - bf_x_pos*_ahrs.sin_yaw();

@@ -57,6 +57,12 @@ public:
     // get_target_shift - returns 3D vector of earth-frame position adjustments to target
     Vector3f get_target_shift(const Vector3f& orig_target);
 
+    // accessors for logging
+    bool enabled() const { return _enabled; }
+    uint32_t last_update_ms() const { return _last_update_ms; }
+    const Vector3f& last_target_shift() const { return _target_shift; }
+    const Vector2f& last_bf_angle_to_target() const { return _bf_angle_to_target; }
+
     // parameter var table
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -78,6 +84,9 @@ private:
     // internal variables
     float                       _dt;                // time difference (in seconds) between calls from the main program
     uint32_t                    _last_update_ms;    // system time of last get_target_vector call
+
+    // output from sensor (stored for logging)
+    Vector2f                    _bf_angle_to_target;// last body-frame angle to target
 
     // output from controller
     Vector3f                    _target_shift;      // last position shift applied to target
