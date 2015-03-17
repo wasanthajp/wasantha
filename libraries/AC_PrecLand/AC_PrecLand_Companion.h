@@ -21,6 +21,9 @@ public:
     // init - perform any required initialisation of backend controller
     void init();
 
+    // update - give chance to driver to get updates from sensor
+    void update();
+
     // get_angle_to_target - returns body frame angles (in radians) to target
     //  returns true if angles are available, false if not (i.e. no target)
     //  x_angle_rad : body-frame roll direction, positive = target is to right (looking down)
