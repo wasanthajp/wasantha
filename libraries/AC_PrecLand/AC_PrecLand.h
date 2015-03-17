@@ -37,7 +37,7 @@ public:
 
     // types of precision landing (used for PRECLAND_TYPE parameter)
     enum PrecLandType {
-        PRECLAND_TYPE_NONE,
+        PRECLAND_TYPE_NONE = 0,
         PRECLAND_TYPE_COMPANION,
         PRECLAND_TYPE_IRLOCK
     };
