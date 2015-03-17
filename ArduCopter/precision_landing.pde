@@ -14,6 +14,9 @@ static void init_precland()
 static void update_precland()
 {
     precland.update();
+
+    // log output
+    Log_Write_Precland();
 }
 
 #endif

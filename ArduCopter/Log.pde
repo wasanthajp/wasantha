@@ -440,6 +440,41 @@ static void Log_Write_Mot()
     DataFlash.WriteBlock(&pkt_mot, sizeof(pkt_mot));
 }
 
+// precision landing logging
+struct PACKED log_Precland {
+    LOG_PACKET_HEADER;
+    uint32_t time_ms;
+    uint8_t healthy;
+    float bf_angle_x;
+    float bf_angle_y;
+    float ef_shift_x;
+    float ef_shift_y;
+};
+
+// Write an optical flow packet
+static void Log_Write_Precland()
+{
+ #if PRECISION_LANDING == ENABLED
+    // exit immediately if not enabled
+    if (!precland.enabled()) {
+        return;
+    }
+
+    const Vector2f &bf_angle = precland.last_bf_angle_to_target();
+    const Vector3f &ef_target_shift = precland.last_target_shift();
+    struct log_Precland pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_PRECLAND_MSG),
+        time_ms         : hal.scheduler->millis(),
+        healthy         : precland.healthy(),
+        bf_angle_x      : bf_angle.x,
+        bf_angle_y      : bf_angle.y,
+        ef_shift_x      : ef_target_shift.x,
+        ef_shift_y      : ef_target_shift.y
+    };
+    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+ #endif     // PRECISION_LANDING == ENABLED
+}
+
 struct PACKED log_Startup {
     LOG_PACKET_HEADER;
 };
@@ -600,6 +635,8 @@ static const struct LogStructure log_structure[] PROGMEM = {
 #endif
     { LOG_OPTFLOW_MSG, sizeof(log_Optflow),       
       "OF",   "IBffff",   "TimeMS,Qual,flowX,flowY,bodyX,bodyY" },
+    { LOG_PRECLAND_MSG, sizeof(log_Precland),
+      "PL",   "IBffff",   "TimeMS,Heal,X,Y,SX,SY" },
     { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),       
       "NTUN", "Iffffffffff", "TimeMS,DPosX,DPosY,PosX,PosY,DVelX,DVelY,VelX,VelY,DAccX,DAccY" },
     { LOG_CONTROL_TUNING_MSG, sizeof(log_Control_Tuning),
@@ -693,6 +730,7 @@ static void Log_Write_Data(uint8_t id, uint32_t value){}
 static void Log_Write_Data(uint8_t id, float value){}
 static void Log_Write_Event(uint8_t id){}
 static void Log_Write_Optflow() {}
+static void Log_Write_Precland() {}
 static void Log_Write_Nav_Tuning() {}
 static void Log_Write_Control_Tuning() {}
 static void Log_Write_Performance() {}
