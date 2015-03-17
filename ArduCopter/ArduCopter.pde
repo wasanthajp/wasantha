@@ -157,6 +157,8 @@
 #endif
 #include <AP_LandingGear.h>     // Landing Gear library
 #include <AP_Terrain.h>
+#include <AC_PrecLand.h>
+#include <AP_IRLock.h>
 
 // AP_HAL to Arduino compatibility layer
 #include "compat.h"
@@ -164,11 +166,6 @@
 #include "defines.h"
 #include "config.h"
 #include "config_channels.h"
-
-#if PRECISION_LANDING == ENABLED
- #include <AC_PrecLand.h>
- #include <AP_IRLock.h>
-#endif
 
 // key aircraft parameters passed to multiple libraries
 static AP_Vehicle::MultiCopter aparm;

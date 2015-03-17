@@ -817,9 +817,11 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Path: ../libraries/AP_LandingGear/AP_LandingGear.cpp
     GOBJECT(landinggear,    "LGR_", AP_LandingGear),
 
+#if PRECISION_LANDING == ENABLED
     // @Group: LGR_
     // @Path: ../libraries/AP_LandingGear/AP_LandingGear.cpp
     GOBJECT(precland,       "PRECLND_", AC_PrecLand),
+#endif
 
     // @Group: COMPASS_
     // @Path: ../libraries/AP_Compass/Compass.cpp
