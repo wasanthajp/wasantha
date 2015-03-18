@@ -59,14 +59,20 @@ public:
 
     // accessors for logging
     bool enabled() const { return _enabled; }
-    uint32_t last_update_ms() const { return _last_update_ms; }
-    const Vector3f& last_target_shift() const { return _target_shift; }
     const Vector2f& last_bf_angle_to_target() const { return _bf_angle_to_target; }
+    const Vector2f& last_ef_angle_to_target() const { return _ef_angle_to_target; }
+    const Vector3f& last_target_pos_offset() const { return _target_pos_offset; }
 
     // parameter var table
     static const struct AP_Param::GroupInfo var_info[];
 
 private:
+
+    // calc_angles_and_pos - converts sensor's body-frame angles to earth-frame angles and position estimate
+    //  body-frame angles stored in _bf_angle_to_target
+    //  earth-frame angles stored in _ef_angle_to_target
+    //  position estimate is stored in _target_pos
+    void calc_angles_and_pos();
 
     // get_behaviour - returns enabled parameter as an behaviour
     enum PrecLandBehaviour get_behaviour() const { return (enum PrecLandBehaviour)(_enabled.get()); }
@@ -83,13 +89,14 @@ private:
 
     // internal variables
     float                       _dt;                // time difference (in seconds) between calls from the main program
-    uint32_t                    _last_update_ms;    // system time of last get_target_vector call
 
     // output from sensor (stored for logging)
     Vector2f                    _bf_angle_to_target;// last body-frame angle to target
+    Vector2f                    _ef_angle_to_target;// last earth-frame angle to target
 
     // output from controller
-    Vector3f                    _target_shift;      // last position shift applied to target
+    bool                        _have_estimate;     // true if we have a recent estimated position offset
+    Vector3f                    _target_pos_offset; // estimate target position offset from vehicle in earth-frame
 
     // backend state
     struct precland_state {

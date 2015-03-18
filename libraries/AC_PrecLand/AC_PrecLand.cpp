@@ -41,7 +41,7 @@ AC_PrecLand::AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav,
     _inav(inav),
     _pi_precland_xy(pi_precland_xy),
     _dt(dt),
-    _last_update_ms(0),
+    _have_estimate(false),
     _backend(NULL)
 {
     // set parameters to defaults
@@ -91,42 +91,67 @@ void AC_PrecLand::update()
 {
     // run backend update
     if (_backend != NULL) {
+        // read from sensor
         _backend->update();
+
+        // calculate angles to target and position estimate
+        calc_angles_and_pos();
     }
 }
 
 // get_target_shift - returns 3D vector of earth-frame position adjustments to target
 Vector3f AC_PrecLand::get_target_shift(const Vector3f &orig_target)
 {
+    Vector3f shift; // default shift initialised to zero
+
+    // do not shift target if not enabled or no position estimate
+    if (_backend == NULL || !_have_estimate) {
+        return shift;
+    }
+
+    // shift is target_offset - (original target - current position)
+    Vector3f curr_offset_from_target = orig_target - _inav.get_position();
+    shift = _target_pos_offset - curr_offset_from_target;
+    shift.z = 0.0f;
+
+    // record we have consumed this reading (perhaps there is a cleaner way to do this using timestamps)
+    _have_estimate = false;
+
+    // return adjusted target
+    return shift;
+}
+
+// calc_angles_and_pos - converts sensor's body-frame angles to earth-frame angles and position estimate
+//  body-frame angles stored in _bf_angle_to_target
+//  earth-frame angles stored in _ef_angle_to_target
+//  position estimate is stored in _target_pos
+void AC_PrecLand::calc_angles_and_pos()
+{
     // exit immediately if not enabled
     if (_backend == NULL) {
-        return orig_target;
+        _have_estimate = false;
     }
 
     // get body-frame angles to target from backend
     if (!_backend->get_angle_to_target(_bf_angle_to_target.x, _bf_angle_to_target.y)) {
-        // return orig_target if not target found
-        return orig_target;
+        _have_estimate = false;
     }
+
+    // subtract vehicle lean angles
+    float x_rad = _bf_angle_to_target.x - _ahrs.roll;
+    float y_rad = -_bf_angle_to_target.y + _ahrs.pitch;
+
+    // rotate to earth-frame angles
+    _ef_angle_to_target.x = y_rad*_ahrs.cos_yaw() - x_rad*_ahrs.sin_yaw();
+    _ef_angle_to_target.y = y_rad*_ahrs.sin_yaw() + x_rad*_ahrs.cos_yaw();
 
     // get current altitude (constrained to no lower than 50cm)
     float alt = max(_inav.get_altitude(), 50.0f);
 
-    // convert body-frame angles to earth-frame angles
-    float bf_x_pos = alt*tanf(_bf_angle_to_target.x - _ahrs.roll);
-    float bf_y_pos = alt*tanf(_bf_angle_to_target.y + _ahrs.pitch);
+    // convert earth-frame angles to earth-frame position offset
+    _target_pos_offset.x = alt*tanf(_ef_angle_to_target.x);
+    _target_pos_offset.y = alt*tanf(_ef_angle_to_target.y);
+    _target_pos_offset.z = 0;  // not used
 
-    // rotate into lat/lon frame
-    float ef_x_pos = bf_y_pos*_ahrs.cos_yaw() - bf_x_pos*_ahrs.sin_yaw();
-    float ef_y_pos = bf_y_pos*_ahrs.sin_yaw() + bf_x_pos*_ahrs.cos_yaw();
-
-    // convert earth-frame angles to desired velocity
-
-    // convert desired velocity to position shift
-    _target_shift.x = ef_x_pos;
-    _target_shift.y = ef_y_pos;
-    _target_shift.z = 0.0f;
-
-    // return adjusted target
-    return _target_shift;
+    _have_estimate = true;
 }
