@@ -22,7 +22,8 @@ public:
     void init();
 
     // update - give chance to driver to get updates from sensor
-    void update();
+    //  returns true if new data available
+    bool update();
 
     // get_angle_to_target - returns body frame angles (in radians) to target
     //  returns true if angles are available, false if not (i.e. no target)

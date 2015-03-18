@@ -18,9 +18,11 @@ void AC_PrecLand_Companion::init()
 }
 
 // update - give chance to driver to get updates from sensor
-void AC_PrecLand_Companion::update()
+//  returns true if new data available
+bool AC_PrecLand_Companion::update()
 {
     // To-Do: read target position from companion computer via MAVLink
+    return false;
 }
 
 // get_angle_to_target - returns body frame angles (in radians) to target
