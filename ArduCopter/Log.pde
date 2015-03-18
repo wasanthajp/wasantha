@@ -447,8 +447,10 @@ struct PACKED log_Precland {
     uint8_t healthy;
     float bf_angle_x;
     float bf_angle_y;
-    float ef_shift_x;
-    float ef_shift_y;
+    float ef_angle_x;
+    float ef_angle_y;
+    float pos_x;
+    float pos_y;
 };
 
 // Write an optical flow packet
@@ -461,15 +463,18 @@ static void Log_Write_Precland()
     }
 
     const Vector2f &bf_angle = precland.last_bf_angle_to_target();
-    const Vector3f &ef_target_shift = precland.last_target_shift();
+    const Vector2f &ef_angle = precland.last_ef_angle_to_target();
+    const Vector3f &target_pos_ofs = precland.last_target_pos_offset();
     struct log_Precland pkt = {
         LOG_PACKET_HEADER_INIT(LOG_PRECLAND_MSG),
         time_ms         : hal.scheduler->millis(),
         healthy         : precland.healthy(),
-        bf_angle_x      : bf_angle.x,
-        bf_angle_y      : bf_angle.y,
-        ef_shift_x      : ef_target_shift.x,
-        ef_shift_y      : ef_target_shift.y
+        bf_angle_x      : degrees(bf_angle.x),
+        bf_angle_y      : degrees(bf_angle.y),
+        ef_angle_x      : degrees(ef_angle.x),
+        ef_angle_y      : degrees(ef_angle.y),
+        pos_x           : target_pos_ofs.x,
+        pos_y           : target_pos_ofs.y
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
  #endif     // PRECISION_LANDING == ENABLED
@@ -636,7 +641,7 @@ static const struct LogStructure log_structure[] PROGMEM = {
     { LOG_OPTFLOW_MSG, sizeof(log_Optflow),       
       "OF",   "IBffff",   "TimeMS,Qual,flowX,flowY,bodyX,bodyY" },
     { LOG_PRECLAND_MSG, sizeof(log_Precland),
-      "PL",   "IBffff",   "TimeMS,Heal,X,Y,SX,SY" },
+      "PL",   "IBffffff",   "TimeMS,Heal,bX,bY,eX,eY,pX,pY" },
     { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),       
       "NTUN", "Iffffffffff", "TimeMS,DPosX,DPosY,PosX,PosY,DVelX,DVelY,VelX,VelY,DAccX,DAccY" },
     { LOG_CONTROL_TUNING_MSG, sizeof(log_Control_Tuning),
