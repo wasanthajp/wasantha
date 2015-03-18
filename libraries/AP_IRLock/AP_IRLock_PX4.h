@@ -18,8 +18,8 @@ public:
 	// init - initialize sensor library
 	virtual void init();
 
-	// retrieve latest sensor data
-	virtual void update();
+	// retrieve latest sensor data - returns true if new data is available
+	virtual bool update();
 
 private:
 	int _fd;

@@ -48,11 +48,12 @@ void AP_IRLock_PX4::init()
 	_flags.healthy = true;
 }
 
-void AP_IRLock_PX4::update()
+// retrieve latest sensor data - returns true if new data is available
+bool AP_IRLock_PX4::update()
 {
     // return immediately if not healthy
 	if (!_flags.healthy) {
-		return;
+		return false;
 	}
 
 	// read position of all objects
@@ -76,6 +77,9 @@ void AP_IRLock_PX4::update()
 	} else if ((hal.scheduler->millis() - _last_update) > IRLOCK_TIMEOUT_MS) {
 	    _num_blocks = 0;
 	}
+
+	// return true if new data found
+	return (_num_blocks > 0);
 }
 
 #endif // CONFIG_HAL_BOARD == HAL_BOARD_PX4

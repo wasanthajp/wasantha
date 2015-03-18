@@ -60,8 +60,8 @@ public:
 	// returns the number of blocks in the current frame
 	size_t num_blocks() const { return _num_blocks; }
 
-	// retrieve latest sensor data
-	virtual void update() = 0;
+	// retrieve latest sensor data - returns true if new data is available
+	virtual bool update() = 0;
 
 	// copies the current data frame
 	void get_current_frame(irlock_block data[IRLOCK_MAX_BLOCKS_PER_FRAME]) const;
