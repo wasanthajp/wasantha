@@ -27,7 +27,7 @@ void AC_PrecLand_Companion::update()
 //  returns true if angles are available, false if not (i.e. no target)
 //  x_angle_rad : body-frame roll direction, positive = target is to right (looking down)
 //  y_angle_rad : body-frame pitch direction, postiive = target is forward (looking down)
-bool AC_PrecLand_Companion::get_angle_to_target(float &x_angle_rad, float &y_angle_rad)
+bool AC_PrecLand_Companion::get_angle_to_target(float &x_angle_rad, float &y_angle_rad) const
 {
     return false;
 }
