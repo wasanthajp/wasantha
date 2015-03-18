@@ -21,9 +21,10 @@ void AC_PrecLand_IRLock::init()
 }
 
 // update - give chance to driver to get updates from sensor
-void AC_PrecLand_IRLock::update()
+bool AC_PrecLand_IRLock::update()
 {
-    irlock.update();
+    // get new sensor data
+    return (irlock.update());
 }
 
 // get_angle_to_target - returns body frame angles (in radians) to target
