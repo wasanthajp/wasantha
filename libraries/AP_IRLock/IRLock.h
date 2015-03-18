@@ -31,6 +31,7 @@
 #define IRLOCK_NOBLOB_FRAME 10             // the number of consecutive similar frames that will cause the sensor validity variable to turn false
 #define IRLOCK_X_PIXEL_PER_DEGREE 5.374f   // the x pixel to angle calibration variable
 #define IRLOCK_Y_PIXEL_PER_DEGREE 5.698f   // the y pixel to angle calibration variable
+#define IRLOCK_TIMEOUT_MS   100             // remove all blocks if no data received within 0.1 seconds
 
 typedef struct {
 	uint16_t signature;

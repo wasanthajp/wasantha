@@ -57,17 +57,24 @@ void AP_IRLock_PX4::update()
 
 	// read position of all objects
 	struct irlock_s report;
-	_num_blocks = 0;
+	uint16_t count = 0;
 	while(::read(_fd, &report, sizeof(struct irlock_s)) == sizeof(struct irlock_s) && report.timestamp >_last_timestamp) {
-		_current_frame[_num_blocks].signature = report.signature;
-		_current_frame[_num_blocks].center_x = report.center_x;
-		_current_frame[_num_blocks].center_y = report.center_y;
-		_current_frame[_num_blocks].width = report.width;
-		_current_frame[_num_blocks].height = report.height;
+		_current_frame[count].signature = report.signature;
+		_current_frame[count].center_x = report.center_x;
+		_current_frame[count].center_y = report.center_y;
+		_current_frame[count].width = report.width;
+		_current_frame[count].height = report.height;
 
-		++_num_blocks;
+		count++;
 		_last_timestamp = report.timestamp;
 		_last_update = hal.scheduler->millis();
+	}
+
+	// update num_blocks and implement timeout
+	if (count > 0) {
+	    _num_blocks = count;
+	} else if ((hal.scheduler->millis() - _last_update) > IRLOCK_TIMEOUT_MS) {
+	    _num_blocks = 0;
 	}
 }
 
