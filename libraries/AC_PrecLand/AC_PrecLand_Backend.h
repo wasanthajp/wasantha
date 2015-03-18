@@ -24,7 +24,8 @@ public:
     virtual void init() = 0;
 
     // update - give chance to driver to get updates from sensor
-    virtual void update() = 0;
+    //  returns true if new data available
+    virtual bool update() = 0;
 
     // get_angle_to_target - returns body frame angles (in radians) to target
     //  returns true if angles are available, false if not (i.e. no target)
