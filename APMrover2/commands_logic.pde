@@ -6,6 +6,7 @@ static void do_wait_delay(const AP_Mission::Mission_Command& cmd);
 static void do_within_distance(const AP_Mission::Mission_Command& cmd);
 static void do_change_speed(const AP_Mission::Mission_Command& cmd);
 static void do_set_home(const AP_Mission::Mission_Command& cmd);
+static void do_mount_control(const AP_Mission::Mission_Command& cmd);
 static bool verify_nav_wp(const AP_Mission::Mission_Command& cmd);
 
 /********************************************************************************/
@@ -106,6 +107,11 @@ start_command(const AP_Mission::Mission_Command& cmd)
                 // send the command to the camera mount
                 camera_mount.set_roi_target(cmd.content.location);
             }
+            break;
+
+        case MAV_CMD_DO_MOUNT_CONTROL:
+            // point the camera to a specified angle
+            do_mount_control(cmd);
             break;
 #endif
 
@@ -304,5 +310,13 @@ static void do_take_picture()
     if (should_log(MASK_LOG_CAMERA)) {
         DataFlash.Log_Write_Camera(ahrs, gps, current_loc);
     }
+#endif
+}
+
+// point the camera to a specified angle
+static void do_mount_control(const AP_Mission::Mission_Command& cmd)
+{
+#if MOUNT == ENABLED
+    camera_mount.set_angle_targets(cmd.content.mount_control.roll, cmd.content.mount_control.pitch, cmd.content.mount_control.yaw);
 #endif
 }
