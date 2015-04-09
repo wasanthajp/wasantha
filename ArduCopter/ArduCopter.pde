@@ -1151,6 +1151,9 @@ static void one_hz_loop()
         pos_control.set_alt_max(pv_alt_above_origin(fence.get_safe_alt()*100.0f));
     }
 #endif
+
+    // debug battery time
+    ::printf("batt cap:%lu perc:%d\n",(unsigned long)battery.get_capacity(), (int)battery.capacity_remaining_pct());
 }
 
 // called at 50hz
