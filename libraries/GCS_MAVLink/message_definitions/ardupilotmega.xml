@@ -258,6 +258,12 @@
         <entry name="EKF_PRED_POS_HORIZ_ABS" value="512"> <description>set if EKF's predicted horizontal position (absolute) estimate is good</description></entry>
 	</enum>
 
+    <!-- VEHICLE_EVENT_FLAGS - these values should be bit-and with the VEHICLE_EVENT message flags field -->
+    <enum name="VEHICLE_EVENT_FLAGS">
+        <description>Enum for VEHICLE_EVENT message flags field</description>
+        <entry name="VEHICLE_EVENT_SET" value="1"> <description>1 if VEHICLE_EVENT has occurred, 0 if event has cleared</description></entry>
+    </enum>
+
       </enums>
 
      <messages>
@@ -826,6 +832,24 @@
     </message>
 
     <!-- 219 to 225 RESERVED for more GOPRO-->
+
+    <message name="VEHICLE_EVENT" id="226">
+        <description>Event from autopilot</description>
+        <field name="event_id" type="uint16_t">Event Id</field>
+        <field name="flags" type="uint8_t" enum="VEHICLE_EVENT_FLAGS">Flags.  See enum VEHICLE_EVENT_FLAGS</field>
+    </message>
+
+    <message name="REQUEST_VEHICLE_EVENT_INFO" id="227">
+        <description>Request event description</description>
+        <field name="event_id" type="uint16_t">Event Id</field>
+    </message>
+
+    <message name="VEHICLE_EVENT_INFO" id="228">
+        <description>Event description</description>
+        <field name="event_id" type="uint16_t">Event Id</field>
+        <field name="severity" type="uint8_t" enum="MAV_SEVERITY">Severity of event See enum MAV_SEVERITY.</field>
+        <field name="description" type="char[64]">Description</field>
+    </message>
 
      </messages>
 </mavlink>
