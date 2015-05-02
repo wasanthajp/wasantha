@@ -213,7 +213,6 @@ static bool in_log_download;
 ////////////////////////////////////////////////////////////////////////////////
 // prototypes
 ////////////////////////////////////////////////////////////////////////////////
-static void update_events(void);
 static void print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode);
 static void gcs_send_text_fmt(const prog_char_t *fmt, ...);
 
@@ -1034,7 +1033,8 @@ static void three_hz_loop()
     sprayer.update();
 #endif
 
-    update_events();
+    // update servos in response to do-set-servo commands
+    ServoRelayEvents.update_events();
 
     // update ch6 in flight tuning
     tuning();

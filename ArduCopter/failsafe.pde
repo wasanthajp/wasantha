@@ -263,9 +263,3 @@ static void set_mode_RTL_or_land_with_pause()
         AP_Notify::events.failsafe_mode_change = 1;
     }
 }
-
-static void update_events()
-{
-    ServoRelayEvents.update_events();
-}
-
