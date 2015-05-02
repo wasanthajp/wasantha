@@ -137,6 +137,7 @@ public:
 #endif
     void send_autopilot_version(void) const;
     void send_local_position(const AP_AHRS &ahrs) const;
+    void send_vehicle_event(uint16_t event_id, uint8_t flags) const;
 
     // return a bitmap of active channels. Used by libraries to loop
     // over active channels to send to all active channels    
