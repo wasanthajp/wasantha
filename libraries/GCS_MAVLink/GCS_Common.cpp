@@ -1337,3 +1337,14 @@ void GCS_MAVLINK::send_local_position(const AP_AHRS &ahrs) const
         velocity.y,
         velocity.z);
 }
+
+/*
+  send VEHICLE_EVENT message
+ */
+void GCS_MAVLINK::send_vehicle_event(uint16_t event_id, uint8_t flags) const
+{
+    mavlink_msg_vehicle_event_send(
+        chan,
+        event_id,
+        flags);
+}
