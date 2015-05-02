@@ -128,8 +128,8 @@ static bool init_arm_motors(bool arming_from_gcs)
         return false;
     }
 
-    // disable cpu failsafe because initialising everything takes a while
-    failsafe_disable();
+    // disable cpu watchdog because initialising everything takes a while
+    watchdog_disable();
 
     // reset battery failsafe
     set_failsafe_battery(false);
@@ -163,7 +163,7 @@ static bool init_arm_motors(bool arming_from_gcs)
         if (((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_INS)) && !ins.gyro_calibrated_ok_all()) {
             gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Gyro calibration failed"));
             AP_Notify::flags.armed = false;
-            failsafe_enable();
+            watchdog_enable();
             in_arm_motors = false;
             return false;
         }
@@ -218,8 +218,8 @@ static bool init_arm_motors(bool arming_from_gcs)
     // log flight mode in case it was changed while vehicle was disarmed
     DataFlash.Log_Write_Mode(control_mode);
 
-    // reenable failsafe
-    failsafe_enable();
+    // reenable cpu watchdog
+    watchdog_enable();
 
     // perf monitor ignores delay due to arming
     perf_ignore_this_loop();

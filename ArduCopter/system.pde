@@ -56,7 +56,7 @@ static void run_cli(AP_HAL::UARTDriver *port)
     hal.scheduler->register_delay_callback(NULL, 5);
 
     // disable main_loop failsafe
-    failsafe_disable();
+    watchdog_disable();
 
     // cut the engines
     if(motors.armed()) {
@@ -171,7 +171,7 @@ static void init_ardupilot()
      *  setup the 'main loop is dead' check. Note that this relies on
      *  the RC library being initialised.
      */
-    hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
+    hal.scheduler->register_timer_failsafe(watchdog_check, 1000);
 
     // Do GPS init
     gps.init(&DataFlash, serial_manager);
@@ -258,8 +258,8 @@ static void init_ardupilot()
     // ready to fly
     serial_manager.set_blocking_writes_all(false);
 
-    // enable CPU failsafe
-    failsafe_enable();
+    // enable CPU watchdog
+    watchdog_enable();
 
     cliSerial->print_P(PSTR("\nReady to FLY "));
 

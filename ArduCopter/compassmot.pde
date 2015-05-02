@@ -69,8 +69,8 @@ static uint8_t mavlink_compassmot(mavlink_channel_t chan)
         return 1;
     }
 
-    // disable cpu failsafe
-    failsafe_disable();
+    // disable cpu watchdog
+    watchdog_disable();
 
     // initialise compass
     init_compass();
@@ -252,8 +252,8 @@ static uint8_t mavlink_compassmot(mavlink_channel_t chan)
     // turn off notify leds
     AP_Notify::flags.esc_calibration = false;
 
-    // re-enable cpu failsafe
-    failsafe_enable();
+    // re-enable cpu watchdog
+    watchdog_enable();
 
     // re-enable failsafes
     g.failsafe_throttle.load();
