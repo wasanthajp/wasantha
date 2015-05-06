@@ -1635,6 +1635,11 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         AP_Notify::handle_led_control(msg);
         break;
 
+    case MAVLINK_MSG_ID_REQUEST_VEHICLE_EVENT_INFO:
+        if (event_handle_request_event_info(chan, msg)) {
+            result = MAV_RESULT_ACCEPTED;
+        }
+        break;
     }     // end switch
 } // end handle mavlink
 
