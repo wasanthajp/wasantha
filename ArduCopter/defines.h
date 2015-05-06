@@ -284,12 +284,8 @@ enum FlipState {
 #define DATA_SET_SUPERSIMPLE_ON             29
 #define DATA_AUTOTUNE_INITIALISED           30
 #define DATA_AUTOTUNE_OFF                   31
-#define DATA_AUTOTUNE_RESTART               32
-#define DATA_AUTOTUNE_SUCCESS               33
-#define DATA_AUTOTUNE_FAILED                34
 #define DATA_AUTOTUNE_REACHED_LIMIT         35
 #define DATA_AUTOTUNE_PILOT_TESTING         36
-#define DATA_AUTOTUNE_SAVEDGAINS            37
 #define DATA_SAVE_TRIM                      38
 #define DATA_SAVEWP_ADD_WP                  39
 #define DATA_SAVEWP_CLEAR_MISSION_RTL       40

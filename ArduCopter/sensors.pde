@@ -2,13 +2,13 @@
 
 static void init_barometer(bool full_calibration)
 {
-    gcs_send_text_P(SEVERITY_LOW, PSTR("Calibrating barometer"));
+    event_send_and_record(EVENTID_BARO_CALIBRATING, EVENT_SET);
     if (full_calibration) {
         barometer.calibrate();
     }else{
         barometer.update_calibration();
     }
-    gcs_send_text_P(SEVERITY_LOW, PSTR("barometer calibration complete"));
+    event_send_and_record(EVENTID_BARO_CALIBRATION_COMPLETE, EVENT_SET);
 }
 
 // return barometric altitude in centimeters

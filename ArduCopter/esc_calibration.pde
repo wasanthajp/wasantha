@@ -34,8 +34,8 @@ static void esc_calibration_startup_check()
             if (g.rc_3.control_in >= ESC_CALIBRATION_HIGH_THROTTLE) {
                 // we will enter esc_calibrate mode on next reboot
                 g.esc_calibrate.set_and_save(ESCCAL_PASSTHROUGH_IF_THROTTLE_HIGH);
-                // send message to gcs
-                gcs_send_text_P(SEVERITY_HIGH,PSTR("ESC Calibration: restart board"));
+                // send event to GCS and dataflash
+                event_send_and_record(EVENTID_ESC_CALIBRATION_RESTART_BOARD, EVENT_SET);
                 // turn on esc calibration notification
                 AP_Notify::flags.esc_calibration = true;
                 // block until we restart
@@ -74,8 +74,8 @@ static void esc_calibration_passthrough()
     // reduce update rate to motors to 50Hz
     motors.set_update_rate(50);
 
-    // send message to GCS
-    gcs_send_text_P(SEVERITY_HIGH,PSTR("ESC Calibration: passing pilot throttle to ESCs"));
+    // send event to GCS and dataflash
+    event_send_and_record(EVENTID_ESC_CALIBRATION_PASSINGTHROUGH, EVENT_SET);
 
     while(1) {
         // arm motors
@@ -102,8 +102,8 @@ static void esc_calibration_auto()
     // reduce update rate to motors to 50Hz
     motors.set_update_rate(50);
 
-    // send message to GCS
-    gcs_send_text_P(SEVERITY_HIGH,PSTR("ESC Calibration: auto calibration"));
+    // send event to GCS and dataflash
+    event_send_and_record(EVENTID_ESC_CALIBRATION_AUTOCALIBRATION, EVENT_SET);
 
     // arm and enable motors
     motors.armed(true);
@@ -119,7 +119,8 @@ static void esc_calibration_auto()
     // wait for safety switch to be pressed
     while (hal.util->safety_switch_state() == AP_HAL::Util::SAFETY_DISARMED) {
         if (!printed_msg) {
-            gcs_send_text_P(SEVERITY_HIGH,PSTR("ESC Calibration: push safety switch"));
+            // send event to GCS and dataflash
+            event_send_and_record(EVENTID_ESC_CALIBRATION_PUSH_SAFETYSWITCH, EVENT_SET);
             printed_msg = true;
         }
         delay(10);

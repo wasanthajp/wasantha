@@ -583,8 +583,7 @@ static void save_trim()
     float roll_trim = ToRad((float)g.rc_1.control_in/100.0f);
     float pitch_trim = ToRad((float)g.rc_2.control_in/100.0f);
     ahrs.add_trim(roll_trim, pitch_trim);
-    Log_Write_Event(DATA_SAVE_TRIM);
-    gcs_send_text_P(SEVERITY_HIGH, PSTR("Trim saved"));
+    event_send_and_record(EVENTID_MAIN_TRIM_SAVED, EVENT_SET);
 }
 
 // auto_trim - slightly adjusts the ahrs.roll_trim and ahrs.pitch_trim towards the current stick positions
