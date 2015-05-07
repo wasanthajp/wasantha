@@ -1749,3 +1749,15 @@ static void gcs_send_text_fmt(const prog_char_t *fmt, ...)
         }
     }
 }
+
+/*
+ *  send arming_check_report to all GCSs
+ */
+static void gcs_send_arming_check_report(uint64_t present, uint64_t passed, uint64_t failed)
+{
+    for (uint8_t i=0; i<num_gcs; i++) {
+        if (gcs[i].initialised) {
+            gcs[i].send_arming_check_report(present, passed, failed);
+        }
+    }
+}
