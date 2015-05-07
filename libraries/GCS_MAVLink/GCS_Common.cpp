@@ -1348,3 +1348,15 @@ void GCS_MAVLINK::send_vehicle_event(uint16_t event_id, uint8_t flags) const
         event_id,
         flags);
 }
+
+/*
+  send ARMING_CHECK_REPORT message
+ */
+void GCS_MAVLINK::send_arming_check_report(uint64_t present, uint64_t passed, uint64_t failed) const
+{
+    mavlink_msg_arming_check_report_send(
+        chan,
+        present,
+        passed,
+        failed);
+}
