@@ -211,6 +211,14 @@ enum FlipState {
     Flip_Abandon
 };
 
+// arming check possible results
+enum ArmingCheckResult {
+    ArmingCheck_Skipped,
+    ArmingCheck_Failed,
+    ArmingCheck_Pending,
+    ArmingCheck_Passed
+};
+
 // LAND state
 #define LAND_STATE_FLY_TO_LOCATION  0
 #define LAND_STATE_DESCENDING       1
