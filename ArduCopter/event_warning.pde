@@ -69,7 +69,7 @@ static bool event_handle_request_event_info(mavlink_channel_t chan, mavlink_mess
     // copy description to larger temp buffer
     char temp_desc[64];
     memset(temp_desc,0,sizeof(temp_desc));
-    memcpy(evinf.description, temp_desc, EVENT_DESC_LEN);
+    strcpy(temp_desc, evinf.description);
 
     // send event info to GCS
     mavlink_msg_vehicle_event_info_send(chan, evinf.event_id, evinf.severity, evinf.description);
