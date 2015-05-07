@@ -1499,6 +1499,52 @@
                   <description>Payload battery</description>
               </entry>
           </enum>
+          <!-- ARMING_CHECK - these values should be bit-and with the ARMING_CHECK_REPORTs status_mask field -->
+          <enum name="ARMING_CHECK_MASK">
+              <description>Enum for ARMING_CHECK_REPORTs present, passed and failed field</description>
+              <entry value="1" name="ARMING_CHECK_MASK_ALL">
+                  <description>Overall arming check for all modes</description>
+              </entry>
+              <entry value="2" name="ARMING_CHECK_MASK_NONNAV">
+                  <description>Overall arming check for non-navigation modes</description>
+              </entry>
+              <entry value="4" name="ARMING_CHECK_MASK_AHRS">
+                  <description>AHRS checks</description>
+              </entry>
+              <entry value="8" name="ARMING_CHECK_MASK_AIRSPEED">
+                  <description>Airspeed checks</description>
+              </entry>
+              <entry value="16" name="ARMING_CHECK_MASK_BARO">
+                  <description>Baro checks</description>
+              </entry>
+              <entry value="32" name="ARMING_CHECK_MASK_BOARD">
+                  <description>Board checks</description>
+              </entry>
+              <entry value="64" name="ARMING_CHECK_MASK_COMPASS">
+                  <description>Compass checks</description>
+              </entry>
+              <entry value="128" name="ARMING_CHECK_MASK_FENCE">
+                  <description>Fence checks</description>
+              </entry>
+              <entry value="256" name="ARMING_CHECK_MASK_GPS">
+                  <description>GPS checks</description>
+              </entry>
+              <entry value="512" name="ARMING_CHECK_MASK_INS">
+                  <description>INS checks</description>
+              </entry>
+              <entry value="1024" name="ARMING_CHECK_MASK_PARAMS">
+                  <description>Parameter checks</description>
+              </entry>
+              <entry value="2048" name="ARMING_CHECK_MASK_RC">
+                  <description>RC checks</description>
+              </entry>
+              <entry value="4096" name="ARMING_CHECK_MASK_LOGGING">
+                  <description>Logging checks</description>
+              </entry>
+              <entry value="8192" name="ARMING_CHECK_MASK_MAIN">
+                  <description>Main autopilot checks</description>
+              </entry>
+          </enum>
      </enums>
      <messages>
           <message id="0" name="HEARTBEAT">
@@ -2628,6 +2674,12 @@
             <field type="uint16_t" name="vendor_id">ID of the board vendor</field>
             <field type="uint16_t" name="product_id">ID of the product</field>
             <field type="uint64_t" name="uid">UID if provided by hardware</field>
+        </message>
+        <message name="ARMING_CHECK_REPORT" id="149">
+            <description>Reports on autopilot's readiness to arm</description>
+            <field name="present_mask" type="uint64_t">Present bitmask. 1 if this bit represents a check, 0 otherwise.  See ARMING_CHECK_STATUS enum for bit meanings</field>
+            <field name="passed_mask" type="uint64_t">Passed bitmask. 1 if this check has passed, 0 if pending or failed.  See ARMING_CHECK_STATUS enum for bit meanings</field>
+            <field name="failed_mask" type="uint64_t">Failed bitmask, 1 if this check has failed, 0 if pending or passed. See ARMING_CHECK_STATUS enum for bit meanings</field>
         </message>
         <!-- MESSAGE IDs 180 - 240: Space for custom messages in individual projectname_messages.xml files -->
         <message id="248" name="V2_EXTENSION">
