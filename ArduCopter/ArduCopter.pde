@@ -164,7 +164,7 @@
 #include "defines.h"
 #include "config.h"
 #include "config_channels.h"
-#include "events.h"
+#include "event_define.h"
 
 // key aircraft parameters passed to multiple libraries
 static AP_Vehicle::MultiCopter aparm;

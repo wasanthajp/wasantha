@@ -4,7 +4,7 @@
  *       This file contains functionality to send event messages to the GCS
  */
 
-#include "events.h"
+#include "event_define.h"
 
 // retrieve event description
 static bool event_get_info(uint16_t event_id, struct EventInfo& ret)
