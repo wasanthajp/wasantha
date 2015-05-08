@@ -21,7 +21,6 @@
 static struct {
     uint8_t fail_count;         // number of iterations ekf or dcm have been out of tolerances
     uint8_t bad_variance : 1;   // true if ekf should be considered untrusted (fail_count has exceeded EKF_CHECK_ITERATIONS_MAX)
-    uint32_t last_warn_time;    // system time of last warning in milliseconds.  Used to throttle text warnings sent to GCS
 } ekf_check_state;
 
 // ekf_check - detects if ekf variance are out of tolerance and triggers failsafe
@@ -48,13 +47,8 @@ void ekf_check()
                 // limit count from climbing too high
                 ekf_check_state.fail_count = EKF_CHECK_ITERATIONS_MAX;
                 ekf_check_state.bad_variance = true;
-                // log an error in the dataflash
-                Log_Write_Error(ERROR_SUBSYSTEM_EKFCHECK, ERROR_CODE_EKFCHECK_BAD_VARIANCE);
-                // send message to gcs
-                if ((hal.scheduler->millis() - ekf_check_state.last_warn_time) > EKF_CHECK_WARNING_TIME) {
-                    gcs_send_text_P(SEVERITY_HIGH,PSTR("EKF variance"));
-                    ekf_check_state.last_warn_time = hal.scheduler->millis();
-                }
+                // send event to GCS and dataflash
+                event_send_and_record(EVENTID_FAILSAFE_EKF_VARIANCE, EVENT_SET);
                 failsafe_ekf_event();
             }
         }
@@ -66,8 +60,8 @@ void ekf_check()
             // if compass is flagged as bad and the counter reaches zero then clear flag
             if (ekf_check_state.bad_variance && ekf_check_state.fail_count == 0) {
                 ekf_check_state.bad_variance = false;
-                // log recovery in the dataflash
-                Log_Write_Error(ERROR_SUBSYSTEM_EKFCHECK, ERROR_CODE_EKFCHECK_VARIANCE_CLEARED);
+                // send event to GCS and dataflash
+                event_send_and_record(EVENTID_FAILSAFE_EKF_VARIANCE, EVENT_CLEARED);
                 // clear failsafe
                 failsafe_ekf_off_event();
             }

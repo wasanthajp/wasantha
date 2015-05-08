@@ -178,8 +178,8 @@ static bool autotune_init(bool ignore_checks)
                 autotune_backup_gains_and_initialise();
                 // advance mode to tuning
                 autotune_state.mode = AUTOTUNE_MODE_TUNING;
-                // send message to ground station that we've started tuning
-                autotune_update_gcs(AUTOTUNE_MESSAGE_STARTED);
+                // send event to GCS and dataflash
+                event_send_and_record(EVENTID_AUTOTUNE_STARTED, EVENT_SET);
             }
             break;
 
@@ -189,9 +189,8 @@ static bool autotune_init(bool ignore_checks)
             if (success) {
                 // reset gains to tuning-start gains (i.e. low I term)
                 autotune_load_intra_test_gains();
-                // write dataflash log even and send message to ground station
-                Log_Write_Event(DATA_AUTOTUNE_RESTART);
-                autotune_update_gcs(AUTOTUNE_MESSAGE_STARTED);
+                // send event to GCS and dataflash
+                event_send_and_record(EVENTID_AUTOTUNE_RESTARTED, EVENT_SET);
             }
             break;
 
@@ -199,7 +198,8 @@ static bool autotune_init(bool ignore_checks)
             // we have completed a tune and the pilot wishes to test the new gains in the current flight mode
             // so simply apply tuning gains (i.e. do not change flight mode)
             autotune_load_tuned_gains();
-            Log_Write_Event(DATA_AUTOTUNE_PILOT_TESTING);
+            // send event to GCS and dataflash
+            event_send_and_record(EVENTID_AUTOTUNE_PILOTTESTING, EVENT_SET);
             break;
     }
 
@@ -215,9 +215,8 @@ static void autotune_stop()
     // re-enable angle-to-rate request limits
     attitude_control.limit_angle_to_rate_request(true);
 
-    // log off event and send message to ground station
-    autotune_update_gcs(AUTOTUNE_MESSAGE_STOPPED);
-    Log_Write_Event(DATA_AUTOTUNE_OFF);
+    // send event to GCS and dataflash
+    event_send_and_record(EVENTID_AUTOTUNE_STOPPED, EVENT_SET);
 
     // Note: we leave the autotune_state.mode as it was so that we know how the autotune ended
     // we expect the caller will change the flight mode back to the flight mode indicated by the flight mode switch
@@ -700,8 +699,8 @@ static void autotune_attitude_control()
                     // change to TESTING mode to allow user to fly with new gains
                 if (autotune_complete) {
                     autotune_state.mode = AUTOTUNE_MODE_SUCCESS;
-                    autotune_update_gcs(AUTOTUNE_MESSAGE_SUCCESS);
-                    Log_Write_Event(DATA_AUTOTUNE_SUCCESS);
+                    // send event to GCS and dataflash
+                    event_send_and_record(EVENTID_AUTOTUNE_SUCCESS, EVENT_SET);
                     AP_Notify::events.autotune_complete = 1;
                 } else {
                     AP_Notify::events.autotune_next_axis = 1;
@@ -1024,33 +1023,10 @@ static void autotune_save_tuning_gains()
             orig_yaw_rLPF = g.pid_rate_yaw.filt_hz();
             orig_yaw_sp = g.p_stabilize_yaw.kP();
         }
-        // update GCS and log save gains event
-        autotune_update_gcs(AUTOTUNE_MESSAGE_SAVED_GAINS);
-        Log_Write_Event(DATA_AUTOTUNE_SAVEDGAINS);
+        // send event to GCS and dataflash
+        event_send_and_record(EVENTID_AUTOTUNE_SAVED_GAINS, EVENT_SET);
         // reset Autotune so that gains are not saved again and autotune can be run again.
         autotune_state.mode = AUTOTUNE_MODE_UNINITIALISED;
-    }
-}
-
-// autotune_update_gcs - send message to ground station
-void autotune_update_gcs(uint8_t message_id)
-{
-    switch (message_id) {
-        case AUTOTUNE_MESSAGE_STARTED:
-            gcs_send_text_P(SEVERITY_HIGH,PSTR("AutoTune: Started"));
-            break;
-        case AUTOTUNE_MESSAGE_STOPPED:
-            gcs_send_text_P(SEVERITY_HIGH,PSTR("AutoTune: Stopped"));
-            break;
-        case AUTOTUNE_MESSAGE_SUCCESS:
-            gcs_send_text_P(SEVERITY_HIGH,PSTR("AutoTune: Success"));
-            break;
-        case AUTOTUNE_MESSAGE_FAILED:
-            gcs_send_text_P(SEVERITY_HIGH,PSTR("AutoTune: Failed"));
-            break;
-        case AUTOTUNE_MESSAGE_SAVED_GAINS:
-            gcs_send_text_P(SEVERITY_HIGH,PSTR("AutoTune: Saved Gains"));
-            break;
     }
 }
 

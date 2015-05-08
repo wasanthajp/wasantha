@@ -156,9 +156,9 @@ process_logs(uint8_t argc, const Menu::arg *argv)
 
 static void do_erase_logs(void)
 {
-    gcs_send_text_P(SEVERITY_HIGH, PSTR("Erasing logs\n"));
+    event_send(EVENTID_DATAFLASH_ERASING_LOGS, EVENT_SET);
     DataFlash.EraseAll();
-    gcs_send_text_P(SEVERITY_HIGH, PSTR("Log erase complete\n"));
+    event_send(EVENTID_DATAFLASH_ERASE_COMPLETE, EVENT_SET);
 }
 
 #if AUTOTUNE_ENABLED == ENABLED

@@ -142,7 +142,7 @@ static bool init_arm_motors(bool arming_from_gcs)
     }
 
 #if HIL_MODE != HIL_MODE_DISABLED || CONFIG_HAL_BOARD == HAL_BOARD_SITL
-    gcs_send_text_P(SEVERITY_HIGH, PSTR("ARMING MOTORS"));
+    event_send_and_record(EVENTID_MAIN_ARMING, EVENT_SET);
 #endif
 
     // Remember Orientation
@@ -747,7 +747,7 @@ static void init_disarm_motors()
     }
 
 #if HIL_MODE != HIL_MODE_DISABLED || CONFIG_HAL_BOARD == HAL_BOARD_SITL
-    gcs_send_text_P(SEVERITY_HIGH, PSTR("DISARMING MOTORS"));
+    event_send_and_record(EVENTID_MAIN_DISARMING, EVENT_SET);
 #endif
 
     // send disarm command to motors
@@ -817,7 +817,7 @@ static void lost_vehicle_check()
         if (soundalarm_counter >= LOST_VEHICLE_DELAY) {
             if (AP_Notify::flags.vehicle_lost == false) {
                 AP_Notify::flags.vehicle_lost = true;
-                gcs_send_text_P(SEVERITY_HIGH,PSTR("Locate Copter Alarm!"));
+                event_send_and_record(EVENTID_MAIN_LOCATE_COPTER_ALARM, EVENT_SET);
             }
         } else {
             soundalarm_counter++;

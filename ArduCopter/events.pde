@@ -83,9 +83,8 @@ static void failsafe_radio_on_event()
             break;
     }
 
-    // log the error to the dataflash
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_RADIO, ERROR_CODE_FAILSAFE_OCCURRED);
-
+    // send event to GCS and dataflash
+    event_send_and_record(EVENTID_FAILSAFE_RADIO, EVENT_SET);
 }
 
 // failsafe_off_event - respond to radio contact being regained
@@ -95,7 +94,7 @@ static void failsafe_radio_off_event()
 {
     // no need to do anything except log the error as resolved
     // user can now override roll, pitch, yaw and throttle and even use flight mode switch to restore previous flight mode
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_RADIO, ERROR_CODE_FAILSAFE_RESOLVED);
+    event_send_and_record(EVENTID_FAILSAFE_RADIO, EVENT_CLEARED);
 }
 
 static void failsafe_battery_event(void)
@@ -156,10 +155,8 @@ static void failsafe_battery_event(void)
     // set the low battery flag
     set_failsafe_battery(true);
 
-    // warn the ground station and log to dataflash
-    gcs_send_text_P(SEVERITY_HIGH,PSTR("Low Battery!"));
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_BATT, ERROR_CODE_FAILSAFE_OCCURRED);
-
+    // send event to GCS and dataflash
+    event_send_and_record(EVENTID_FAILSAFE_BATTERY_VOLTAGE_LOW, EVENT_SET);
 }
 
 // failsafe_gcs_check - check for ground station failsafe
@@ -195,7 +192,7 @@ static void failsafe_gcs_check()
     // GCS failsafe event has occured
     // update state, log to dataflash
     set_failsafe_gcs(true);
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GCS, ERROR_CODE_FAILSAFE_OCCURRED);
+    event_record(EVENTID_FAILSAFE_GCS, EVENT_SET);
 
     // clear overrides so that RC control can be regained with radio.
     hal.rcin->clear_overrides();
@@ -246,8 +243,8 @@ static void failsafe_gcs_check()
 // failsafe_gcs_off_event - actions to take when GCS contact is restored
 static void failsafe_gcs_off_event(void)
 {
-    // log recovery of GCS in logs?
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GCS, ERROR_CODE_FAILSAFE_RESOLVED);
+    // log recovery of GCS in logs
+    event_record(EVENTID_FAILSAFE_GCS, EVENT_CLEARED);
 }
 
 // set_mode_RTL_or_land_with_pause - sets mode to RTL if possible or LAND with 4 second delay before descent starts

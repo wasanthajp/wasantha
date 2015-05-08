@@ -150,10 +150,10 @@ static void init_ardupilot()
 #if LOGGING_ENABLED == ENABLED
     DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
     if (!DataFlash.CardInserted()) {
-        gcs_send_text_P(SEVERITY_HIGH, PSTR("No dataflash inserted"));
+        event_send(EVENTID_DATAFLASH_NO_DATAFLASH_INSERTED, EVENT_SET);
         g.log_bitmask.set(0);
     } else if (DataFlash.NeedErase()) {
-        gcs_send_text_P(SEVERITY_HIGH, PSTR("ERASING LOGS"));
+        event_send(EVENTID_DATAFLASH_ERASING_LOGS, EVENT_SET);
         do_erase_logs();
         gcs[0].reset_cli_timeout();
     }
@@ -217,7 +217,7 @@ static void init_ardupilot()
     while (barometer.get_last_update() == 0) {
         // the barometer begins updating when we get the first
         // HIL_STATE message
-        gcs_send_text_P(SEVERITY_LOW, PSTR("Waiting for first HIL_STATE message"));
+        event_send(EVENTID_MAIN_WAITING_FOR_HIL, EVENT_SET);
         delay(1000);
     }
 
@@ -276,7 +276,7 @@ static void init_ardupilot()
 //******************************************************************************
 static void startup_ground(bool force_gyro_cal)
 {
-    gcs_send_text_P(SEVERITY_LOW,PSTR("GROUND START"));
+    event_send(EVENTID_MAIN_GROUND_START, EVENT_SET);
 
     // initialise ahrs (may push imu calibration into the mpu6000 if using that device).
     ahrs.init();
