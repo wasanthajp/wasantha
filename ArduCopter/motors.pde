@@ -161,7 +161,7 @@ static bool init_arm_motors(bool arming_from_gcs)
         startup_ground(true);
         // final check that gyros calibrated successfully
         if (((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_INS)) && !ins.gyro_calibrated_ok_all()) {
-            gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Gyro calibration failed"));
+            event_send_and_record(EVENTID_INS_GYRO_CAL_FAILED, EVENT_SET);
             AP_Notify::flags.armed = false;
             failsafe_enable();
             in_arm_motors = false;
