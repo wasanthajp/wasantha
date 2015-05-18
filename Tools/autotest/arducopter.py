@@ -22,7 +22,7 @@ AVCHOME=mavutil.location(40.072842,-105.230575,1586,0)
 
 homeloc = None
 num_wp = 0
-speedup_default = 5
+speedup_default = 3
 
 def hover(mavproxy, mav, hover_throttle=1450):
     mavproxy.send('rc 3 %u\n' % hover_throttle)
