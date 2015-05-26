@@ -76,7 +76,9 @@ void AC_PrecLand::init()
             break;
         // IR Lock
         case PRECLAND_TYPE_IRLOCK:
+#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
             _backend = new AC_PrecLand_IRLock(*this, _backend_state);
+#endif
             break;
     }
 
