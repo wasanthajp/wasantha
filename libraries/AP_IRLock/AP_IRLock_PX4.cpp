@@ -19,6 +19,7 @@
  *  Created on: Nov 16, 2014
  *      Author: MLandes
  */
+#include <AP_HAL.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
 
