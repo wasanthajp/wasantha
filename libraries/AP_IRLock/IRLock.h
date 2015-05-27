@@ -25,13 +25,12 @@
 
 #include "AP_AHRS.h"
 
-#define IRLOCK_MAX_BLOCKS_PER_FRAME 5      // max number of blobs that can be detected by IR-LOCK sensor (should match PX4Firmware's irlock driver's IRLOCK_OBJECTS_MAX)
-#define IRLOCK_CENTER_X  159               // the center x pixel value
-#define IRLOCK_CENTER_Y  99                // the center y pixel value
-#define IRLOCK_NOBLOB_FRAME 10             // the number of consecutive similar frames that will cause the sensor validity variable to turn false
-#define IRLOCK_X_PIXEL_PER_DEGREE 5.374f   // the x pixel to angle calibration variable
-#define IRLOCK_Y_PIXEL_PER_DEGREE 5.698f   // the y pixel to angle calibration variable
-#define IRLOCK_TIMEOUT_MS   100             // remove all blocks if no data received within 0.1 seconds
+#define AP_IRLOCK_MAX_BLOCKS_PER_FRAME  5   // max number of blobs that can be detected by IR-LOCK sensor (should match PX4Firmware's irlock driver's IRLOCK_OBJECTS_MAX)
+#define AP_IRLOCK_CENTER_X              159 // the center x pixel value
+#define AP_IRLOCK_CENTER_Y              99  // the center y pixel value
+#define AP_IRLOCK_PIXEL_PER_DEGREE_X    5.374f  // the x pixel to angle calibration variable
+#define AP_IRLOCK_PIXEL_PER_DEGREE_Y    5.698f  // the y pixel to angle calibration variable
+#define AP_IRLOCK_TIMEOUT_MS            100     // remove all blocks if no data received within 0.1 seconds
 
 typedef struct {
 	uint16_t signature;
@@ -75,7 +74,7 @@ protected:
 	// internals
 	uint32_t _last_update;
 	uint16_t _num_blocks;
-	irlock_block _current_frame[IRLOCK_MAX_BLOCKS_PER_FRAME];
+	irlock_block _current_frame[AP_IRLOCK_MAX_BLOCKS_PER_FRAME];
 };
 
 

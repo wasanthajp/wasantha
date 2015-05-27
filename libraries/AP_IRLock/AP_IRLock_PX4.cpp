@@ -75,7 +75,7 @@ bool AP_IRLock_PX4::update()
 	// update num_blocks and implement timeout
 	if (count > 0) {
 	    _num_blocks = count;
-	} else if ((hal.scheduler->millis() - _last_update) > IRLOCK_TIMEOUT_MS) {
+	} else if ((hal.scheduler->millis() - _last_update) > AP_IRLOCK_TIMEOUT_MS) {
 	    _num_blocks = 0;
 	}
 
