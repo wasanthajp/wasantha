@@ -26,18 +26,14 @@
 #include "AP_AHRS.h"
 
 #define AP_IRLOCK_MAX_BLOCKS_PER_FRAME  5   // max number of blobs that can be detected by IR-LOCK sensor (should match PX4Firmware's irlock driver's IRLOCK_OBJECTS_MAX)
-#define AP_IRLOCK_CENTER_X              159 // the center x pixel value
-#define AP_IRLOCK_CENTER_Y              99  // the center y pixel value
-#define AP_IRLOCK_PIXEL_PER_DEGREE_X    5.374f  // the x pixel to angle calibration variable
-#define AP_IRLOCK_PIXEL_PER_DEGREE_Y    5.698f  // the y pixel to angle calibration variable
 #define AP_IRLOCK_TIMEOUT_MS            100     // remove all blocks if no data received within 0.1 seconds
 
 typedef struct {
-	uint16_t signature;
-	uint16_t center_x;
-	uint16_t center_y;
-	uint16_t width;
-	uint16_t height;
+	uint16_t target_num;
+	float angle_x;  // x-axis angle in radians from center of camera frame to center of target
+	float angle_y;  // y-axis angle in radians from center of camera frame to center of target
+	float size_x;   // x-axis size in radians of the target
+	float size_y;   // y-axis size in raidans of the target
 } irlock_block;
 
 class IRLock
@@ -57,7 +53,7 @@ public:
 	uint32_t last_update() const { return _last_update; }
 
 	// returns the number of blocks in the current frame
-	size_t num_blocks() const { return _num_blocks; }
+	size_t num_targets() const { return _num_targets; }
 
 	// retrieve latest sensor data - returns true if new data is available
 	virtual bool update() = 0;
@@ -73,7 +69,7 @@ protected:
 
 	// internals
 	uint32_t _last_update;
-	uint16_t _num_blocks;
+	uint8_t _num_targets;
 	irlock_block _current_frame[AP_IRLOCK_MAX_BLOCKS_PER_FRAME];
 };
 
