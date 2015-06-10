@@ -295,8 +295,9 @@ struct PACKED log_Control_Tuning {
     int16_t  throttle_in;
     int16_t  angle_boost;
     float    throttle_out;
+    int32_t  alt;
     float    desired_alt;
-    float    inav_alt;
+    float    ekf_alt;
     int32_t  baro_alt;
     int16_t  desired_sonar_alt;
     int16_t  sonar_alt;
@@ -313,8 +314,9 @@ void Copter::Log_Write_Control_Tuning()
         throttle_in         : channel_throttle->control_in,
         angle_boost         : attitude_control.angle_boost(),
         throttle_out        : motors.get_throttle(),
+        alt                 : current_loc.alt,
         desired_alt         : pos_control.get_alt_target() / 100.0f,
-        inav_alt            : inertial_nav.get_altitude() / 100.0f,
+        ekf_alt             : inertial_nav.get_altitude() / 100.0f,
         baro_alt            : baro_alt,
         desired_sonar_alt   : (int16_t)target_sonar_alt,
         sonar_alt           : sonar_alt,
@@ -667,7 +669,7 @@ const struct LogStructure Copter::log_structure[] PROGMEM = {
     { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),       
       "NTUN", "Qffffffffff", "TimeUS,DPosX,DPosY,PosX,PosY,DVelX,DVelY,VelX,VelY,DAccX,DAccY" },
     { LOG_CONTROL_TUNING_MSG, sizeof(log_Control_Tuning),
-      "CTUN", "Qhhfffecchh", "TimeUS,ThrIn,AngBst,ThrOut,DAlt,Alt,BarAlt,DSAlt,SAlt,DCRt,CRt" },
+      "CTUN", "Qhhfeffecchh","TimeUS,ThrIn,ABst,ThrOut,Alt,DEAlt,EAlt,BAlt,DSAlt,SAlt,DCR,CR" },
     { LOG_PERFORMANCE_MSG, sizeof(log_Performance), 
       "PM",  "QHHIhBH",    "TimeUS,NLon,NLoop,MaxT,PMT,I2CErr,INSErr" },
     { LOG_RATE_MSG, sizeof(log_Rate),
