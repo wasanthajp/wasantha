@@ -379,7 +379,7 @@ private:
     float target_sonar_alt;      // desired altitude in cm above the ground
     int32_t baro_alt;            // barometer altitude in cm above home
     float baro_climbrate;        // barometer climbrate in cm/s
-    LowPassFilterVector3f land_accel_ef_filter; // accelerations for land detector test
+    LowPassFilterVector3f land_accel_ef_filter; // accelerations for land and crash detector tests
 
     LowPassFilterFloat rc_throttle_control_in_filter{1.0f};
 
@@ -810,6 +810,7 @@ private:
     void read_inertia();
     void read_inertial_altitude();
     bool land_complete_maybe();
+    void update_land_and_crash_detectors();
     void update_land_detector();
     void update_throttle_thr_mix();
     void landinggear_update();
