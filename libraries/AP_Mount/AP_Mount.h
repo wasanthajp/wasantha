@@ -22,7 +22,6 @@
 #ifndef __AP_MOUNT_H__
 #define __AP_MOUNT_H__
 
-#include <AP_Gimbal_Parameters.h>
 #include <AP_Math/AP_Math.h>
 #include <AP_Common/AP_Common.h>
 #include <AP_GPS/AP_GPS.h>
@@ -30,7 +29,8 @@
 #include <GCS_MAVLink/GCS_MAVLink.h>
 #include <RC_Channel/RC_Channel.h>
 #include <AP_SerialManager/AP_SerialManager.h>
-
+#include <DataFlash.h>
+#include <AP_Gimbal_Parameters.h>
 
 // maximum number of mounts
 #define AP_MOUNT_MAX_INSTANCES          1
@@ -74,7 +74,7 @@ public:
     AP_Mount(const AP_AHRS_TYPE &ahrs, const struct Location &current_loc);
 
     // init - detect and initialise all mounts
-    void init(const AP_SerialManager& serial_manager);
+    void init(DataFlash_Class *dataflash ,const AP_SerialManager& serial_manager);
 
     // update - give mount opportunity to update servos.  should be called at 10hz or higher
     void update();
@@ -148,6 +148,8 @@ protected:
     uint8_t             _num_instances;     // number of mounts instantiated
     uint8_t             _primary;           // primary mount
     AP_Mount_Backend    *_backends[AP_MOUNT_MAX_INSTANCES];         // pointers to instantiated mounts
+
+    DataFlash_Class *_dataflash;
 
     // backend state including parameters
     struct mount_state {
