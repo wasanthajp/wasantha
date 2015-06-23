@@ -701,6 +701,7 @@ void AC_AttitudeControl::accel_limiting(bool enable_limits)
  // provide 0 to cut motors
 void AC_AttitudeControl::set_throttle_out(float throttle_out, bool apply_angle_boost, float filter_cutoff)
 {
+    _throttle_in_filt.apply(throttle_out, _dt);
     _motors.set_stabilizing(true);
     _motors.set_throttle_filter_cutoff(filter_cutoff);
     if (apply_angle_boost) {
@@ -715,6 +716,7 @@ void AC_AttitudeControl::set_throttle_out(float throttle_out, bool apply_angle_b
 // outputs a throttle to all motors evenly with no attitude stabilization
 void AC_AttitudeControl::set_throttle_out_unstabilized(float throttle_in, bool reset_attitude_control, float filter_cutoff)
 {
+    _throttle_in_filt.apply(throttle_in, _dt);
     if (reset_attitude_control) {
         relax_bf_rate_controller();
         set_yaw_target_to_current_heading();
@@ -723,6 +725,14 @@ void AC_AttitudeControl::set_throttle_out_unstabilized(float throttle_in, bool r
     _motors.set_stabilizing(false);
     _motors.set_throttle(throttle_in);
     _angle_boost = 0;
+}
+
+// get lean angle max for pilot input that prioritises altitude hold over lean angle
+float AC_AttitudeControl::get_althold_lean_angle_max()
+{
+    // calc maximum tilt angle based on throttle
+    float thr_max = _motors.throttle_max();
+    return ToDeg(acos(constrain_float(_throttle_in_filt.get()/(0.9f * thr_max / 1000.0f), 0.0f, 1000.0f) / 1000.0f)) * 100.0f;
 }
 
 // returns a throttle including compensation for roll/pitch angle
