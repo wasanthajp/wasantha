@@ -13,10 +13,11 @@ float Copter::get_smoothing_gain()
 // returns desired angle in centi-degrees
 void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float &roll_out, float &pitch_out, float angle_max)
 {
+    // limit max lean angle
     angle_max = constrain_float(angle_max,1000,8000);
-    float scaler = (float)angle_max/(float)ROLL_PITCH_INPUT_MAX;
 
-    // scale roll_in, pitch_in to correct units
+    // scale roll_in, pitch_in to ANGLE_MAX parameter range
+    float scaler = constrain_float(aparm.angle_max,1000,8000)/(float)ROLL_PITCH_INPUT_MAX;
     roll_in *= scaler;
     pitch_in *= scaler;
 
