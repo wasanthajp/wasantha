@@ -41,6 +41,8 @@
 
 #define AC_ATTITUDE_CONTROL_RATE_BF_FF_DEFAULT          1       // body-frame rate feedforward enabled by default
 
+#define AC_ATTITUDE_CONTROL_ALTHOLD_LEANANGLE_FILT_HZ   1.0f    // filter (in hz) of throttle filter used to limit lean angle so that vehicle does not lose altitude
+
 class AC_AttitudeControl {
 public:
 	AC_AttitudeControl( AP_AHRS &ahrs,
@@ -61,7 +63,7 @@ public:
         _dt(AC_ATTITUDE_100HZ_DT),
         _angle_boost(0),
         _acro_angle_switch(0),
-	    _throttle_in_filt(1.0f)
+	    _throttle_in_filt(AC_ATTITUDE_CONTROL_ALTHOLD_LEANANGLE_FILT_HZ)
 		{
 			AP_Param::setup_object_defaults(this, var_info);
 
