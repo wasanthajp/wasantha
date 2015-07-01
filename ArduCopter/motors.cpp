@@ -524,6 +524,18 @@ bool Copter::pre_arm_checks(bool display_failure)
 #endif
     }
 
+    // check throttle is above failsafe throttle
+    if (g.failsafe_throttle != FS_THR_DISABLED && channel_throttle->radio_in < g.failsafe_throttle_value) {
+        if (display_failure) {
+#if FRAME_CONFIG == HELI_FRAME
+            gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Collective below Failsafe"));
+#else
+            gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Throttle below Failsafe"));
+#endif
+        }
+        return false;
+    }
+
     // if we've gotten this far then pre arm checks have completed
     set_pre_arm_check(true);
     return true;
