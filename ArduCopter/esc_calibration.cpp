@@ -20,8 +20,7 @@ enum ESCCalibrationModes {
 void Copter::esc_calibration_startup_check()
 {
     // exit immediately if pre-arm rc checks fail
-    pre_arm_rc_checks();
-    if (!ap.pre_arm_rc_check) {
+    if (!pre_arm_rc_checks(false)) {
         // clear esc flag for next time
         if (g.esc_calibrate != ESCCAL_NONE) {
             g.esc_calibrate.set_and_save(ESCCAL_NONE);
