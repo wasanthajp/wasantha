@@ -35,19 +35,19 @@ AC_BoosterController::AC_BoosterController (AC_BoosterBackend* booster)
     _booster = booster;
 };
 
-void AC_BoosterController::set_boost (int16_t boost_in)
+void AC_BoosterController::set_boost(int16_t boost_in)
 {
     if (is_active()) {
         _booster->set_boost(boost_in);
     }
 }
 
-float AC_BoosterController::set_boost_and_scale_pitch (float pitch_in, float angle_max)
+float AC_BoosterController::set_boost_and_scale_pitch(float pitch_in, float angle_max)
 {
     float pitch_out = pitch_in;
     int16_t boost_out = 0;
 
-    calculate_boost_and_scale_pitch (pitch_out, angle_max, boost_out);
+    calculate_boost_and_scale_pitch(pitch_out, angle_max, boost_out);
 
     set_boost(boost_out);
 
@@ -67,18 +67,18 @@ void AC_BoosterController::calculate_boost_and_scale_pitch(float &pitch, float a
     }
 }
 
-void AC_BoosterController::set_active (bool active)
+void AC_BoosterController::set_active(bool active)
 {
     // always set boost to zero when deactivating
 
     if (!active) {
-      set_boost (0);
+        set_boost (0);
     }
 
     _active = active;
 }
 
-bool AC_BoosterController::is_active ()
+bool AC_BoosterController::is_active() const
 {
     if (_booster == NULL || !_booster->is_enabled()) {
         return false;

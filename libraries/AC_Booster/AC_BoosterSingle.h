@@ -17,13 +17,13 @@ class AC_BoosterSingle : public AC_BoosterBackend {
 public:
 
 	// default constructor
-	AC_BoosterSingle ();
+	AC_BoosterSingle();
 
 	// set_boost - sets the requested boost, between 0 and 1000
-	void set_boost (int16_t boost_in);
+	void set_boost(int16_t boost_in);
 
 	// is_enabled - let's the booster controller know if the aux booster channel is enabled
-	bool is_enabled ();
+	bool is_enabled() const;
 
 };
 

@@ -18,20 +18,20 @@
 
 extern const AP_HAL::HAL& hal;
 
-AC_BoosterSingle::AC_BoosterSingle ()
+AC_BoosterSingle::AC_BoosterSingle()
 {
 };
 
-bool AC_BoosterSingle::is_enabled ()
+bool AC_BoosterSingle::is_enabled() const
 {
     // check if we have configured an aux channel for the booster
     return RC_Channel_aux::function_assigned(RC_Channel_aux::k_booster_single);
 }
 
-void AC_BoosterSingle::set_boost (int16_t boost_in)
+void AC_BoosterSingle::set_boost(int16_t boost_in)
 {
     // exit immediately if the booster function has not been set-up for any servo
-    if (!RC_Channel_aux::function_assigned(RC_Channel_aux::k_booster_single)) {
+    if (!is_enabled()) {
         return;
     }
 
