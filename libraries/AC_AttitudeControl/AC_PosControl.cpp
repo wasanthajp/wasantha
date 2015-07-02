@@ -898,7 +898,7 @@ void AC_PosControl::accel_to_lean_angles(float dt, float ekfNavVelGainScaler)
     _roll_target = constrain_float(atanf(accel_right*cos_pitch_target/(GRAVITY_MSS * 100))*(18000/M_PI_F), -lean_angle_max, lean_angle_max);
 
     // scale the pitch and update the boost if the booster is active
-    _booster.calculate_boost_and_scale_pitch (_pitch_target, -lean_angle_max, _boost_target);
+    _booster.calculate_boost_and_scale_pitch(_pitch_target, -lean_angle_max, _boost_target);
 }
 
 // get_lean_angles_to_accel - convert roll, pitch lean angles to lat/lon frame accelerations in cm/s/s
