@@ -21,10 +21,11 @@ void AP_Gimbal::receive_feedback(mavlink_channel_t chan, mavlink_message_t *msg)
     update_state();
     if (!is_zero(_gimbalParams.get_K_rate())){
         if (lockedToBody){
-        send_control(chan);
+            _gimbalParams.set_param(chan, "GMB_POS_HOLD", 1);
         }else{
             if (_ekf.getStatus() && !isCopterFlipped()){
                 send_control(chan); 
+                _gimbalParams.set_param(chan, "GMB_POS_HOLD", 0);
     }
         }
     }
