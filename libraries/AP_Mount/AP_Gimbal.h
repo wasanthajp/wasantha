@@ -37,8 +37,7 @@ public:
         vehicle_delta_angles(),
         vehicle_to_gimbal_quat(),
         vehicle_to_gimbal_quat_filt(),
-        filtered_joint_angles(),
-        last_vehicle_gyro()
+        filtered_joint_angles()
     {
         memset(&_report_msg, 0, sizeof(_report_msg));
     }
@@ -46,6 +45,8 @@ public:
     void    update_target(Vector3f newTarget);
     void    receive_feedback(mavlink_channel_t chan, mavlink_message_t *msg);
     void    send_report(mavlink_channel_t chan) const;
+
+    void update_fast();
 
     bool present();
 
@@ -103,13 +104,14 @@ private:
     void gimbal_ang_vel_to_joint_rates(const Vector3f& ang_vel, Vector3f& joint_rates);
     void joint_rates_to_gimbal_ang_vel(const Vector3f& joint_rates, Vector3f& ang_vel);
 
+    void readVehicleDeltaAngle(uint8_t ins_index, Vector3f &dAng);
+
     // joint angle filter states
     Vector3f vehicle_delta_angles;
 
     Quaternion vehicle_to_gimbal_quat;
     Quaternion vehicle_to_gimbal_quat_filt;
     Vector3f filtered_joint_angles;
-    Vector3f last_vehicle_gyro;
 
     uint32_t _last_report_msg_ms;
 };
