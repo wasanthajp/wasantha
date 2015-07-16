@@ -12,6 +12,11 @@
 
 extern const AP_HAL::HAL& hal;
 
+bool AP_Gimbal::present()
+{
+    return hal.scheduler->millis() - _last_report_msg_ms < 10000;
+}
+
 void AP_Gimbal::receive_feedback(mavlink_channel_t chan, mavlink_message_t *msg)
 {
     _gimbalParams.update(chan);
@@ -41,6 +46,8 @@ void AP_Gimbal::receive_feedback(mavlink_channel_t chan, mavlink_message_t *msg)
 
 void AP_Gimbal::decode_feedback(mavlink_message_t *msg)
 {
+    _last_report_msg_ms = hal.scheduler->millis();
+
     mavlink_msg_gimbal_report_decode(msg, &_report_msg);
 
     _measurement.delta_time = _report_msg.delta_time;
