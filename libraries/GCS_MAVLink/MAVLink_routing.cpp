@@ -96,7 +96,7 @@ bool MAVLink_routing::check_and_forward(mavlink_channel_t in_channel, const mavl
     // incorrect serial configuration.
     if (msg->sysid == mavlink_system.sysid && 
         msg->compid == mavlink_system.compid) {
-        return true;
+        return false;
     }
 
     // learn new routes
