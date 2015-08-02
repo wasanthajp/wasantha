@@ -122,7 +122,7 @@ protected:
     float               get_compensation_gain() const;
 
     // get_hover_throttle_as_pwm - converts hover throttle to pwm (i.e. range 1000 ~ 2000)
-    int16_t             get_hover_throttle_as_pwm() const;
+    float               get_throttle_thrust_hover() const;
 
     float               rel_pwm_to_thr_range(float pwm) const;
     float               thr_range_to_rel_pwm(float thr) const;
@@ -131,10 +131,12 @@ protected:
     // RPY channels typically +/-45 degrees servo travel between +/-400 PWM
     // Throttle channel typically 0-1000 range converts to 1100-1900 PWM for final output signal to motors
     // ToDo: this should all be handled as floats +/- 1.0 instead of PWM and fake angle ranges
-    float               calc_roll_pwm() { return (_roll_control_input * _rpy_pwm_scalar); }
-    float               calc_pitch_pwm() { return (_pitch_control_input * _rpy_pwm_scalar); }
-    float               calc_yaw_pwm() { return (_yaw_control_input * _rpy_pwm_scalar); }
-    int16_t             calc_throttle_radio_output() { return (_throttle_control_input * _throttle_pwm_scalar) + _throttle_radio_min;}
+    float             calc_roll_thrust() { return (_roll_control_input / 4500.0f);}
+    float             calc_pitch_thrust() { return (_pitch_control_input / 4500.0f);}
+    float             calc_yaw_thrust() { return (_yaw_control_input / 4500.0f);}
+    float             calc_throttle_thrust() { return (_throttle_control_input / 1000.0f);}
+
+    int16_t             calc_thrust_to_pwm(float thrust_in) { return constrain_int16((_throttle_radio_min + _min_throttle + thrust_in * ( _throttle_radio_max - (_throttle_radio_min + _min_throttle))), _throttle_radio_min, _throttle_radio_max);}
 
     // flag bitmask
     struct {

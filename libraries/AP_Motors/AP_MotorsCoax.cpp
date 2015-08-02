@@ -119,7 +119,7 @@ void AP_MotorsCoax::output_min()
 
 void AP_MotorsCoax::output_armed_not_stabilizing()
 {
-    int16_t throttle_radio_output;                                  // total throttle pwm value, summed onto throttle channel minimum, typically ~1100-1900
+    int16_t throttle_thrust;                                  // total throttle pwm value, summed onto throttle channel minimum, typically ~1100-1900
     int16_t out_min = _throttle_radio_min + _min_throttle;
     int16_t motor_out;
 
@@ -140,9 +140,9 @@ void AP_MotorsCoax::output_armed_not_stabilizing()
         limit.throttle_upper = true;
     }
 
-    throttle_radio_output = calc_throttle_radio_output();
+    throttle_thrust = calc_throttle_thrust();
 
-    motor_out = throttle_radio_output;
+    motor_out = calc_thrust_to_pwm(throttle_thrust);
 
     _servo1.servo_out = 0;
     _servo1.calc_pwm();
@@ -186,8 +186,8 @@ void AP_MotorsCoax::output_armed_stabilizing()
     }
 
     // calculate throttle and yaw PWM
-    throttle_radio_output = calc_throttle_radio_output();
-    yaw_pwm = calc_yaw_pwm();
+    throttle_radio_output = calc_thrust_to_pwm(calc_throttle_thrust());
+    yaw_pwm = calc_thrust_to_pwm(calc_yaw_thrust());
 
     // motors
     motor_out[AP_MOTORS_MOT_3] = _rev_yaw*yaw_pwm + throttle_radio_output;

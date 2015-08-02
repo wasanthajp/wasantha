@@ -158,7 +158,7 @@ void AP_MotorsTri::output_armed_not_stabilizing()
         limit.throttle_upper = true;
     }
 
-    throttle_radio_output = calc_throttle_radio_output();
+    throttle_radio_output = calc_thrust_to_pwm(calc_throttle_thrust());
 
     motor_out[AP_MOTORS_MOT_1] = throttle_radio_output;
     motor_out[AP_MOTORS_MOT_2] = throttle_radio_output;
@@ -216,9 +216,12 @@ void AP_MotorsTri::output_armed_stabilizing()
         limit.throttle_upper = true;
     }
 
-    roll_pwm = calc_roll_pwm();
-    pitch_pwm = calc_pitch_pwm();
-    throttle_radio_output = calc_throttle_radio_output();
+    roll_pwm = calc_thrust_to_pwm(calc_roll_thrust());
+    pitch_pwm = calc_thrust_to_pwm(calc_pitch_thrust());
+
+    // calculate throttle PWM
+    throttle_radio_output = calc_thrust_to_pwm(calc_throttle_thrust());
+
     yaw_radio_output = calc_yaw_radio_output();
 
     // if we are not sending a throttle output, we cut the motors
@@ -242,7 +245,7 @@ void AP_MotorsTri::output_armed_stabilizing()
         if (_throttle_control_input <= _min_throttle) {
             limit.throttle_lower = true;
             _throttle_control_input = _min_throttle;
-            throttle_radio_output = calc_throttle_radio_output();
+            throttle_radio_output = calc_thrust_to_pwm(calc_throttle_thrust());
         }
 
         // TODO: set limits.roll_pitch and limits.yaw

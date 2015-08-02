@@ -152,7 +152,7 @@ void AP_MotorsSingle::output_armed_not_stabilizing()
         limit.throttle_upper = true;
     }
 
-    throttle_radio_output = calc_throttle_radio_output();
+    throttle_radio_output = calc_thrust_to_pwm(calc_throttle_thrust());
 
     // front servo
     _servo1.servo_out = 0;
@@ -204,7 +204,7 @@ void AP_MotorsSingle::output_armed_stabilizing()
     }
 
     // calculate throttle PWM
-    throttle_radio_output = calc_throttle_radio_output();
+    throttle_radio_output = calc_thrust_to_pwm(calc_throttle_thrust());
 
     // adjust for thrust curve and voltage scaling
     throttle_radio_output = apply_thrust_curve_and_volt_scaling(throttle_radio_output, out_min, _throttle_radio_max);
