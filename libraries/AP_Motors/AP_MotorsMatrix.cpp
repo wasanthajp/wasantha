@@ -118,8 +118,8 @@ uint16_t AP_MotorsMatrix::get_motor_mask()
 void AP_MotorsMatrix::output_armed_not_stabilizing()
 {
     int8_t i;
-    int16_t throttle_thrust;                                  // total throttle thrust value, summed onto throttle channel minimum, 0-1
-    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];                    // final outputs sent to the motors
+    float throttle_thrust;                                  // total throttle thrust value, summed onto throttle channel minimum, 0-1
+    float motor_out[AP_MOTORS_MAX_NUM_MOTORS];                    // final outputs sent to the motors
 
     // initialize limits flags
     limit.roll_pitch = true;
@@ -127,7 +127,7 @@ void AP_MotorsMatrix::output_armed_not_stabilizing()
     limit.throttle_lower = false;
     limit.throttle_upper = false;
 
-    int16_t thr_in_min = rel_pwm_to_thr_range(_spin_when_armed_ramped);
+    float thr_in_min = rel_pwm_to_thr_range(_spin_when_armed_ramped);
     if (_throttle_control_input <= thr_in_min) {
         _throttle_control_input = thr_in_min;
         limit.throttle_lower = true;
@@ -185,7 +185,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     limit.throttle_upper = false;
 
     // Ensure throttle is within bounds of 0 to 1000
-    int16_t thr_in_min = rel_pwm_to_thr_range(_min_throttle);
+    float thr_in_min = rel_pwm_to_thr_range(_min_throttle);
     if (_throttle_control_input <= thr_in_min) {
         _throttle_control_input = thr_in_min;
         limit.throttle_lower = true;
@@ -227,7 +227,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     //      Situation #2b allows us to raise the throttle above what the pilot commanded but not so far that it would actually cause the copter to rise.
     //      We will choose #1 (the best throttle for yaw control) if that means reducing throttle to the motors (i.e. we favour reducing throttle *because* it provides better yaw control)
     //      We will choose #2 (a mix of pilot and hover throttle) only when the throttle is quite low.  We favour reducing throttle instead of better yaw control because the pilot has commanded it
-    int16_t motor_mid = (rpy_low+rpy_high)/2;
+    float motor_mid = (rpy_low+rpy_high)/2;
     throttle_thrust_best_rpy = min(0.5f - motor_mid, max(throttle_thrust, throttle_thrust*max(0.0f,1.0f-_throttle_thr_mix)+get_throttle_thrust_hover()*_throttle_thr_mix));
 
     // calculate amount of yaw we can fit into the throttle range
@@ -275,7 +275,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     thr_adj = throttle_thrust - throttle_thrust_best_rpy;
 
     // calculate upper and lower limits of thr_adj
-    int16_t thr_adj_max = max(1.0f-(throttle_thrust_best_rpy+rpy_high),0.0f);
+    float thr_adj_max = max(1.0f-(throttle_thrust_best_rpy+rpy_high),0.0f);
 
     // if we are increasing the throttle (situation #2 above)..
     if (thr_adj > 0.0f) {
@@ -290,7 +290,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         // decrease throttle as close as possible to requested throttle
         // without going under 0.0f or over 1.0f
         // earlier code ensures we can't break both boundaries
-        int16_t thr_adj_min = min(throttle_thrust_best_rpy+rpy_low,0.0f);
+        float thr_adj_min = min(throttle_thrust_best_rpy+rpy_low,0.0f);
         if (thr_adj > thr_adj_max) {
             thr_adj = thr_adj_max;
             limit.throttle_upper = true;
@@ -328,23 +328,24 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         }
     }
 
-    // debug
-    static uint8_t counter = 0;
-    counter++;
-    if (counter > 200) {
-        counter = 0;
-        hal.console->printf("Mot1:%4.2f 2:%4.2f 3:%4.2f 4:%4.2f\n",
-                (double)motor_out[0],
-                (double)motor_out[1],
-                (double)motor_out[2],
-                (double)motor_out[3]);
-    }
-
     // apply thrust curve and voltage scaling
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
             motor_out[i] = apply_thrust_curve_and_volt_scaling(motor_out[i], 0.0f, 1.0f);
         }
+    }
+
+    // debug
+    static uint8_t counter = 0;
+    counter++;
+    if (counter > 200) {
+        counter = 0;
+        hal.console->printf("ThrIn:%4.2f Mot1:%4.2f 2:%4.2f 3:%4.2f 4:%4.2f\n",
+                (double)throttle_thrust,
+                (double)motor_out[0],
+                (double)motor_out[1],
+                (double)motor_out[2],
+                (double)motor_out[3]);
     }
 
     // clip motor output if required (shouldn't be)
