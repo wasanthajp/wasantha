@@ -286,11 +286,11 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             // we haven't even been able to apply full throttle command
             limit.throttle_upper = true;
         }
-    }else if(thr_adj < 0){
+    }else if(thr_adj < 0.0f){
         // decrease throttle as close as possible to requested throttle
         // without going under 0.0f or over 1.0f
         // earlier code ensures we can't break both boundaries
-        float thr_adj_min = min(throttle_thrust_best_rpy+rpy_low,0.0f);
+        float thr_adj_min = min(-(throttle_thrust_best_rpy+rpy_low),0.0f);
         if (thr_adj > thr_adj_max) {
             thr_adj = thr_adj_max;
             limit.throttle_upper = true;
@@ -328,24 +328,27 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         }
     }
 
-    // apply thrust curve and voltage scaling
-    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-        if (motor_enabled[i]) {
-            motor_out[i] = apply_thrust_curve_and_volt_scaling(motor_out[i], 0.0f, 1.0f);
-        }
-    }
-
     // debug
     static uint8_t counter = 0;
     counter++;
     if (counter > 200) {
         counter = 0;
-        hal.console->printf("ThrIn:%4.2f Mot1:%4.2f 2:%4.2f 3:%4.2f 4:%4.2f\n",
+        hal.console->printf("ThrIn:%4.2f TBRPY:%4.2f TA:%4.2f TAMax:%4.2f Mot1:%4.2f 2:%4.2f 3:%4.2f 4:%4.2f\n",
                 (double)throttle_thrust,
+                (double)throttle_thrust_best_rpy,
+                (double)thr_adj,
+                (double)thr_adj_max,
                 (double)motor_out[0],
                 (double)motor_out[1],
                 (double)motor_out[2],
                 (double)motor_out[3]);
+    }
+
+    // apply thrust curve and voltage scaling
+    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+        if (motor_enabled[i]) {
+            motor_out[i] = apply_thrust_curve_and_volt_scaling(motor_out[i], 0.0f, 1.0f);
+        }
     }
 
     // clip motor output if required (shouldn't be)
