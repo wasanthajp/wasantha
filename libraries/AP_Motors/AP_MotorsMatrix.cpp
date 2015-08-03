@@ -118,7 +118,7 @@ uint16_t AP_MotorsMatrix::get_motor_mask()
 void AP_MotorsMatrix::output_armed_not_stabilizing()
 {
     int8_t i;
-    int16_t throttle_thrust;                                  // total throttle pwm value, summed onto throttle channel minimum, typically ~1100-1900
+    int16_t throttle_thrust;                                  // total throttle thrust value, summed onto throttle channel minimum, 0-1
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];                    // final outputs sent to the motors
     int16_t out_min_pwm = _throttle_radio_min + _min_throttle;      // minimum pwm value we can send to the motors
     int16_t out_max_pwm = _throttle_radio_max;                      // maximum pwm value we can send to the motors
@@ -143,18 +143,11 @@ void AP_MotorsMatrix::output_armed_not_stabilizing()
     throttle_thrust = calc_throttle_thrust();
 
     // set output throttle
+
+    // apply thrust curve and voltage scaling
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
-            motor_out[i] = throttle_thrust;
-        }
-    }
-
-    if(throttle_thrust >= out_min_pwm) {
-        // apply thrust curve and voltage scaling
-        for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-            if (motor_enabled[i]) {
-                motor_out[i] = apply_thrust_curve_and_volt_scaling(motor_out[i], out_min_pwm, out_max_pwm);
-            }
+            motor_out[i] = calc_thrust_to_pwm(apply_thrust_curve_and_volt_scaling(throttle_thrust, 0.0f, 1.0f));
         }
     }
 
@@ -172,11 +165,11 @@ void AP_MotorsMatrix::output_armed_not_stabilizing()
 void AP_MotorsMatrix::output_armed_stabilizing()
 {
     int8_t i;
-    float   roll_thrust;                // roll pwm value, initially calculated by calc_roll_thrust() but may be modified after, +/- 400
-    float   pitch_thrust;               // pitch pwm value, initially calculated by calc_roll_thrust() but may be modified after, +/- 400
-    float   yaw_thrust;                 // yaw pwm value, initially calculated by calc_yaw_thrust() but may be modified after, +/- 400
-    float   throttle_thrust;            // total throttle pwm value, summed onto throttle channel minimum, typically ~1100-1900
-    float   throttle_thrust_best_rpy;   // the is the best throttle we can come up which provides good control without climbing
+    float   roll_thrust;                // roll thrust value, initially calculated by calc_roll_thrust() but may be modified after, +/- 1
+    float   pitch_thrust;               // pitch thrust value, initially calculated by calc_roll_thrust() but may be modified after, +/- 1
+    float   yaw_thrust;                 // yaw thrust value, initially calculated by calc_yaw_thrust() but may be modified after, +/- 1
+    float   throttle_thrust;            // throttle thrust value, summed onto throttle channel minimum, 0-1
+    float   throttle_thrust_best_rpy;   // throttle providing maximum roll, pitch and yaw range without climbing
     float   rpy_scale = 1.0;            // this is used to scale the roll, pitch and yaw to fit within the motor limits
 
     float   rpy_out[AP_MOTORS_MAX_NUM_MOTORS];      // buffer so we don't have to multiply coefficients multiple times.

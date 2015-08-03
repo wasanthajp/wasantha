@@ -46,7 +46,7 @@ public:
     // output - sends commands to the motors
     virtual void        output();
 
-    // set_yaw_headroom - set yaw headroom (yaw is given at least this amount of pwm)
+    // set_yaw_headroom - set yaw headroom (yaw is given at least this amount of thrust)
     void                set_yaw_headroom(int16_t pwm) { _yaw_headroom = pwm; }
 
     // set_throttle_thr_mix - set desired throttle_thr_mix (actual throttle_thr_mix is slewed towards this value over 1~2 seconds)
@@ -147,8 +147,8 @@ protected:
     // parameters
     AP_Int16            _spin_when_armed;       // used to control whether the motors always spin when armed.  pwm value above radio_min
 
-    AP_Int16            _yaw_headroom;          // yaw control is given at least this pwm range
-    AP_Float            _thrust_curve_expo;     // curve used to linearize pwm to thrust conversion.  set to 0 for linear and 1 for second order approximation
+    AP_Int16            _yaw_headroom;          // yaw control is given at least this thrust range
+    AP_Float            _thrust_curve_expo;     // curve used to linearize thrust curve.  set to 0 for linear and 1 for second order approximation
     AP_Float            _thrust_curve_max;      // throttle which produces the maximum thrust.  (i.e. 0 ~ 1 ) of the full throttle range
     AP_Float            _batt_voltage_max;      // maximum voltage used to scale lift
     AP_Float            _batt_voltage_min;      // minimum voltage used to scale lift
