@@ -306,7 +306,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     // earlier code does not allow both limit's to be passed simultaneously with abs(_yaw_factor)<1
     if ((rpy_low+throttle_thrust_best_rpy)+thr_adj < 0.0f){
         // protect against divide by zero
-        if (rpy_low != 0.0f) {
+        if (!is_zero(rpy_low)) {
             rpy_scale = (thr_adj-throttle_thrust_best_rpy)/rpy_low;
         }
         // we haven't even been able to apply full roll, pitch and minimal yaw without scaling
@@ -314,7 +314,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         limit.yaw = true;
     }else if((rpy_high+throttle_thrust_best_rpy)+thr_adj > 1.0f){
         // protect against divide by zero
-        if (rpy_high != 0.0f) {
+        if (!is_zero(rpy_high)) {
             rpy_scale = (1.0f-thr_adj-throttle_thrust_best_rpy)/rpy_high;
         }
         // we haven't even been able to apply full roll, pitch and minimal yaw without scaling
