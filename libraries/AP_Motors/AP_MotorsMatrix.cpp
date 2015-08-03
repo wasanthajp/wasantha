@@ -328,22 +328,6 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         }
     }
 
-    // debug
-    static uint8_t counter = 0;
-    counter++;
-    if (counter > 200) {
-        counter = 0;
-        hal.console->printf("ThrIn:%4.2f TBRPY:%4.2f TA:%4.2f TAMax:%4.2f Mot1:%4.2f 2:%4.2f 3:%4.2f 4:%4.2f\n",
-                (double)throttle_thrust,
-                (double)throttle_thrust_best_rpy,
-                (double)thr_adj,
-                (double)thr_adj_max,
-                (double)motor_out[0],
-                (double)motor_out[1],
-                (double)motor_out[2],
-                (double)motor_out[3]);
-    }
-
     // apply thrust curve and voltage scaling
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
