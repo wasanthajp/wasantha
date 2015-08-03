@@ -234,10 +234,10 @@ void AP_MotorsMulticopter::current_limit_max_throttle()
 }
 
 // apply_thrust_curve_and_volt_scaling - returns throttle curve adjusted pwm value (i.e. 1000 ~ 2000)
-int16_t AP_MotorsMulticopter::apply_thrust_curve_and_volt_scaling(int16_t pwm_out, int16_t pwm_min, int16_t pwm_max) const
+float AP_MotorsMulticopter::apply_thrust_curve_and_volt_scaling(float thrust_out, float thrust_min, float thrust_max) const
 {
     // convert to 0.0 to 1.0 ratio
-    float throttle_ratio = ((float)(pwm_out-pwm_min))/((float)(pwm_max-pwm_min));
+    float throttle_ratio = ((float)(thrust_out-thrust_min))/((float)(thrust_max-thrust_min));
 
     // apply thrust curve - domain 0.0 to 1.0, range 0.0 to 1.0
     if (_thrust_curve_expo > 0.0f){
@@ -248,7 +248,7 @@ int16_t AP_MotorsMulticopter::apply_thrust_curve_and_volt_scaling(int16_t pwm_ou
     throttle_ratio *= _thrust_curve_max;
 
     // convert back to pwm range, constrain and return
-    return (int16_t)constrain_float(throttle_ratio*(pwm_max-pwm_min)+pwm_min, pwm_min, (pwm_max-pwm_min)*_thrust_curve_max+pwm_min);
+    return (int16_t)constrain_float(throttle_ratio*(thrust_max-thrust_min)+thrust_min, thrust_min, (thrust_max-thrust_min)*_thrust_curve_max+thrust_min);
 }
 
 // update_lift_max from battery voltage - used for voltage compensation

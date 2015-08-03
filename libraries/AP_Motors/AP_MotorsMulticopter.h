@@ -106,8 +106,8 @@ protected:
     // current_limit_max_throttle - current limit maximum throttle (called from update_max_throttle)
     void                current_limit_max_throttle();
 
-    // apply_thrust_curve_and_volt_scaling - thrust curve and voltage adjusted pwm value (i.e. 1000 ~ 2000)
-    int16_t             apply_thrust_curve_and_volt_scaling(int16_t pwm_out, int16_t pwm_min, int16_t pwm_max) const;
+    // apply_thrust_curve_and_volt_scaling - thrust curve and voltage adjusted thrust value
+    float               apply_thrust_curve_and_volt_scaling(float thrust_out, float thrust_min, float thrust_max) const;
 
     // update_lift_max_from_batt_voltage - used for voltage compensation
     void                update_lift_max_from_batt_voltage();
