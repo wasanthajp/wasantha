@@ -36,14 +36,7 @@ const AP_Param::GroupInfo AP_MotorsMulticopter::var_info[] PROGMEM = {
     // @User: Standard
     AP_GROUPINFO("SPIN_ARMED", 5, AP_MotorsMulticopter, _spin_when_armed, AP_MOTORS_SPIN_WHEN_ARMED),
 
-    // @Param: YAW_HEADROOM
-    // @DisplayName: Matrix Yaw Min
-    // @Description: Yaw control is given at least this pwm range
-    // @Range: 0 500
-    // @Units: pwm
-    // @User: Advanced
-    AP_GROUPINFO("YAW_HEADROOM", 6, AP_MotorsMulticopter, _yaw_headroom, AP_MOTORS_YAW_HEADROOM_DEFAULT),
-
+    // 6 was YAW_HEADROOM as int16
     // 7 was THR_LOW_CMP
 
     // @Param: THST_EXPO
@@ -90,6 +83,14 @@ const AP_Param::GroupInfo AP_MotorsMulticopter::var_info[] PROGMEM = {
     // @Range: 0.1 0.25
     // @User: Advanced
     AP_GROUPINFO("THR_MIX_MIN", 13, AP_MotorsMulticopter, _thr_mix_min, AP_MOTORS_THR_MIX_MIN_DEFAULT),
+
+    // @Param: YAW_HEADROOM
+    // @DisplayName: Matrix Yaw Min
+    // @Description: Yaw control is given at least this pwm range
+    // @Range: 0 500
+    // @Units: pwm
+    // @User: Advanced
+    AP_GROUPINFO("YAW_HEADROOM", 15, AP_MotorsMulticopter, _yaw_headroom, AP_MOTORS_YAW_HEADROOM_DEFAULT),
 
     AP_GROUPEND
 };
