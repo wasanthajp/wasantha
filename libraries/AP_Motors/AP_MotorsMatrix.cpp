@@ -357,6 +357,18 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[i]), motor_out[i]);
         }
     }
+
+    // debug
+    static uint8_t counter = 0;
+    counter++;
+    if (counter > 200) {
+        counter = 0;
+        hal.console->printf("Mot1:%d 2:%d 3:%d 4:%d\n",
+                (int)motor_out[0],
+                (int)motor_out[1],
+                (int)motor_out[2],
+                (int)motor_out[3]);
+    }
 }
 
 // output_disarmed - sends commands to the motors
