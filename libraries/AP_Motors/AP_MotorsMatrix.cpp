@@ -120,8 +120,6 @@ void AP_MotorsMatrix::output_armed_not_stabilizing()
     int8_t i;
     int16_t throttle_thrust;                                  // total throttle thrust value, summed onto throttle channel minimum, 0-1
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];                    // final outputs sent to the motors
-    int16_t out_min_pwm = _throttle_radio_min + _min_throttle;      // minimum pwm value we can send to the motors
-    int16_t out_max_pwm = _throttle_radio_max;                      // maximum pwm value we can send to the motors
 
     // initialize limits flags
     limit.roll_pitch = true;
@@ -330,6 +328,18 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         }
     }
 
+    // debug
+    static uint8_t counter = 0;
+    counter++;
+    if (counter > 200) {
+        counter = 0;
+        hal.console->printf("Mot1:%4.2f 2:%4.2f 3:%4.2f 4:%4.2f\n",
+                (double)motor_out[0],
+                (double)motor_out[1],
+                (double)motor_out[2],
+                (double)motor_out[3]);
+    }
+
     // apply thrust curve and voltage scaling
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
@@ -349,18 +359,6 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         if( motor_enabled[i] ) {
             hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[i]), motor_out[i]);
         }
-    }
-
-    // debug
-    static uint8_t counter = 0;
-    counter++;
-    if (counter > 200) {
-        counter = 0;
-        hal.console->printf("Mot1:%d 2:%d 3:%d 4:%d\n",
-                (int)motor_out[0],
-                (int)motor_out[1],
-                (int)motor_out[2],
-                (int)motor_out[3]);
     }
 }
 
