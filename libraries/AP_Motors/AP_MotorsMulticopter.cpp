@@ -248,7 +248,7 @@ float AP_MotorsMulticopter::apply_thrust_curve_and_volt_scaling(float thrust_out
     throttle_ratio *= _thrust_curve_max;
 
     // convert back to pwm range, constrain and return
-    return (int16_t)constrain_float(throttle_ratio*(thrust_max-thrust_min)+thrust_min, thrust_min, (thrust_max-thrust_min)*_thrust_curve_max+thrust_min);
+    return constrain_float(throttle_ratio*(thrust_max-thrust_min)+thrust_min, thrust_min, (thrust_max-thrust_min)*_thrust_curve_max+thrust_min);
 }
 
 // update_lift_max from battery voltage - used for voltage compensation
@@ -342,6 +342,12 @@ float AP_MotorsMulticopter::rel_pwm_to_thr_range(float pwm) const
 float AP_MotorsMulticopter::thr_range_to_rel_pwm(float thr) const
 {
     return _throttle_pwm_scalar*thr;
+}
+
+float AP_MotorsMulticopter::calc_thrust_to_pwm(float thrust_in)
+{
+    float pwm_out = _throttle_radio_min + _min_throttle + thrust_in * (_throttle_radio_max - (_throttle_radio_min + _min_throttle));
+    return constrain_float(pwm_out, _throttle_radio_min, _throttle_radio_max);
 }
 
 // set_throttle_range - sets the minimum throttle that will be sent to the engines when they're not off (i.e. to prevents issues with some motors spinning and some not at very low throttle)

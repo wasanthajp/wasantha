@@ -136,7 +136,7 @@ protected:
     float             calc_yaw_thrust() { return (_yaw_control_input / 4500.0f);}
     float             calc_throttle_thrust() { return (_throttle_control_input / 1000.0f);}
 
-    int16_t             calc_thrust_to_pwm(float thrust_in) { return constrain_int16((_throttle_radio_min + _min_throttle + thrust_in * ( _throttle_radio_max - (_throttle_radio_min + _min_throttle))), _throttle_radio_min, _throttle_radio_max);}
+    float             calc_thrust_to_pwm(float thrust_in);
 
     // flag bitmask
     struct {
