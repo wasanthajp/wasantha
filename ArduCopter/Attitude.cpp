@@ -308,3 +308,21 @@ void Copter::update_poscon_alt_max()
     // pass limit to pos controller
     pos_control.set_alt_max(alt_limit_cm);
 }
+
+// rotate vector from North-East frame to vehicle's perspective
+void Copter::rotate_NE_to_body_frame(float &x, float &y)
+{
+    float body_x = y * ahrs.cos_yaw() - x * ahrs.sin_yaw();
+    float body_y = y * ahrs.sin_yaw() + x * ahrs.cos_yaw();
+    x = body_x;
+    y = body_y;
+}
+
+// rotate vector from vehicle's perspective to North-East frame
+void Copter::rotate_body_frame_to_NE(float &x, float &y)
+{
+    float ne_x = x*ahrs.cos_yaw() - y*ahrs.sin_yaw();
+    float ne_y = x*ahrs.sin_yaw() + y*ahrs.cos_yaw();
+    x = ne_x;
+    y = ne_y;
+}
