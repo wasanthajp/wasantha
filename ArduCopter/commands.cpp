@@ -20,9 +20,11 @@ void Copter::update_home_from_EKF()
     // special logic if home is set in-flight
     if (motors.armed()) {
         set_home_to_current_location_inflight();
+        gcs_send_home();
     } else {
         // move home to current ekf location (this will set home_state to HOME_SET)
         set_home_to_current_location();
+        gcs_send_home();
     }
 }
 

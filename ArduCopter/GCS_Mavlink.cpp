@@ -1911,3 +1911,15 @@ void Copter::gcs_send_mission_item_reached(uint16_t seq)
         }
     }
 }
+
+/*
+ *  send mission_item_reached message to all GCSs
+ */
+void Copter::gcs_send_home()
+{
+    for (uint8_t i=0; i<num_gcs; i++) {
+        if (gcs[i].initialised) {
+            gcs[i].send_home_position(ahrs.get_home());
+        }
+    }
+}
