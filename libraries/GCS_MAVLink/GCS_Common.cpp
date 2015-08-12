@@ -1331,6 +1331,20 @@ void GCS_MAVLINK::send_local_position(const AP_AHRS &ahrs) const
 }
 
 /*
+  send HOME_POSITION message
+ */
+void GCS_MAVLINK::send_home_position(const Location &home_loc) const
+{
+    mavlink_msg_home_position_send(
+        chan,
+        home_loc.lat,
+        home_loc.lng,
+        home_loc.alt,
+        0,0,0,0,    // x,y,z,q
+        0,0,0);     // approach_x, y, z
+}
+
+/*
   send LOCAL_POSITION_NED message
  */
 void GCS_MAVLINK::send_vibration(const AP_InertialSensor &ins) const

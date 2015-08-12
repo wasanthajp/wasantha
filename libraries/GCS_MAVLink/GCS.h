@@ -141,6 +141,7 @@ public:
 #endif
     void send_autopilot_version() const;
     void send_local_position(const AP_AHRS &ahrs) const;
+    void send_home_position(const Location &home_loc) const;
     void send_vibration(const AP_InertialSensor &ins) const;
     void send_mission_item_reached(uint16_t seq) const;
 
