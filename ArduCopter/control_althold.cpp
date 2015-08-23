@@ -101,17 +101,26 @@ void Copter::althold_run()
         break;
 
     case AltHold_Landed:
-
-#if FRAME_CONFIG == HELI_FRAME  // Helicopters always stabilize roll/pitch/yaw
-        attitude_control.set_yaw_target_to_current_heading();
+    {
+        float pre_takeoff_thr = get_throttle_pre_takeoff(channel_throttle->control_in);
         // call attitude controller
+        attitude_control.set_yaw_target_to_current_heading();
+#if FRAME_CONFIG == HELI_FRAME
+        // Helicopters never angle boost and accept yaw input
         attitude_control.angle_ef_roll_pitch_rate_ef_yaw_smooth(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
-        attitude_control.set_throttle_out(get_throttle_pre_takeoff(channel_throttle->control_in),false,g.throttle_filt);
-#else   // Multicopter do not stabilize roll/pitch/yaw when disarmed
-        attitude_control.set_throttle_out_unstabilized(get_throttle_pre_takeoff(channel_throttle->control_in),true,g.throttle_filt);
+        attitude_control.set_throttle_out(pre_takeoff_thr,false,g.throttle_filt);
+#else
+        // Multicopter use angle boost and ignore yaw input
+        attitude_control.angle_ef_roll_pitch_rate_ef_yaw_smooth(target_roll, target_pitch, 0.0f, get_smoothing_gain());
+        if (pre_takeoff_thr < g.throttle_min) {
+            attitude_control.set_throttle_out_unstabilized(pre_takeoff_thr,false,g.throttle_filt);
+        } else {
+            attitude_control.set_throttle_out(pre_takeoff_thr,true,g.throttle_filt);
+        }
 #endif
         pos_control.relax_alt_hold_controllers(get_throttle_pre_takeoff(channel_throttle->control_in)-throttle_average);
         break;
+    }
 
     case AltHold_Flying:
         // call attitude controller
