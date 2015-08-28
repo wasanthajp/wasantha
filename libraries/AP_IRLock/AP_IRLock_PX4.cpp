@@ -27,7 +27,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "AP_HAL.h"
+#include <AP_HAL/AP_HAL.h>
 #include "drivers/drv_irlock.h"
 
 extern const AP_HAL::HAL& hal;
