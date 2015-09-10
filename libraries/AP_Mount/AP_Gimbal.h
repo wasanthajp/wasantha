@@ -39,7 +39,6 @@ public:
         vehicle_to_gimbal_quat_filt(),
         filtered_joint_angles()
     {
-        memset(&_report_msg, 0, sizeof(_report_msg));
     }
 
     void    update_target(Vector3f newTarget);
@@ -84,11 +83,9 @@ private:
 
     static const uint8_t _compid = MAV_COMP_ID_GIMBAL;
 
-    mavlink_gimbal_report_t _report_msg;
-
     void send_control(mavlink_channel_t chan);
     void update_state();
-    void decode_feedback(mavlink_message_t *msg);
+    void extract_feedback(const mavlink_gimbal_report_t& report_msg);
     void update_joint_angle_est();
 
     bool isCopterFlipped();
