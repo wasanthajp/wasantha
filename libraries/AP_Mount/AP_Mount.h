@@ -29,8 +29,8 @@
 #include <GCS_MAVLink/GCS_MAVLink.h>
 #include <RC_Channel/RC_Channel.h>
 #include <AP_SerialManager/AP_SerialManager.h>
-#include <DataFlash.h>
-#include <AP_Gimbal_Parameters.h>
+#include <DataFlash/DataFlash.h>
+#include "AP_Gimbal_Parameters.h"
 
 // maximum number of mounts
 #define AP_MOUNT_MAX_INSTANCES          1
