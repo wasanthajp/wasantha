@@ -1,6 +1,6 @@
 #ifndef __ACCELCALIBRATOR_H__
 #define __ACCELCALIBRATOR_H__
-#include <AP_Math.h>
+#include <AP_Math/AP_Math.h>
 
 #define ACCEL_CAL_MAX_NUM_PARAMS 9
 

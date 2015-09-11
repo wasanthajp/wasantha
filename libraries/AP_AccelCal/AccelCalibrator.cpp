@@ -2,7 +2,7 @@
 
 #include "AccelCalibrator.h"
 #include <stdio.h>
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
 const extern AP_HAL::HAL& hal;
 
