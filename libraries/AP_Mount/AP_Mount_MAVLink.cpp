@@ -1,8 +1,8 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 #include "AP_Mount_MAVLink.h"
-#include <DataFlash.h>
 #if AP_AHRS_NAVEKF_AVAILABLE
+#include <DataFlash/DataFlash.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>
 #include <stdio.h>
 #include "AP_Gimbal.h"
@@ -28,6 +28,7 @@ void AP_Mount_MAVLink::init(const AP_SerialManager& serial_manager)
 
 void AP_Mount_MAVLink::Log_Write_Gimbal(AP_Gimbal &gimbal)
 {
+/*
     uint32_t tstamp = hal.scheduler->millis();
     Quaternion quatEst;
     gimbal._ekf.getQuat(quatEst);
@@ -65,6 +66,7 @@ void AP_Mount_MAVLink::Log_Write_Gimbal(AP_Gimbal &gimbal)
         target_z: gimbal._angle_ef_target_rad.z
        };
     _frontend._dataflash->WriteBlock(&pkt2, sizeof(pkt2));
+*/
 }
 
 void AP_Mount_MAVLink::update_fast()
@@ -175,7 +177,7 @@ void AP_Mount_MAVLink::handle_gimbal_torque_report(mavlink_channel_t chan, mavli
     uint32_t tstamp = hal.scheduler->millis();
     mavlink_gimbal_torque_cmd_report_t report_msg;
     mavlink_msg_gimbal_torque_cmd_report_decode(msg, &report_msg);
-
+/*
     struct log_Gimbal3 pkt = {
         LOG_PACKET_HEADER_INIT(LOG_GIMBAL3_MSG),
         time_ms : tstamp,
@@ -184,6 +186,7 @@ void AP_Mount_MAVLink::handle_gimbal_torque_report(mavlink_channel_t chan, mavli
         az_torque_cmd: report_msg.az_torque_cmd
     };
     _frontend._dataflash->WriteBlock(&pkt, sizeof(pkt));
+*/
 }
 
 /*
