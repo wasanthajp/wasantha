@@ -1040,7 +1040,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
     case MAVLINK_MSG_ID_PARAM_VALUE:{
         if(msg->compid == MAV_COMP_ID_GIMBAL){
-            camera_mount._externalParameters.handle_param_value(&DataFlash, msg);
+            copter.camera_mount._externalParameters.handle_param_value(msg);
         }
         break;
     }
@@ -1111,7 +1111,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
     case MAVLINK_MSG_ID_GIMBAL_TORQUE_CMD_REPORT:
     {
 #if MOUNT == ENABLED
-        handle_gimbal_torque_report(camera_mount, msg);
+        handle_gimbal_torque_report(copter.camera_mount, msg);
 #endif
         break;
     }
