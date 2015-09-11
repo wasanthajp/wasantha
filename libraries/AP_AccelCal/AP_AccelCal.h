@@ -1,7 +1,7 @@
 #ifndef __AP_ACCELCAL_H__
 #define __AP_ACCELCAL_H__
 
-#include <GCS_MAVLink.h>
+#include <GCS_MAVLink/GCS_MAVLink.h>
 #include "AccelCalibrator.h"
 
 #define AP_ACCELCAL_MAX_NUM_CLIENTS 4
