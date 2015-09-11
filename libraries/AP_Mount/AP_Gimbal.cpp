@@ -102,16 +102,16 @@ void AP_Gimbal::update_fast() {
 
 void AP_Gimbal::extract_feedback(const mavlink_gimbal_report_t& report_msg)
 {
-    _measurement.delta_time = _report_msg.delta_time;
-    _measurement.delta_angles.x = _report_msg.delta_angle_x;
-    _measurement.delta_angles.y = _report_msg.delta_angle_y;
-    _measurement.delta_angles.z = _report_msg.delta_angle_z;
-    _measurement.delta_velocity.x = _report_msg.delta_velocity_x,
-    _measurement.delta_velocity.y = _report_msg.delta_velocity_y;
-    _measurement.delta_velocity.z = _report_msg.delta_velocity_z;
-    _measurement.joint_angles.x = _report_msg.joint_roll;
-    _measurement.joint_angles.y = _report_msg.joint_el;
-    _measurement.joint_angles.z = _report_msg.joint_az;
+    _measurement.delta_time = report_msg.delta_time;
+    _measurement.delta_angles.x = report_msg.delta_angle_x;
+    _measurement.delta_angles.y = report_msg.delta_angle_y;
+    _measurement.delta_angles.z = report_msg.delta_angle_z;
+    _measurement.delta_velocity.x = report_msg.delta_velocity_x,
+    _measurement.delta_velocity.y = report_msg.delta_velocity_y;
+    _measurement.delta_velocity.z = report_msg.delta_velocity_z;
+    _measurement.joint_angles.x = report_msg.joint_roll;
+    _measurement.joint_angles.y = report_msg.joint_el;
+    _measurement.joint_angles.z = report_msg.joint_az;
 
     if (_calibrator.get_status() == ACCEL_CAL_COLLECTING_SAMPLE) {
         _calibrator.new_sample(_measurement.delta_velocity,_measurement.delta_time);
@@ -155,6 +155,7 @@ void AP_Gimbal::update_mode()
  */
 void AP_Gimbal::send_report(mavlink_channel_t chan) const
 {
+    /*
     mavlink_msg_gimbal_report_send(chan, 
                                    0, 0, // send as broadcast
                                    _report_msg.delta_time, 
@@ -167,6 +168,7 @@ void AP_Gimbal::send_report(mavlink_channel_t chan) const
                                    _report_msg.joint_roll, 
                                    _report_msg.joint_el, 
                                    _report_msg.joint_az);
+    */
 }
 
 void AP_Gimbal::update_state()

@@ -21,7 +21,7 @@
 #include "AP_Mount.h"
 #include <AP_NavEKF/AP_SmallEKF.h>
 #include <AP_NavEKF/AP_NavEKF.h>
-#include <AP_AccelCal.h>
+#include <AP_AccelCal/AP_AccelCal.h>
 
 enum gimbal_mode_t {
     GIMBAL_MODE_IDLE=0,
@@ -48,7 +48,7 @@ public:
         filtered_joint_angles(),
         _max_torque(5000.0f)
     {
-        ahrs.get_ins().get_acal().register_client(this);
+        //ahrs.get_ins().get_acal().register_client(this);
     }
 
     void    update_target(Vector3f newTarget);
