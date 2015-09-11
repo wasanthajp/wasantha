@@ -1,5 +1,5 @@
 #include "AP_Gimbal_Parameters.h"
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -162,7 +162,7 @@ void AP_Gimbal_Parameters::update()
     }
 }
 
-void AP_Gimbal_Parameters::handle_param_value(DataFlash_Class *dataflash, mavlink_message_t *msg)
+void AP_Gimbal_Parameters::handle_param_value(mavlink_message_t *msg)
 {
     mavlink_param_value_t packet;
     mavlink_msg_param_value_decode(msg, &packet);
@@ -172,8 +172,6 @@ void AP_Gimbal_Parameters::handle_param_value(DataFlash_Class *dataflash, mavlin
         reset();
         return;
     }
-
-    dataflash->Log_Write_Parameter(packet.param_id, packet.param_value);
 
     for(uint8_t i=0; i<MAVLINK_GIMBAL_NUM_TRACKED_PARAMS; i++) {
         if (!strcmp(packet.param_id, get_param_name((gmb_param_t)i))) {
