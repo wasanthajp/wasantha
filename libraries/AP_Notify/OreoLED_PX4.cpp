@@ -363,37 +363,4 @@ void OreoLED_PX4::update_timer(void)
     _send_required = false;
 }
 
-// handle a LED_CONTROL message
-void OreoLED_PX4::handle_led_control(mavlink_message_t *msg)
-{
-    // exit immediately if unhealthy
-    if (!_overall_health) {
-        return;
-    }
-
-    // decode mavlink message
-    mavlink_led_control_t packet;
-    mavlink_msg_led_control_decode(msg, &packet);
-
-    // exit immediately if instance is invalid
-    if (packet.instance >= OREOLED_NUM_LEDS && packet.instance != OREOLED_INSTANCE_ALL) {
-        return;
-    }
-
-    // if pattern is OFF, we clear pattern override so normal lighting should resume
-    if (packet.pattern == LED_CONTROL_PATTERN_OFF) {
-        _pattern_override = 0;
-        return;
-    }
-
-    // custom patterns not implemented
-    if (packet.pattern == LED_CONTROL_PATTERN_CUSTOM) {
-        return;
-    }
-
-    // other patterns sent as macro
-    set_macro(packet.instance, (oreoled_macro)packet.pattern);
-    _pattern_override = packet.pattern;
-}
-
 #endif // CONFIG_HAL_BOARD == HAL_BOARD_PX4

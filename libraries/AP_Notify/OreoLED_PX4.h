@@ -43,9 +43,6 @@ public:
     // healthy - return true if at least one LED is responding
     bool healthy() const { return _overall_health; }
 
-    // handle a LED_CONTROL message, by default device ignore message
-    void handle_led_control(mavlink_message_t *msg);
-
 private:
     // update_timer - called by scheduler and updates PX4 driver with commands
     void update_timer(void);

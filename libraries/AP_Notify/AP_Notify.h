@@ -90,9 +90,6 @@ public:
     /// update - allow updates of leds that cannot be updated during a timed interrupt
     void update(void);
 
-    // handle a LED_CONTROL message
-    static void handle_led_control(mavlink_message_t* msg);
-
 private:
     static NotifyDevice* _devices[];
 };
