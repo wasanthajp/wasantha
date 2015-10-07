@@ -184,7 +184,7 @@ public:
     ///
     const Vector3f &get_offsets(uint8_t i) const { return _state[i].offset; }
     const Vector3f &get_offsets(void) const { return get_offsets(get_primary()); }
-    const Vector3f get_offsets_milligauss(uint8_t i) const { return get_offsets(i) * _state[i].milligauss_ratio; }
+    const Vector3f get_offsets_milligauss(uint8_t i) const { return get_offsets(i); }
     const Vector3f get_offsets_milligauss(void) const { return get_offsets_milligauss(get_primary()); }
 
     /// Sets the initial location used to get declination
