@@ -519,7 +519,7 @@ private:
     bool gcs_out_of_time;
 
     // Arming/Disarming management class
-    AP_Arming_Copter arming {ahrs, barometer, compass, ap.home_state};
+    AP_Arming_Copter arming {ahrs, barometer, compass, ap.home_state, channel_roll, channel_pitch, channel_throttle, channel_yaw};
 
     // Top-level logic
     // setup the var_info table
