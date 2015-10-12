@@ -3,6 +3,7 @@
   additional arming checks for copter
  */
 #include "arming_checks.h"
+#include <AP_Math/AP_Math.h>
 #include <GCS_MAVLink/GCS.h>
 
 const AP_Param::GroupInfo AP_Arming_Copter::var_info[] PROGMEM = {
@@ -21,6 +22,32 @@ bool AP_Arming_Copter::pre_arm_checks(bool report)
     bool ret = AP_Arming::pre_arm_checks(report);
 
     return ret;
+}
+
+bool AP_Arming_Copter::barometer_checks(bool report)
+{
+    // call parent class checks
+    if (!AP_Arming::barometer_checks(report)) {
+        return false;
+    }
+
+    // Check baro & inav alt are within 1m if EKF is operating in an absolute position mode.
+    // Do not check if intending to operate in a ground relative height mode as EKF will output a ground relative height
+    // that may differ from the baro height due to baro drift.
+    nav_filter_status filt_status;
+    filt_status = _inav.get_filter_status();
+    bool using_baro_ref = (!filt_status.flags.pred_horiz_pos_rel && filt_status.flags.pred_horiz_pos_abs);
+    if (using_baro_ref) {
+        if (fabsf(_inav.get_altitude() - barometer.get_altitude()) > COPTER_ARMING_CHECK_ALT_DISPARITY_MAX_CM) {
+            if (report) {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Altitude disparity"));
+            }
+            return false;
+        }
+    }
+
+    // if we got here checks have passed
+    return true;
 }
 
 bool AP_Arming_Copter::manual_transmitter_checks(bool report)
