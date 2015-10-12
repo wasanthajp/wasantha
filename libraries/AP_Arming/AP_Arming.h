@@ -59,6 +59,8 @@ public:
     */
     virtual bool pre_arm_checks(bool report);
 
+    virtual bool barometer_checks(bool report);
+
     virtual bool manual_transmitter_checks(bool report);
 
     void set_logging_available(bool set) { logging_available = set; }
@@ -85,8 +87,6 @@ protected:
     uint32_t                last_gyro_pass_ms[INS_MAX_INSTANCES];
 
     void set_enabled_checks(uint16_t);
-
-    bool barometer_checks(bool report);
 
     bool airspeed_checks(bool report);
 
