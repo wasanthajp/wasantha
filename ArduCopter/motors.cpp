@@ -372,83 +372,6 @@ bool Copter::pre_arm_checks(bool display_failure)
     }
 #endif
 
-    // check INS
-    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_INS)) {
-        // check accelerometers have been calibrated
-        if(!ins.accel_calibrated_ok_all()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Accels not calibrated"));
-            }
-            return false;
-        }
-
-        // check accels are healthy
-        if(!ins.get_accel_health_all()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Accelerometers not healthy"));
-            }
-            return false;
-        }
-
-#if INS_MAX_INSTANCES > 1
-        // check all accelerometers point in roughly same direction
-        if (ins.get_accel_count() > 1) {
-            const Vector3f &prime_accel_vec = ins.get_accel();
-            for(uint8_t i=0; i<ins.get_accel_count(); i++) {
-                // get next accel vector
-                const Vector3f &accel_vec = ins.get_accel(i);
-                Vector3f vec_diff = accel_vec - prime_accel_vec;
-                float threshold = PREARM_MAX_ACCEL_VECTOR_DIFF;
-                if (i >= 2) {
-                    /*
-                      for boards with 3 IMUs we only use the first two
-                      in the EKF. Allow for larger accel discrepancy
-                      for IMU3 as it may be running at a different temperature
-                     */
-                    threshold *= 2;
-                }
-                if (vec_diff.length() > threshold) {
-                    if (display_failure) {
-                        gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: inconsistent Accelerometers"));
-                    }
-                    return false;
-                }
-            }
-        }
-#endif
-
-        // check gyros are healthy
-        if(!ins.get_gyro_health_all()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Gyros not healthy"));
-            }
-            return false;
-        }
-
-#if INS_MAX_INSTANCES > 1
-        // check all gyros are consistent
-        if (ins.get_gyro_count() > 1) {
-            for(uint8_t i=0; i<ins.get_gyro_count(); i++) {
-                // get rotation rate difference between gyro #i and primary gyro
-                Vector3f vec_diff = ins.get_gyro(i) - ins.get_gyro();
-                if (vec_diff.length() > PREARM_MAX_GYRO_VECTOR_DIFF) {
-                    if (display_failure) {
-                        gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: inconsistent Gyros"));
-                    }
-                    return false;
-                }
-            }
-        }
-#endif
-
-        // get ekf attitude (if bad, it's usually the gyro biases)
-        if (!pre_arm_ekf_attitude_check()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: gyros still settling"));
-            }
-            return false;
-        }
-    }
 #if CONFIG_HAL_BOARD != HAL_BOARD_VRBRAIN
 #ifndef CONFIG_ARCH_BOARD_PX4FMU_V1
     // check board voltage
@@ -630,15 +553,6 @@ bool Copter::pre_arm_gps_checks(bool display_failure)
     return true;
 }
 
-// check ekf attitude is acceptable
-bool Copter::pre_arm_ekf_attitude_check()
-{
-    // get ekf filter status
-    nav_filter_status filt_status = inertial_nav.get_filter_status();
-
-    return filt_status.flags.attitude;
-}
-
 // arm_checks - perform final checks before arming
 //  always called just before arming.  Return true if ok to arm
 //  has side-effect that logging is started
@@ -648,29 +562,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     // start dataflash
     start_logging();
 #endif
-
-    // check accels and gyro are healthy
-    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_INS)) {
-        if(!ins.get_accel_health_all()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Accelerometers not healthy"));
-            }
-            return false;
-        }
-        if(!ins.get_gyro_health_all()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Gyros not healthy"));
-            }
-            return false;
-        }
-        // get ekf attitude (if bad, it's usually the gyro biases)
-        if (!pre_arm_ekf_attitude_check()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: gyros still settling"));
-            }
-            return false;
-        }
-    }
 
     // always check if inertial nav has started and is ready
     if(!ahrs.healthy()) {
