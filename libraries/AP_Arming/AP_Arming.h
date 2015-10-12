@@ -59,6 +59,8 @@ public:
     */
     virtual bool pre_arm_checks(bool report);
 
+    virtual bool manual_transmitter_checks(bool report);
+
     void set_logging_available(bool set) { logging_available = set; }
 
     static const struct AP_Param::GroupInfo        var_info[];
@@ -99,8 +101,6 @@ protected:
     bool battery_checks(bool report);
 
     bool hardware_safety_check(bool report);
-
-    bool manual_transmitter_checks(bool report);
 };
 
 #endif //__AP_ARMING_H__
