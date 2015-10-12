@@ -308,18 +308,9 @@ bool Copter::pre_arm_checks(bool display_failure)
     // succeed if pre arm checks are disabled
     if(g.arming_check == ARMING_CHECK_NONE) {
         set_pre_arm_check(true);
-        set_pre_arm_rc_check(true);
         return true;
     }
 
-    // pre-arm rc checks a prerequisite
-    pre_arm_rc_checks();
-    if(!ap.pre_arm_rc_check) {
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: RC not calibrated"));
-        }
-        return false;
-    }
     // check Baro
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_BARO)) {
         // barometer health check
@@ -579,49 +570,6 @@ bool Copter::pre_arm_checks(bool display_failure)
     // if we've gotten this far then pre arm checks have completed
     set_pre_arm_check(true);
     return true;
-}
-
-// perform pre_arm_rc_checks checks and set ap.pre_arm_rc_check flag
-void Copter::pre_arm_rc_checks()
-{
-    // exit immediately if we've already successfully performed the pre-arm rc check
-    if( ap.pre_arm_rc_check ) {
-        return;
-    }
-
-    // set rc-checks to success if RC checks are disabled
-    if ((g.arming_check != ARMING_CHECK_ALL) && !(g.arming_check & ARMING_CHECK_RC)) {
-        set_pre_arm_rc_check(true);
-        return;
-    }
-
-    // check if radio has been calibrated
-    if(!channel_throttle->radio_min.load() && !channel_throttle->radio_max.load()) {
-        return;
-    }
-
-    // check channels 1 & 2 have min <= 1300 and max >= 1700
-    if (channel_roll->radio_min > 1300 || channel_roll->radio_max < 1700 || channel_pitch->radio_min > 1300 || channel_pitch->radio_max < 1700) {
-        return;
-    }
-
-    // check channels 3 & 4 have min <= 1300 and max >= 1700
-    if (channel_throttle->radio_min > 1300 || channel_throttle->radio_max < 1700 || channel_yaw->radio_min > 1300 || channel_yaw->radio_max < 1700) {
-        return;
-    }
-
-    // check channels 1 & 2 have trim >= 1300 and <= 1700
-    if (channel_roll->radio_trim < 1300 || channel_roll->radio_trim > 1700 || channel_pitch->radio_trim < 1300 || channel_pitch->radio_trim > 1700) {
-        return;
-    }
-
-    // check channel 4 has trim >= 1300 and <= 1700
-    if (channel_yaw->radio_trim < 1300 || channel_yaw->radio_trim > 1700) {
-        return;
-    }
-
-    // if we've gotten this far rc is ok
-    set_pre_arm_rc_check(true);
 }
 
 // performs pre_arm gps related checks and returns true if passed
