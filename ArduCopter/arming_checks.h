@@ -36,6 +36,8 @@ public:
 
     bool barometer_checks(bool report);
 
+    bool ins_checks(bool report);
+
     bool manual_transmitter_checks(bool report);
 
     // var_info for holding Parameter information

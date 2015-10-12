@@ -50,6 +50,24 @@ bool AP_Arming_Copter::barometer_checks(bool report)
     return true;
 }
 
+bool AP_Arming_Copter::ins_checks(bool report)
+{
+    // call parent class checks
+    if (!AP_Arming::ins_checks(report)) {
+        return false;
+    }
+
+    // check ekf attitude, if bad it's usually the gyro biases have not settled
+    if (!_inav.get_filter_status().flags.attitude) {
+        if (report) {
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: gyros still settling"));
+        }
+        return false;
+    }
+
+    return true;
+}
+
 bool AP_Arming_Copter::manual_transmitter_checks(bool report)
 {
     // call parent class checks
