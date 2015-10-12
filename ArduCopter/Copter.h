@@ -114,6 +114,8 @@
 #include <AC_PrecLand/AC_PrecLand.h>
 #include <AP_IRLock/AP_IRLock.h>
 #endif
+#include <AP_Arming/AP_Arming.h>
+#include "arming_checks.h"
 
 // AP_HAL to Arduino compatibility layer
 // Configuration
@@ -128,6 +130,7 @@ class Copter {
     public:
     friend class GCS_MAVLINK;
     friend class Parameters;
+    friend class AP_Arming_Copter;
 
     Copter(void);
     void setup();
@@ -514,6 +517,9 @@ private:
 
     // true if we are out of time in our event timeslice
     bool gcs_out_of_time;
+
+    // Arming/Disarming management class
+    AP_Arming_Copter arming {ahrs, barometer, compass, ap.home_state};
 
     // Top-level logic
     // setup the var_info table

@@ -262,6 +262,11 @@ bool Copter::pre_arm_checks(bool display_failure)
         return true;
     }
 
+    // call arming class
+    if (!arming.pre_arm_checks(display_failure)) {
+        return false;
+    }
+
     // check if motor interlock and Emergency Stop aux switches are used
     // at the same time.  This cannot be allowed.
     if (check_if_auxsw_mode_used(AUXSW_MOTOR_INTERLOCK) && check_if_auxsw_mode_used(AUXSW_MOTOR_ESTOP)){
