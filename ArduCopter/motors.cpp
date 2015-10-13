@@ -311,52 +311,6 @@ bool Copter::pre_arm_checks(bool display_failure)
         return true;
     }
 
-    // check Compass
-    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_COMPASS)) {
-        // check the primary compass is healthy
-        if(!compass.healthy()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Compass not healthy"));
-            }
-            return false;
-        }
-
-        // check compass learning is on or offsets have been set
-        if(!compass.configured()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Compass not calibrated"));
-            }
-            return false;
-        }
-
-        // check for unreasonable compass offsets
-        Vector3f offsets = compass.get_offsets();
-        if(offsets.length() > COMPASS_OFFSETS_MAX) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Compass offsets too high"));
-            }
-            return false;
-        }
-
-        // check for unreasonable mag field length
-        float mag_field = compass.get_field().length();
-        if (mag_field > COMPASS_MAGFIELD_EXPECTED*1.65f || mag_field < COMPASS_MAGFIELD_EXPECTED*0.35f) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Check mag field"));
-            }
-            return false;
-        }
-
-        // check all compasses point in roughly same direction
-        if (!compass.consistent()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: inconsistent compasses"));
-            }
-            return false;
-        }
-
-    }
-
     // check GPS
     if (!pre_arm_gps_checks(display_failure)) {
         return false;
@@ -567,13 +521,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     if(!ahrs.healthy()) {
         if (display_failure) {
             gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Waiting for Nav Checks"));
-        }
-        return false;
-    }
-
-    if(compass.is_calibrating()) {
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Compass calibration running"));
         }
         return false;
     }
