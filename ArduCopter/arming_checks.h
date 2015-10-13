@@ -38,6 +38,8 @@ public:
 
     bool ins_checks(bool report);
 
+    bool compass_checks(bool report);
+
     bool manual_transmitter_checks(bool report);
 
     // var_info for holding Parameter information
