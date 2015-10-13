@@ -68,6 +68,26 @@ bool AP_Arming_Copter::ins_checks(bool report)
     return true;
 }
 
+bool AP_Arming_Copter::compass_checks(bool report)
+{
+    // call parent class checks
+    if (!AP_Arming::compass_checks(report)) {
+        return false;
+    }
+
+    if ((checks_to_perform & ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_COMPASS)) {
+        // compass is required for copter
+        if (!_compass.use_for_yaw()) {
+            if (report) {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, PSTR("PreArm: Compass disabled"));
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool AP_Arming_Copter::manual_transmitter_checks(bool report)
 {
     // call parent class checks
