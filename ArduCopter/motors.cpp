@@ -340,16 +340,6 @@ bool Copter::pre_arm_checks(bool display_failure)
 #endif
 #endif
 
-    // check battery voltage
-    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_VOLTAGE)) {
-        if (failsafe.battery || (!ap.usb_connected && battery.exhausted(g.fs_batt_voltage, g.fs_batt_mah))) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Check Battery"));
-            }
-            return false;
-        }
-    }
-
     // check various parameter values
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_PARAMETERS)) {
 
@@ -549,16 +539,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
         return false;
     }
 #endif
-
-    // check battery voltage
-    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_VOLTAGE)) {
-        if (failsafe.battery || (!ap.usb_connected && battery.exhausted(g.fs_batt_voltage, g.fs_batt_mah))) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Check Battery"));
-            }
-            return false;
-        }
-    }
 
     // check throttle
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_RC)) {
