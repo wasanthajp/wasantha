@@ -180,3 +180,23 @@ bool AP_Arming_Copter::manual_transmitter_checks(bool report)
 
     return ret;
 }
+
+bool AP_Arming_Copter::battery_checks(bool report)
+{
+    // call parent class checks
+    if (!AP_Arming::battery_checks(report)) {
+        return false;
+    }
+
+    if ((checks_to_perform & ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_BATTERY)) {
+        // check battery voltage
+        if (copter.failsafe.battery || (!copter.ap.usb_connected && copter.battery.exhausted(copter.g.fs_batt_voltage, copter.g.fs_batt_mah))) {
+            if (report) {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("Arm: Check Battery"));
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
