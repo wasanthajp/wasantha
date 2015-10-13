@@ -3,6 +3,7 @@
   additional arming checks for copter
  */
 #include "arming_checks.h"
+#include "Copter.h"
 #include <AP_Math/AP_Math.h>
 #include <GCS_MAVLink/GCS.h>
 
@@ -35,10 +36,10 @@ bool AP_Arming_Copter::barometer_checks(bool report)
     // Do not check if intending to operate in a ground relative height mode as EKF will output a ground relative height
     // that may differ from the baro height due to baro drift.
     nav_filter_status filt_status;
-    filt_status = _inav.get_filter_status();
+    filt_status = copter.inertial_nav.get_filter_status();
     bool using_baro_ref = (!filt_status.flags.pred_horiz_pos_rel && filt_status.flags.pred_horiz_pos_abs);
     if (using_baro_ref) {
-        if (fabsf(_inav.get_altitude() - barometer.get_altitude()) > COPTER_ARMING_CHECK_ALT_DISPARITY_MAX_CM) {
+        if (fabsf(copter.inertial_nav.get_altitude() - barometer.get_altitude()) > COPTER_ARMING_CHECK_ALT_DISPARITY_MAX_CM) {
             if (report) {
                 GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Altitude disparity"));
             }
@@ -59,7 +60,7 @@ bool AP_Arming_Copter::ins_checks(bool report)
 
     if ((checks_to_perform & ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_INS)) {
         // check ekf attitude, if bad it's usually the gyro biases have not settled
-        if (!_inav.get_filter_status().flags.attitude) {
+        if (!copter.inertial_nav.get_filter_status().flags.attitude) {
             if (report) {
                 GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: gyros still settling"));
             }
@@ -67,7 +68,7 @@ bool AP_Arming_Copter::ins_checks(bool report)
         }
 
         // check lean angle
-        if (degrees(acosf(ahrs.cos_roll()*ahrs.cos_pitch()))*100.0f > _aparm.angle_max) {
+        if (degrees(acosf(copter.ahrs.cos_roll()*copter.ahrs.cos_pitch()))*100.0f > copter.aparm.angle_max) {
             if (report) {
                 GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Leaning"));
             }
@@ -87,7 +88,7 @@ bool AP_Arming_Copter::compass_checks(bool report)
 
     if ((checks_to_perform & ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_COMPASS)) {
         // compass is required for copter
-        if (!_compass.use_for_yaw()) {
+        if (!copter.compass.use_for_yaw()) {
             if (report) {
                 GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, PSTR("PreArm: Compass disabled"));
             }
@@ -109,27 +110,27 @@ bool AP_Arming_Copter::manual_transmitter_checks(bool report)
     bool ret = true;
 
     // check if radio has been calibrated
-    if (!_channel_throttle->radio_min.load() && !_channel_throttle->radio_max.load()) {
+    if (!copter.channel_throttle->radio_min.load() && !copter.channel_throttle->radio_max.load()) {
         ret = false;
     }
 
     // check channels 1 & 2 have min <= 1300 and max >= 1700
-    if (_channel_roll->radio_min > 1300 || _channel_roll->radio_max < 1700 || _channel_pitch->radio_min > 1300 || _channel_pitch->radio_max < 1700) {
+    if (copter.channel_roll->radio_min > 1300 || copter.channel_roll->radio_max < 1700 || copter.channel_pitch->radio_min > 1300 || copter.channel_pitch->radio_max < 1700) {
         ret = false;
     }
 
     // check channels 3 & 4 have min <= 1300 and max >= 1700
-    if (_channel_throttle->radio_min > 1300 || _channel_throttle->radio_max < 1700 || _channel_yaw->radio_min > 1300 || _channel_yaw->radio_max < 1700) {
+    if (copter.channel_throttle->radio_min > 1300 || copter.channel_throttle->radio_max < 1700 || copter.channel_yaw->radio_min > 1300 || copter.channel_yaw->radio_max < 1700) {
         ret = false;
     }
 
     // check channels 1 & 2 have trim >= 1300 and <= 1700
-    if (_channel_roll->radio_trim < 1300 || _channel_roll->radio_trim > 1700 || _channel_pitch->radio_trim < 1300 || _channel_pitch->radio_trim > 1700) {
+    if (copter.channel_roll->radio_trim < 1300 || copter.channel_roll->radio_trim > 1700 || copter.channel_pitch->radio_trim < 1300 || copter.channel_pitch->radio_trim > 1700) {
         ret = false;
     }
 
     // check channel 4 has trim >= 1300 and <= 1700
-    if (_channel_yaw->radio_trim < 1300 || _channel_yaw->radio_trim > 1700) {
+    if (copter.channel_yaw->radio_trim < 1300 || copter.channel_yaw->radio_trim > 1700) {
         ret = false;
     }
 
