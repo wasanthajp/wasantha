@@ -63,6 +63,8 @@ public:
 
     virtual bool ins_checks(bool report);
 
+    virtual bool compass_checks(bool report);
+
     virtual bool manual_transmitter_checks(bool report);
 
     void set_logging_available(bool set) { logging_available = set; }
@@ -93,8 +95,6 @@ protected:
     bool airspeed_checks(bool report);
 
     bool logging_checks(bool report);
-
-    bool compass_checks(bool report);
 
     bool gps_checks(bool report);
 
