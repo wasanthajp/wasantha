@@ -353,41 +353,6 @@ bool Copter::pre_arm_checks(bool display_failure)
     // check various parameter values
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_PARAMETERS)) {
 
-        // ensure ch7 and ch8 have different functions
-        if (check_duplicate_auxsw()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Duplicate Aux Switch Options"));
-            }
-            return false;
-        }
-
-        // failsafe parameter checks
-        if (g.failsafe_throttle) {
-            // check throttle min is above throttle failsafe trigger and that the trigger is above ppm encoder's loss-of-signal value of 900
-            if (channel_throttle->radio_min <= g.failsafe_throttle_value+10 || g.failsafe_throttle_value < 910) {
-                if (display_failure) {
-                    gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Check FS_THR_VALUE"));
-                }
-                return false;
-            }
-        }
-
-        // lean angle parameter check
-        if (aparm.angle_max < 1000 || aparm.angle_max > 8000) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Check ANGLE_MAX"));
-            }
-            return false;
-        }
-
-        // acro balance parameter check
-        if ((g.acro_balance_roll > g.p_stabilize_roll.kP()) || (g.acro_balance_pitch > g.p_stabilize_pitch.kP())) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: ACRO_BAL_ROLL/PITCH"));
-            }
-            return false;
-        }
-
 #if CONFIG_SONAR == ENABLED && OPTFLOW == ENABLED
         // check range finder if optflow enabled
         if (optflow.enabled() && !sonar.pre_arm_check()) {
