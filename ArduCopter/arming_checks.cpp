@@ -57,12 +57,22 @@ bool AP_Arming_Copter::ins_checks(bool report)
         return false;
     }
 
-    // check ekf attitude, if bad it's usually the gyro biases have not settled
-    if (!_inav.get_filter_status().flags.attitude) {
-        if (report) {
-            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: gyros still settling"));
+    if ((checks_to_perform & ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_INS)) {
+        // check ekf attitude, if bad it's usually the gyro biases have not settled
+        if (!_inav.get_filter_status().flags.attitude) {
+            if (report) {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: gyros still settling"));
+            }
+            return false;
         }
-        return false;
+
+        // check lean angle
+        if (degrees(acosf(ahrs.cos_roll()*ahrs.cos_pitch()))*100.0f > _aparm.angle_max) {
+            if (report) {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Leaning"));
+            }
+            return false;
+        }
     }
 
     return true;

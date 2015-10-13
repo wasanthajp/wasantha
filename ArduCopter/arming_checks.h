@@ -20,10 +20,11 @@ class AP_Arming_Copter : public AP_Arming
 {
 public:
     AP_Arming_Copter(const AP_AHRS &ahrs_ref, const AP_Baro &baro, Compass &compass, const enum HomeState &home_state,
-            const AP_InertialNav_NavEKF &inav,
+            const AP_InertialNav_NavEKF &inav, const AP_Vehicle::MultiCopter &aparm,
             RC_Channel* channel_roll, RC_Channel* channel_pitch, RC_Channel* channel_throttle, RC_Channel* channel_yaw) :
         AP_Arming(ahrs_ref, baro, compass, home_state),
         _inav(inav),
+        _aparm(aparm),
         _channel_roll(channel_roll),
         _channel_pitch(channel_pitch),
         _channel_throttle(channel_throttle),
@@ -47,6 +48,7 @@ public:
 
 private:
     const AP_InertialNav_NavEKF &_inav;
+    const AP_Vehicle::MultiCopter &_aparm;
     RC_Channel* _channel_roll;
     RC_Channel* _channel_pitch;
     RC_Channel* _channel_throttle;
