@@ -73,6 +73,8 @@ public:
 
     virtual bool manual_transmitter_checks(bool report);
 
+    virtual bool battery_checks(bool report);
+
     void set_logging_available(bool set) { logging_available = set; }
 
     static const struct AP_Param::GroupInfo        var_info[];
@@ -103,8 +105,6 @@ protected:
     bool logging_checks(bool report);
 
     bool gps_checks(bool report);
-
-    bool battery_checks(bool report);
 
     bool hardware_safety_check(bool report);
 };
