@@ -79,6 +79,45 @@ bool AP_Arming_Copter::ins_checks(bool report)
     return true;
 }
 
+bool AP_Arming_Copter::parameter_checks(bool report)
+{
+    // call parent class checks
+    if (!AP_Arming::parameter_checks(report)) {
+        return false;
+    }
+
+    if ((checks_to_perform & ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_PARAMETERS)) {
+        // radio failsafe parameter checks
+        if (copter.g.failsafe_throttle) {
+            // check throttle min is above throttle failsafe trigger and that the trigger is above ppm encoder's loss-of-signal value of 900
+            if (copter.channel_throttle->radio_min <= copter.g.failsafe_throttle_value+10 || copter.g.failsafe_throttle_value < 910) {
+                if (report) {
+                    GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Check FS_THR_VALUE"));
+                }
+                return false;
+            }
+        }
+
+        // lean angle parameter check
+        if (copter.aparm.angle_max < 1000 || copter.aparm.angle_max > 8000) {
+            if (report) {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Check ANGLE_MAX"));
+            }
+            return false;
+        }
+
+        // acro balance parameter check
+        if ((copter.g.acro_balance_roll > copter.g.p_stabilize_roll.kP()) || (copter.g.acro_balance_pitch > copter.g.p_stabilize_pitch.kP())) {
+            if (report) {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Check ACRO_BAL_ROLL/PITCH"));
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool AP_Arming_Copter::compass_checks(bool report)
 {
     // call parent class checks
