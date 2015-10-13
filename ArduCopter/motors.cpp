@@ -585,16 +585,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     }
 #endif
 
-    // check lean angle
-    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_INS)) {
-        if (degrees(acosf(ahrs.cos_roll()*ahrs.cos_pitch()))*100.0f > aparm.angle_max) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Leaning"));
-            }
-            return false;
-        }
-    }
-
     // check battery voltage
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_VOLTAGE)) {
         if (failsafe.battery || (!ap.usb_connected && battery.exhausted(g.fs_batt_voltage, g.fs_batt_mah))) {
