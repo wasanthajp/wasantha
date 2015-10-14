@@ -272,11 +272,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
         return false;
     }
 
-    // always check gps
-    if (!arming.gps_checks(display_failure)) {
-        return false;
-    }
-
     // heli specific arming check
 #if FRAME_CONFIG == HELI_FRAME
     // check if rotor is spinning on heli because this could disrupt gyro calibration
