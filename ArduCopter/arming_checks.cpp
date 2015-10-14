@@ -244,6 +244,18 @@ bool AP_Arming_Copter::manual_transmitter_checks(bool report)
         return false;
     }
 
+    // check throttle is above failsafe throttle
+    if ((copter.g.failsafe_throttle != FS_THR_DISABLED) && (copter.channel_throttle->radio_in < copter.g.failsafe_throttle_value)) {
+        if (report) {
+#if FRAME_CONFIG == HELI_FRAME
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Collective below Failsafe"));
+#else
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Throttle below Failsafe"));
+#endif
+        }
+        return false;
+    }
+
     bool ret = true;
 
     // check if radio has been calibrated
