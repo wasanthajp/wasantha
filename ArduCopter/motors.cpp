@@ -295,12 +295,6 @@ bool Copter::pre_arm_checks(bool display_failure)
             return false;
         }
 #endif
-#if FRAME_CONFIG == HELI_FRAME
-        // check helicopter parameters
-        if (!motors.parameter_check(display_failure)) {
-            return false;
-        }
-#endif // HELI_FRAME
     }
 
     // check throttle is above failsafe throttle
