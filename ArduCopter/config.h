@@ -263,11 +263,6 @@
  # define FS_CLOSE_TO_HOME_CM               500 // if vehicle within 5m of home, vehicle will LAND instead of RTL during some failsafes
 #endif
 
-// pre-arm baro vs inertial nav max alt disparity
-#ifndef PREARM_MAX_ALT_DISPARITY_CM
- # define PREARM_MAX_ALT_DISPARITY_CM       100     // barometer and inertial nav altitude must be within this many centimeters
-#endif
-
 // arming check's maximum acceptable accelerometer vector difference (in m/s/s) between primary and backup accelerometers
 #ifndef PREARM_MAX_ACCEL_VECTOR_DIFF
   #define PREARM_MAX_ACCEL_VECTOR_DIFF      0.70f    // pre arm accel check will fail if primary and backup accelerometer vectors differ by 0.7m/s/s
