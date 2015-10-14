@@ -113,6 +113,12 @@ bool AP_Arming_Copter::parameter_checks(bool report)
             }
             return false;
         }
+#if FRAME_CONFIG == HELI_FRAME
+        // check helicopter parameters
+        if (!copter.motors.parameter_check(report)) {
+            return false;
+        }
+#endif // HELI_FRAME
     }
 
     return true;
