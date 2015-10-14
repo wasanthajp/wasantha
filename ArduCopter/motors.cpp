@@ -262,6 +262,9 @@ bool Copter::pre_arm_checks(bool display_failure)
         return true;
     }
 
+    // set notify LEDs based on gps checks
+    AP_Notify::flags.pre_arm_gps_check = arming.gps_checks(false);
+
     // call arming class
     if (!arming.pre_arm_checks(display_failure)) {
         return false;
@@ -299,9 +302,6 @@ bool Copter::pre_arm_checks(bool display_failure)
 
     // exit immediately if we've already successfully performed the pre-arm check
     if (ap.pre_arm_check) {
-        // run gps checks because results may change and affect LED colour
-        // no need to display failures because arm_checks will do that if the pilot tries to arm
-        pre_arm_gps_checks(false);
         return true;
     }
 
@@ -309,11 +309,6 @@ bool Copter::pre_arm_checks(bool display_failure)
     if(g.arming_check == ARMING_CHECK_NONE) {
         set_pre_arm_check(true);
         return true;
-    }
-
-    // check GPS
-    if (!pre_arm_gps_checks(display_failure)) {
-        return false;
     }
 
 #if AC_FENCE == ENABLED
@@ -380,88 +375,6 @@ bool Copter::pre_arm_checks(bool display_failure)
     return true;
 }
 
-// performs pre_arm gps related checks and returns true if passed
-bool Copter::pre_arm_gps_checks(bool display_failure)
-{
-    // always check if inertial nav has started and is ready
-    if(!ahrs.get_NavEKF().healthy()) {
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Waiting for Nav Checks"));
-        }
-        return false;
-    }
-
-    // check if flight mode requires GPS
-    bool gps_required = mode_requires_GPS(control_mode);
-
-#if AC_FENCE == ENABLED
-    // if circular fence is enabled we need GPS
-    if ((fence.get_enabled_fences() & AC_FENCE_TYPE_CIRCLE) != 0) {
-        gps_required = true;
-    }
-#endif
-
-    // return true if GPS is not required
-    if (!gps_required) {
-        AP_Notify::flags.pre_arm_gps_check = true;
-        return true;
-    }
-
-    // ensure GPS is ok
-    if (!position_ok()) {
-        if (display_failure) {
-            const char *reason = ahrs.prearm_failure_reason();
-            if (reason) {
-                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, PSTR("PreArm: %s"), reason);
-            } else {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Need 3D Fix"));
-            }
-        }
-        AP_Notify::flags.pre_arm_gps_check = false;
-        return false;
-    }
-
-    // check EKF compass variance is below failsafe threshold
-    float vel_variance, pos_variance, hgt_variance, tas_variance;
-    Vector3f mag_variance;
-    Vector2f offset;
-    ahrs.get_NavEKF().getVariances(vel_variance, pos_variance, hgt_variance, mag_variance, tas_variance, offset);
-    if (mag_variance.length() >= g.fs_ekf_thresh) {
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: EKF compass variance"));
-        }
-        return false;
-    }
-
-    // check home and EKF origin are not too far
-    if (far_from_EKF_origin(ahrs.get_home())) {
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: EKF-home variance"));
-        }
-        AP_Notify::flags.pre_arm_gps_check = false;
-        return false;
-    }
-
-    // return true immediately if gps check is disabled
-    if (!(g.arming_check == ARMING_CHECK_ALL || g.arming_check & ARMING_CHECK_GPS)) {
-        AP_Notify::flags.pre_arm_gps_check = true;
-        return true;
-    }
-
-    // warn about hdop separately - to prevent user confusion with no gps lock
-    if (gps.get_hdop() > g.gps_hdop_good) {
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: High GPS HDOP"));
-        }
-        AP_Notify::flags.pre_arm_gps_check = false;
-        return false;
-    }
-
-    // if we got here all must be ok
-    AP_Notify::flags.pre_arm_gps_check = true;
-    return true;
-}
-
 // arm_checks - perform final checks before arming
 //  always called just before arming.  Return true if ok to arm
 //  has side-effect that logging is started
@@ -489,7 +402,7 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     }
 
     // always check gps
-    if (!pre_arm_gps_checks(display_failure)) {
+    if (!arming.gps_checks(display_failure)) {
         return false;
     }
 
