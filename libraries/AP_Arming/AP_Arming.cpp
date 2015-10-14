@@ -367,6 +367,7 @@ bool AP_Arming::pre_arm_checks(bool report)
     ret &= battery_checks(report);
     ret &= logging_checks(report);
     ret &= manual_transmitter_checks(report);
+    ret &= rangefinder_optflow_checks(report);
 
     return ret;
 }
