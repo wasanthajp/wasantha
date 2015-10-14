@@ -188,14 +188,6 @@ bool Copter::init_arm_motors(bool arming_from_gcs)
         did_gyro_cal = true;
     }
 
-#if FRAME_CONFIG == HELI_FRAME
-    // helicopters are always using motor interlock
-    set_using_interlock(true);
-#else
-    // check if we are using motor interlock control on an aux switch
-    set_using_interlock(check_if_auxsw_mode_used(AUXSW_MOTOR_INTERLOCK));
-#endif
-
     // if we are using motor interlock switch and it's enabled, fail to arm
     if (ap.using_interlock && motors.get_interlock()){
         gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Motor Interlock Enabled"));
