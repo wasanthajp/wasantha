@@ -854,7 +854,6 @@ private:
     bool init_arm_motors(bool arming_from_gcs);
     bool pre_arm_checks(bool display_failure);
     void pre_arm_rc_checks();
-    bool pre_arm_gps_checks(bool display_failure);
     bool arm_checks(bool display_failure, bool arming_from_gcs);
     void init_disarm_motors();
     void motors_output();
