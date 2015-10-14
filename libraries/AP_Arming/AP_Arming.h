@@ -11,6 +11,8 @@
 #define AP_ARMING_COMPASS_OFFSETS_MAX   600
 #define AP_ARMING_COMPASS_MAGFIELD_MIN  185     // 0.35 * 530 milligauss
 #define AP_ARMING_COMPASS_MAGFIELD_MAX  875     // 1.65 * 530 milligauss
+#define AP_ARMING_BOARD_VOLTAGE_MIN     4.3f
+#define AP_ARMING_BOARD_VOLTAGE_MAX     5.8f
 
 class AP_Arming {
 public:
@@ -110,6 +112,8 @@ protected:
     bool logging_checks(bool report);
 
     bool hardware_safety_check(bool report);
+
+    bool board_voltage_checks(bool report);
 };
 
 #endif //__AP_ARMING_H__
