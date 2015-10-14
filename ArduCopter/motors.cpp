@@ -237,6 +237,7 @@ bool Copter::pre_arm_checks(bool display_failure)
 {
     // exit immediately if already armed
     if (motors.armed()) {
+        AP_Notify::flags.pre_arm_check = true;
         return true;
     }
 
@@ -245,22 +246,11 @@ bool Copter::pre_arm_checks(bool display_failure)
 
     // call arming class
     if (!arming.pre_arm_checks(display_failure)) {
+        AP_Notify::flags.pre_arm_check = false;
         return false;
     }
 
-    // exit immediately if we've already successfully performed the pre-arm check
-    if (ap.pre_arm_check) {
-        return true;
-    }
-
-    // succeed if pre arm checks are disabled
-    if(g.arming_check == ARMING_CHECK_NONE) {
-        set_pre_arm_check(true);
-        return true;
-    }
-
-    // if we've gotten this far then pre arm checks have completed
-    set_pre_arm_check(true);
+    AP_Notify::flags.pre_arm_check = true;
     return true;
 }
 
