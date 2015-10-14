@@ -71,6 +71,8 @@ public:
 
     virtual bool compass_checks(bool report);
 
+    virtual bool gps_checks(bool report);
+
     virtual bool manual_transmitter_checks(bool report);
 
     virtual bool battery_checks(bool report);
@@ -103,8 +105,6 @@ protected:
     bool airspeed_checks(bool report);
 
     bool logging_checks(bool report);
-
-    bool gps_checks(bool report);
 
     bool hardware_safety_check(bool report);
 };
