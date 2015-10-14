@@ -310,3 +310,20 @@ bool AP_Arming_Copter::battery_checks(bool report)
 
     return true;
 }
+
+bool AP_Arming_Copter::rangefinder_optflow_checks(bool report)
+{
+    if ((checks_to_perform & ARMING_CHECK_ALL) || (checks_to_perform & ARMING_CHECK_RANGEFINDER_OPTFLOW)) {
+#if CONFIG_SONAR == ENABLED && OPTFLOW == ENABLED
+        // check range finder if optflow enabled
+        if (copter.optflow.enabled() && !copter.sonar.pre_arm_check()) {
+            if (report) {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: check range finder"));
+            }
+            return false;
+        }
+#endif
+    }
+
+    return true;
+}
