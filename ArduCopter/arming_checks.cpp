@@ -207,6 +207,16 @@ bool AP_Arming_Copter::gps_checks(bool report)
         return false;
     }
 
+#if AC_FENCE == ENABLED
+    // check fence has not been breached
+    if(!copter.fence.pre_arm_check()) {
+        if (report) {
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: check fence"));
+        }
+        return false;
+    }
+#endif
+
     return true;
 }
 
