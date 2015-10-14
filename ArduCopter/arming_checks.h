@@ -41,6 +41,8 @@ public:
 
     bool battery_checks(bool report);
 
+    bool rangefinder_optflow_checks(bool report);
+
     // var_info for holding Parameter information
     static const struct AP_Param::GroupInfo var_info[];
 };
