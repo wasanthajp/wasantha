@@ -231,7 +231,7 @@ private:
             uint8_t unused1             : 1; // 0
             uint8_t simple_mode         : 2; // 1,2     // This is the state of simple mode : 0 = disabled ; 1 = SIMPLE ; 2 = SUPERSIMPLE
             uint8_t pre_arm_rc_check    : 1; // 3       // true if rc input pre-arm checks have been completed successfully
-            uint8_t pre_arm_check       : 1; // 4       // true if all pre-arm checks (rc, accel calibration, gps lock) have been performed
+            uint8_t unused2             : 1; // 4
             uint8_t auto_armed          : 1; // 5       // stops auto missions from beginning until throttle is raised
             uint8_t logging_started     : 1; // 6       // true if dataflash logging has started
             uint8_t land_complete       : 1; // 7       // true if we have detected a landing
@@ -573,7 +573,6 @@ private:
     void set_failsafe_gcs(bool b);
     void set_land_complete(bool b);
     void set_land_complete_maybe(bool b);
-    void set_pre_arm_check(bool b);
     void set_using_interlock(bool b);
     void set_motor_emergency_stop(bool b);
     float get_smoothing_gain();
