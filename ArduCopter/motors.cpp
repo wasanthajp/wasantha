@@ -259,16 +259,6 @@ bool Copter::pre_arm_checks(bool display_failure)
         return true;
     }
 
-#if AC_FENCE == ENABLED
-    // check fence is initialised
-    if(!fence.pre_arm_check()) {
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: check fence"));
-        }
-        return false;
-    }
-#endif
-
 #if CONFIG_HAL_BOARD != HAL_BOARD_VRBRAIN
 #ifndef CONFIG_ARCH_BOARD_PX4FMU_V1
     // check board voltage
@@ -355,16 +345,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
             return false;
         }
     }
-
-#if AC_FENCE == ENABLED
-    // check vehicle is within fence
-    if(!fence.pre_arm_check()) {
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: check fence"));
-        }
-        return false;
-    }
-#endif
 
     // check throttle
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_RC)) {
