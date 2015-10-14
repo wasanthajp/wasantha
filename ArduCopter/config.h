@@ -223,14 +223,6 @@
  # define FS_BATT_MAH_DEFAULT             0         // default battery capacity (in mah) below which failsafe will be triggered
 #endif
 
-#ifndef BOARD_VOLTAGE_MIN
- # define BOARD_VOLTAGE_MIN             4.3f        // min board voltage in volts for pre-arm checks
-#endif
-
-#ifndef BOARD_VOLTAGE_MAX
- # define BOARD_VOLTAGE_MAX             5.8f        // max board voltage in volts for pre-arm checks
-#endif
-
 // prearm GPS hdop check
 #ifndef GPS_HDOP_GOOD_DEFAULT
  # define GPS_HDOP_GOOD_DEFAULT         140     // minimum hdop that represents a good position.  used during pre-arm checks if fence is enabled
