@@ -283,20 +283,6 @@ bool Copter::pre_arm_checks(bool display_failure)
 #endif
 #endif
 
-    // check various parameter values
-    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_PARAMETERS)) {
-
-#if CONFIG_SONAR == ENABLED && OPTFLOW == ENABLED
-        // check range finder if optflow enabled
-        if (optflow.enabled() && !sonar.pre_arm_check()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: check range finder"));
-            }
-            return false;
-        }
-#endif
-    }
-
     // if we've gotten this far then pre arm checks have completed
     set_pre_arm_check(true);
     return true;
