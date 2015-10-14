@@ -348,18 +348,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
 
     // check throttle
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_RC)) {
-        // check throttle is not too low - must be above failsafe throttle
-        if (g.failsafe_throttle != FS_THR_DISABLED && channel_throttle->radio_in < g.failsafe_throttle_value) {
-            if (display_failure) {
-#if FRAME_CONFIG == HELI_FRAME
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Collective below Failsafe"));
-#else
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Throttle below Failsafe"));
-#endif
-            }
-            return false;
-        }
-
         // check throttle is not too high - skips checks if arming from GCS in Guided
         if (!(arming_from_gcs && control_mode == GUIDED)) {
             // above top of deadband is too always high
