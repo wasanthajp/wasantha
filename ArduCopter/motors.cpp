@@ -324,28 +324,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
         return true;
     }
 
-    // baro checks
-    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_BARO)) {
-        // baro health check
-        if (!barometer.all_healthy()) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Barometer not healthy"));
-            }
-            return false;
-        }
-        // Check baro & inav alt are within 1m if EKF is operating in an absolute position mode.
-        // Do not check if intending to operate in a ground relative height mode as EKF will output a ground relative height
-        // that may differ from the baro height due to baro drift.
-        nav_filter_status filt_status = inertial_nav.get_filter_status();
-        bool using_baro_ref = (!filt_status.flags.pred_horiz_pos_rel && filt_status.flags.pred_horiz_pos_abs);
-        if (using_baro_ref && (fabsf(inertial_nav.get_altitude() - baro_alt) > PREARM_MAX_ALT_DISPARITY_CM)) {
-            if (display_failure) {
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Altitude disparity"));
-            }
-            return false;
-        }
-    }
-
     // check throttle
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_RC)) {
         // check throttle is not too high - skips checks if arming from GCS in Guided
