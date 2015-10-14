@@ -212,6 +212,32 @@ bool AP_Arming_Copter::manual_transmitter_checks(bool report)
     }
 
     // vehicle specific checks
+
+    // check if motor interlock and Emergency Stop aux switches are used
+    // at the same time.  This cannot be allowed.
+    if (copter.check_if_auxsw_mode_used(AUXSW_MOTOR_INTERLOCK) && copter.check_if_auxsw_mode_used(AUXSW_MOTOR_ESTOP)){
+        if (report) {
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Interlock/E-Stop Conflict"));
+        }
+        return false;
+    }
+
+    // if motor interlock aux switch is in use, switch needs to be in disabled position to arm
+    if (copter.ap.using_interlock && copter.motors.get_interlock()){
+        if (report) {
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Motor Interlock Enabled"));
+        }
+        return false;
+    }
+
+    // if we are using Motor Emergency Stop aux switch, check it is not enabled
+    if (copter.check_if_auxsw_mode_used(AUXSW_MOTOR_ESTOP) && copter.ap.motor_emergency_stop){
+        if (report) {
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Motor Emergency Stopped"));
+        }
+        return false;
+    }
+
     bool ret = true;
 
     // check if radio has been calibrated
