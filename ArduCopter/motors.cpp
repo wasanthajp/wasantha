@@ -188,24 +188,10 @@ bool Copter::init_arm_motors(bool arming_from_gcs)
         did_gyro_cal = true;
     }
 
-    // if we are using motor interlock switch and it's enabled, fail to arm
-    if (ap.using_interlock && motors.get_interlock()){
-        gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Motor Interlock Enabled"));
-        AP_Notify::flags.armed = false;
-        in_arm_motors = false;
-        return false;
-    }
-
     // if we are not using Emergency Stop switch option, force Estop false to ensure motors
     // can run normally
     if (!check_if_auxsw_mode_used(AUXSW_MOTOR_ESTOP)){
         set_motor_emergency_stop(false);
-    // if we are using motor Estop switch, it must not be in Estop position
-    } else if (check_if_auxsw_mode_used(AUXSW_MOTOR_ESTOP) && ap.motor_emergency_stop){
-        gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Motor Emergency Stopped"));
-        AP_Notify::flags.armed = false;
-        in_arm_motors = false;
-        return false;
     }
 
     // enable gps velocity based centrefugal force compensation
@@ -259,36 +245,6 @@ bool Copter::pre_arm_checks(bool display_failure)
 
     // call arming class
     if (!arming.pre_arm_checks(display_failure)) {
-        return false;
-    }
-
-    // check if motor interlock and Emergency Stop aux switches are used
-    // at the same time.  This cannot be allowed.
-    if (check_if_auxsw_mode_used(AUXSW_MOTOR_INTERLOCK) && check_if_auxsw_mode_used(AUXSW_MOTOR_ESTOP)){
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Interlock/E-Stop Conflict"));
-        }
-        return false;
-    }
-
-    // check if motor interlock aux switch is in use
-    // if it is, switch needs to be in disabled position to arm
-    // otherwise exit immediately.  This check to be repeated, 
-    // as state can change at any time.
-    set_using_interlock(check_if_auxsw_mode_used(AUXSW_MOTOR_INTERLOCK));
-    if (ap.using_interlock && motors.get_interlock()){
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Motor Interlock Enabled"));
-        }
-        return false;
-    }
-
-    // if we are using Motor Emergency Stop aux switch, check it is not enabled 
-    // and warn if it is
-    if (check_if_auxsw_mode_used(AUXSW_MOTOR_ESTOP) && ap.motor_emergency_stop){
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Motor Emergency Stopped"));
-        }
         return false;
     }
 
