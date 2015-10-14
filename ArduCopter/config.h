@@ -255,17 +255,6 @@
  #define COMPASS_MAGFIELD_EXPECTED      530        // pre arm will fail if mag field > 874 or < 185
 #endif
 
-// max compass offset length (i.e. sqrt(offs_x^2+offs_y^2+offs_Z^2))
-#ifndef CONFIG_ARCH_BOARD_PX4FMU_V1
- #ifndef COMPASS_OFFSETS_MAX
-  # define COMPASS_OFFSETS_MAX          600         // PX4 onboard compass has high offsets
- #endif
-#else   // SITL, FLYMAPLE, etc
- #ifndef COMPASS_OFFSETS_MAX
-  # define COMPASS_OFFSETS_MAX          500
- #endif
-#endif
-
 //////////////////////////////////////////////////////////////////////////////
 //  OPTICAL_FLOW
 #ifndef OPTFLOW
