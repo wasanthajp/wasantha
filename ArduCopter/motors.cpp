@@ -264,14 +264,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     start_logging();
 #endif
 
-    // always check if inertial nav has started and is ready
-    if(!ahrs.healthy()) {
-        if (display_failure) {
-            gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Waiting for Nav Checks"));
-        }
-        return false;
-    }
-
     // always check if the current mode allows arming
     if (!mode_allows_arming(control_mode, arming_from_gcs)) {
         if (display_failure) {
