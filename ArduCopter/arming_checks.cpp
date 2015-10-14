@@ -138,6 +138,72 @@ bool AP_Arming_Copter::compass_checks(bool report)
     return true;
 }
 
+bool AP_Arming_Copter::gps_checks(bool report)
+{
+    // call parent class checks
+    if (!AP_Arming::gps_checks(report)) {
+        return false;
+    }
+
+    // check if flight mode requires GPS
+    bool gps_required = copter.mode_requires_GPS(copter.control_mode);
+
+#if AC_FENCE == ENABLED
+    // if circular fence is enabled we need GPS
+    if ((copter.fence.get_enabled_fences() & AC_FENCE_TYPE_CIRCLE) != 0) {
+        gps_required = true;
+    }
+#endif
+
+    // return true if GPS is not required
+    if (!gps_required) {
+        return true;
+    }
+
+    // ensure position is ok
+    if (!copter.position_ok()) {
+        if (report) {
+            const char *reason = copter.ahrs.prearm_failure_reason();
+            if (reason) {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, PSTR("PreArm: %s"), reason);
+            } else {
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: Need 3D Fix"));
+            }
+        }
+        return false;
+    }
+
+    // check EKF compass variance is below failsafe threshold
+    float vel_variance, pos_variance, hgt_variance, tas_variance;
+    Vector3f mag_variance;
+    Vector2f offset;
+    copter.ahrs.get_NavEKF().getVariances(vel_variance, pos_variance, hgt_variance, mag_variance, tas_variance, offset);
+    if (mag_variance.length() >= copter.g.fs_ekf_thresh) {
+        if (report) {
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: EKF compass variance"));
+        }
+        return false;
+    }
+
+    // check home and EKF origin are not too far
+    if (copter.far_from_EKF_origin(copter.ahrs.get_home())) {
+        if (report) {
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: EKF-home variance"));
+        }
+        return false;
+    }
+
+    // warn about hdop separately - to prevent user confusion with no gps lock
+    if (copter.gps.get_hdop() > copter.g.gps_hdop_good) {
+        if (report) {
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("PreArm: High GPS HDOP"));
+        }
+        return false;
+    }
+
+    return true;
+}
+
 bool AP_Arming_Copter::manual_transmitter_checks(bool report)
 {
     // call parent class checks
