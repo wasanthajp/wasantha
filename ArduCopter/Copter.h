@@ -574,7 +574,6 @@ private:
     void set_land_complete(bool b);
     void set_land_complete_maybe(bool b);
     void set_pre_arm_check(bool b);
-    void set_pre_arm_rc_check(bool b);
     void set_using_interlock(bool b);
     void set_motor_emergency_stop(bool b);
     float get_smoothing_gain();
