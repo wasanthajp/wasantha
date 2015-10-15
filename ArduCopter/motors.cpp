@@ -282,40 +282,6 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     }
 #endif  // HELI_FRAME
 
-    // succeed if arming checks are disabled
-    if (g.arming_check == ARMING_CHECK_NONE) {
-        return true;
-    }
-
-    // check throttle
-    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_RC)) {
-        // check throttle is not too high - skips checks if arming from GCS in Guided
-        if (!(arming_from_gcs && control_mode == GUIDED)) {
-            // above top of deadband is too always high
-            if (channel_throttle->control_in > get_takeoff_trigger_throttle()) {
-                if (display_failure) {
-#if FRAME_CONFIG == HELI_FRAME
-                    gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Collective too high"));
-#else
-                    gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Throttle too high"));
-#endif
-                }
-                return false;
-            }
-            // in manual modes throttle must be at zero
-            if ((mode_has_manual_throttle(control_mode) || control_mode == DRIFT) && channel_throttle->control_in > 0) {
-                if (display_failure) {
-#if FRAME_CONFIG == HELI_FRAME
-                    gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Collective too high"));
-#else
-                    gcs_send_text_P(MAV_SEVERITY_CRITICAL,PSTR("Arm: Throttle too high"));
-#endif
-                }
-                return false;
-            }
-        }
-    }
-
     // if we've gotten this far all is ok
     return true;
 }
