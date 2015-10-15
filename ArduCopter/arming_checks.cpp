@@ -266,6 +266,26 @@ bool AP_Arming_Copter::manual_transmitter_checks(bool report)
         return false;
     }
 
+    // check throttle is not too high - skips checks if arming from GCS in Guided
+    if (copter.control_mode != GUIDED) {
+        // above top of deadband is too always high
+        bool thr_too_high = copter.channel_throttle->control_in > copter.get_takeoff_trigger_throttle();
+        // in manual modes and Drift throttle must be at zero
+        if ((copter.mode_has_manual_throttle(copter.control_mode) || copter.control_mode == DRIFT) && (copter.channel_throttle->control_in > 0)) {
+            thr_too_high = true;
+        }
+        if (thr_too_high) {
+            if (report) {
+#if FRAME_CONFIG == HELI_FRAME
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("Arm: Collective too high"));
+#else
+                GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,PSTR("Arm: Throttle too high"));
+#endif
+            }
+            return false;
+        }
+    }
+
     bool ret = true;
 
     // check if radio has been calibrated
