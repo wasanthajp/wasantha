@@ -304,11 +304,15 @@ struct PACKED log_Control_Tuning {
     int16_t  sonar_alt;
     int16_t  desired_climb_rate;
     int16_t  climb_rate;
+    float    vel_z;
+    float    pos_z_rate;
 };
 
 // Write a control tuning packet
 void Copter::Log_Write_Control_Tuning()
 {
+    float vel_z, pos_z_rate;
+    inertial_nav.get_velocities_z(vel_z,pos_z_rate);
     struct log_Control_Tuning pkt = {
         LOG_PACKET_HEADER_INIT(LOG_CONTROL_TUNING_MSG),
         time_us             : hal.scheduler->micros64(),
@@ -321,7 +325,9 @@ void Copter::Log_Write_Control_Tuning()
         desired_sonar_alt   : (int16_t)target_sonar_alt,
         sonar_alt           : sonar_alt,
         desired_climb_rate  : (int16_t)pos_control.get_vel_target_z(),
-        climb_rate          : climb_rate
+        climb_rate          : climb_rate,
+        vel_z               : vel_z,
+        pos_z_rate          : pos_z_rate
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -736,7 +742,7 @@ const struct LogStructure Copter::log_structure[] PROGMEM = {
     { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),       
       "NTUN", "Qffffffffff", "TimeUS,DPosX,DPosY,PosX,PosY,DVelX,DVelY,VelX,VelY,DAccX,DAccY" },
     { LOG_CONTROL_TUNING_MSG, sizeof(log_Control_Tuning),
-      "CTUN", "Qhhfffecchh", "TimeUS,ThrIn,AngBst,ThrOut,DAlt,Alt,BarAlt,DSAlt,SAlt,DCRt,CRt" },
+      "CTUN", "Qhhfffecchhff", "TimeUS,ThrIn,AB,ThrO,DAlt,Alt,BarAlt,DSAlt,SAlt,DCRt,CRt,Vz,Pz" },
     { LOG_PERFORMANCE_MSG, sizeof(log_Performance), 
       "PM",  "QHHIhBH",    "TimeUS,NLon,NLoop,MaxT,PMT,I2CErr,INSErr" },
     { LOG_RATE_MSG, sizeof(log_Rate),
