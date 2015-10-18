@@ -3,6 +3,8 @@
 #include <AP_HAL/AP_HAL.h>
 #include "AP_InertialNav.h"
 
+extern const AP_HAL::HAL& hal;
+
 #if AP_AHRS_NAVEKF_AVAILABLE
 
 /*
@@ -36,6 +38,9 @@ void AP_InertialNav_NavEKF::update(float dt)
     _relpos_cm.z = - _relpos_cm.z;
     _velocity_cm.z = -_velocity_cm.z;
     _pos_z_rate = - _pos_z_rate;
+
+    // for testing
+    _velocity_cm.z = _pos_z_rate;
 }
 
 /**
