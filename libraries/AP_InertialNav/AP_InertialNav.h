@@ -115,6 +115,9 @@ public:
      * @return climbrate in cm/s (positive up)
      */
     virtual float       get_velocity_z() const = 0;
+
+    // provide original vert velocity and position derivate vert velocity
+    virtual void        get_velocities_z(float &vel_z, float &pos_z_rate) const = 0;
 };
 
 #if AP_AHRS_NAVEKF_AVAILABLE

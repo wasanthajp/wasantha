@@ -116,9 +116,13 @@ public:
      */
     float       get_velocity_z() const;
 
+    // provide original vert velocity and position derivate vert velocity
+    void        get_velocities_z(float &vel_z, float &pos_z_rate) const { vel_z = _vel_z; pos_z_rate = _pos_z_rate; }
+
 private:
     Vector3f _relpos_cm;   // NEU
     Vector3f _velocity_cm; // NEU
+    float _vel_z;
     float _pos_z_rate;
     struct Location _abspos;
     bool _haveabspos;
