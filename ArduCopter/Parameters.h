@@ -173,6 +173,7 @@ public:
         k_param_motors = 90,
         k_param_disarm_delay,
         k_param_fs_crash_check,
+        k_param_acro_type,          // 93
 
         // 97: RSSI
         k_param_rssi = 97,
@@ -486,6 +487,7 @@ public:
     AP_Float                acro_balance_pitch;
     AP_Int8                 acro_trainer;
     AP_Float                acro_expo;
+    AP_Int8                 acro_type;
 
     // PI/D controllers
 #if FRAME_CONFIG == HELI_FRAME

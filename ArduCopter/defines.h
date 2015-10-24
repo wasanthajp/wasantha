@@ -153,6 +153,10 @@ enum tuning_func {
 #define ACRO_TRAINER_LEVELING   1
 #define ACRO_TRAINER_LIMITED    2
 
+// Acro type definitions
+#define ACRO_TYPE_EARTH_FRAME_STABILIZED    0
+#define ACRO_TYPE_RATE_ONLY                 1
+
 // RC Feel roll/pitch definitions
 #define RC_FEEL_RP_VERY_SOFT        0
 #define RC_FEEL_RP_SOFT             25

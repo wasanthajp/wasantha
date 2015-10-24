@@ -646,6 +646,13 @@ const AP_Param::Info Copter::var_info[] PROGMEM = {
     // @User: Advanced
     GSCALAR(acro_expo,  "ACRO_EXPO",    ACRO_EXPO_DEFAULT),
 
+    // @Param: ACRO_TYPE
+    // @DisplayName: Acro Type
+    // @Description: Acro control type
+    // @Values: 0:Earth-Frame stabilized, 0:Rate Only
+    // @User: Advanced
+    GSCALAR(acro_type,  "ACRO_TYPE",    ACRO_TYPE_EARTH_FRAME_STABILIZED),
+
     // PID controller
     //---------------
 
