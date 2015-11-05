@@ -230,11 +230,16 @@ public:
 
     AuxiliaryBus *get_auxiliary_bus(int16_t backend_id);
 
+    //Returns accel calibrator interface object pointer
     AP_AccelCal& get_acal() const { return *_acal; }
 
+    // Returns body fixed accelerometer level data averaged during accel calibration's first step
     bool get_fixed_mount_accel_cal_sample(uint8_t sample_num, Vector3f& ret) const;
+
+    // Returns primary accelerometer level data averaged during accel calibration's first step
     bool get_primary_accel_cal_sample_avg(uint8_t sample_num, Vector3f& ret) const;
 
+    // Returns newly calculated trim values if calculated
     bool get_new_trim(float& trim_roll, float &trim_pitch);
 
 private:
@@ -393,7 +398,11 @@ private:
     AP_AccelCal* _acal;
 
     AccelCalibrator _accel_calibrator[INS_MAX_INSTANCES];
+
+    //save accelerometer bias and scale factors
     void _acal_save_calibrations();
+
+    // Returns AccelCalibrator objects pointer for specified acceleromter
     AccelCalibrator* _acal_get_calibrator(uint8_t i) { return i<get_accel_count()?&(_accel_calibrator[i]):NULL; }
 
     float _trim_pitch;
