@@ -189,7 +189,6 @@ private:
     AP_Baro barometer;
     Compass compass;
 
-    AP_AccelCal accelcal;
     AP_InertialSensor ins;
 
 #if RANGEFINDER_ENABLED == ENABLED
