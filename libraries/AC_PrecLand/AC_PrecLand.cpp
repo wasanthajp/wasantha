@@ -123,6 +123,36 @@ Vector3f AC_PrecLand::get_target_shift(const Vector3f &orig_target)
     return shift;
 }
 
+// get target 3D velocity towards target
+Vector3f AC_PrecLand::get_desired_velocity(float land_speed_cms)
+{
+    // return zero velocity if not enabled
+    if (_backend == NULL) {
+        return Vector3f(0.0f,0.0f,0.0f);
+    }
+
+    // update desired velocity if new estimate received
+    if (_have_estimate) {
+        // convert earth_frame-angle to desired velocity
+        _pi_precland_xy.set_input(_ef_angle_to_target);
+        Vector2f desv = _pi_precland_xy.get_pi();
+        float desv_len = desv.length();
+        if (!is_zero(desv_len) && (desv_len > _speed_xy)) {
+            desv.x = desv.x / desv_len * _speed_xy;
+            desv.x = desv.y / desv_len * _speed_xy;
+        }
+        _desired_vel.x = desv.x;
+        _desired_vel.y = desv.y;
+        _desired_vel.z = land_speed_cms;
+
+        // record we have consumed this reading
+        _have_estimate = false;
+    }
+
+    // return desired velocity
+    return _desired_vel;
+}
+
 // calc_angles_and_pos - converts sensor's body-frame angles to earth-frame angles and position estimate
 //  raw sensor angles stored in _angle_to_target (might be in earth frame, or maybe body frame)
 //  earth-frame angles stored in _ef_angle_to_target

@@ -57,6 +57,9 @@ public:
     // get_target_shift - returns 3D vector of earth-frame position adjustments to target
     Vector3f get_target_shift(const Vector3f& orig_target);
 
+    // get target 3D velocity towards target
+    Vector3f get_desired_velocity(float land_speed_cms);
+
     // handle_msg - Process a LANDING_TARGET mavlink message
     void handle_msg(mavlink_message_t* msg);
 
@@ -100,6 +103,7 @@ private:
     // output from controller
     bool                        _have_estimate;     // true if we have a recent estimated position offset
     Vector3f                    _target_pos_offset; // estimate target position offset from vehicle in earth-frame
+    Vector3f                    _desired_vel;       // desired velocity towards target in earth-frame
 
     // backend state
     struct precland_state {
