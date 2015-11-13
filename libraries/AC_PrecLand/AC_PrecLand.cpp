@@ -36,11 +36,10 @@ const AP_Param::GroupInfo AC_PrecLand::var_info[] = {
 // their values.
 //
 AC_PrecLand::AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav,
-                         AC_PI_2D& pi_precland_xy, float dt) :
+                         AC_PI_2D& pi_precland_xy) :
     _ahrs(ahrs),
     _inav(inav),
     _pi_precland_xy(pi_precland_xy),
-    _dt(dt),
     _capture_time_ms(0),
     _have_estimate(false),
     _limit_xy(false),
