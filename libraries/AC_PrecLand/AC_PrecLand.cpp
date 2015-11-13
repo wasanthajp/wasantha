@@ -41,6 +41,7 @@ AC_PrecLand::AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav,
     _inav(inav),
     _pi_precland_xy(pi_precland_xy),
     _dt(dt),
+    _capture_time_ms(0),
     _have_estimate(false),
     _backend(NULL)
 {
@@ -96,39 +97,18 @@ void AC_PrecLand::update(float alt_above_terrain_cm)
         // read from sensor
         _backend->update();
 
-        // calculate angles to target and position estimate
-        calc_angles_and_pos(alt_above_terrain_cm);
+        // calculate angles to target
+        calc_angles();
     }
-}
-
-// get_target_shift - returns 3D vector of earth-frame position adjustments to target
-Vector3f AC_PrecLand::get_target_shift(const Vector3f &orig_target)
-{
-    Vector3f shift; // default shift initialised to zero
-
-    // do not shift target if not enabled or no position estimate
-    if (_backend == NULL || !_have_estimate) {
-        return shift;
-    }
-
-    // shift is target_offset - (original target - current position)
-    Vector3f curr_offset_from_target = orig_target - _inav.get_position();
-    shift = _target_pos_offset - curr_offset_from_target;
-    shift.z = 0.0f;
-
-    // record we have consumed this reading (perhaps there is a cleaner way to do this using timestamps)
-    _have_estimate = false;
-
-    // return adjusted target
-    return shift;
 }
 
 // get target 3D velocity towards target
-Vector3f AC_PrecLand::get_desired_velocity(float land_speed_cms)
+const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
 {
     // return zero velocity if not enabled
     if (_backend == NULL) {
-        return Vector3f(0.0f,0.0f,0.0f);
+        _desired_vel.zero();
+        return _desired_vel;
     }
 
     // update desired velocity if new estimate received
@@ -147,17 +127,22 @@ Vector3f AC_PrecLand::get_desired_velocity(float land_speed_cms)
 
         // record we have consumed this reading
         _have_estimate = false;
+    } else {
+        // decay velocity if last sensor update more than 1 second ago
+        uint32_t dt = hal.scheduler->millis() - _capture_time_ms;
+        if (dt > PRECLAND_SENSOR_TIMEOUT_MS) {
+            _desired_vel.zero();
+        }
     }
 
     // return desired velocity
     return _desired_vel;
 }
 
-// calc_angles_and_pos - converts sensor's body-frame angles to earth-frame angles and position estimate
+// calc_angles - converts sensor's body-frame angles to earth-frame angles and desired velocity
 //  raw sensor angles stored in _angle_to_target (might be in earth frame, or maybe body frame)
 //  earth-frame angles stored in _ef_angle_to_target
-//  position estimate is stored in _target_pos
-void AC_PrecLand::calc_angles_and_pos(float alt_above_terrain_cm)
+void AC_PrecLand::calc_angles()
 {
     // exit immediately if not enabled
     if (_backend == NULL) {
@@ -166,7 +151,7 @@ void AC_PrecLand::calc_angles_and_pos(float alt_above_terrain_cm)
     }
 
     // get angles to target from backend
-    if (!_backend->get_angle_to_target(_angle_to_target.x, _angle_to_target.y)) {
+    if (!_backend->get_angle_to_target(_angle_to_target.x, _angle_to_target.y, _capture_time_ms)) {
         _have_estimate = false;
         return;
     }
@@ -187,14 +172,6 @@ void AC_PrecLand::calc_angles_and_pos(float alt_above_terrain_cm)
     // rotate to earth-frame angles
     _ef_angle_to_target.x = y_rad*_ahrs.cos_yaw() - x_rad*_ahrs.sin_yaw();
     _ef_angle_to_target.y = y_rad*_ahrs.sin_yaw() + x_rad*_ahrs.cos_yaw();
-
-    // get current altitude (constrained to no lower than 50cm)
-    float alt = max(alt_above_terrain_cm, 50.0f);
-
-    // convert earth-frame angles to earth-frame position offset
-    _target_pos_offset.x = alt*tanf(_ef_angle_to_target.x);
-    _target_pos_offset.y = alt*tanf(_ef_angle_to_target.y);
-    _target_pos_offset.z = 0;  // not used
 
     _have_estimate = true;
 }
