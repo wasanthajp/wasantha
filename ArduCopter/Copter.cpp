@@ -124,7 +124,7 @@ Copter::Copter(void) :
     terrain(ahrs, mission, rally),
 #endif
 #if PRECISION_LANDING == ENABLED
-    precland(ahrs, inertial_nav, g.pi_precland, MAIN_LOOP_SECONDS),
+    precland(ahrs, inertial_nav, g.pi_precland),
 #endif
     in_mavlink_delay(false),
     gcs_out_of_time(false),
