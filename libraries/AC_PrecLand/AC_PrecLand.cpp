@@ -86,6 +86,7 @@ void AC_PrecLand::init()
     // init backend
     if (_backend != NULL) {
         _backend->init();
+        _pi_precland_xy.set_dt(_backend->get_delta_time());
     }
 }
 
