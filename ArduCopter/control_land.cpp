@@ -246,6 +246,10 @@ bool Copter::land_precision_init()
 
     // initialise velocity controller
     pos_control.init_vel_controller_xyz();
+
+    // initialise precland desired vel
+    precland.set_desired_velocity(inertial_nav.get_velocity());
+
     return true;
 #else
     land_state.use_precision = false;
@@ -282,21 +286,10 @@ void Copter::land_precision_run()
     }
 
     // set desired velocity
-    pos_control.set_desired_velocity(precland.get_desired_velocity(g.land_speed));
+    pos_control.set_desired_velocity(precland.calc_desired_velocity(g.land_speed));
 
-    // calculate dt
-    float dt = pos_control.time_since_last_xy_update();
-
-    // update at poscontrol update rate
-    if (dt >= pos_control.get_dt_xy()) {
-        // sanity check dt
-        if (dt >= 0.2f) {
-            dt = 0.0f;
-        }
-
-        // call velocity controller which includes z axis controller
-        pos_control.update_vel_controller_xyz(ekfNavVelGainScaler);
-    }
+    // call velocity controller which includes z axis controller
+    pos_control.update_vel_controller_xyz(ekfNavVelGainScaler);
 
     // call attitude controller
     if (auto_yaw_mode == AUTO_YAW_HOLD) {
