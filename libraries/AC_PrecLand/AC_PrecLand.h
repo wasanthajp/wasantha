@@ -103,8 +103,10 @@ private:
     Vector2f                    _ef_angle_to_target;// last earth-frame angle to target
     uint32_t                    _capture_time_ms;   // system time in milliseconds of last sensor update
 
+    bool                        _have_estimate : 1; // true if we have a recent estimated position offset
+    bool                        _limit_xy      : 1; // true if controller has hit horizontal speed limit
+
     // output from controller
-    bool                        _have_estimate;     // true if we have a recent estimated position offset
     Vector3f                    _desired_vel;       // desired velocity towards target in earth-frame
 
     // backend state

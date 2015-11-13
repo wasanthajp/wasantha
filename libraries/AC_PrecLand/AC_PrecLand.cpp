@@ -43,6 +43,7 @@ AC_PrecLand::AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav,
     _dt(dt),
     _capture_time_ms(0),
     _have_estimate(false),
+    _limit_xy(false),
     _backend(NULL)
 {
     // set parameters to defaults
@@ -120,29 +121,49 @@ const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
         return _desired_vel;
     }
 
-    // update desired velocity if new estimate received
-    if (_have_estimate) {
+    // ensure land_speed_cms is positive
+    land_speed_cms = fabsf(land_speed_cms);
+
+    // set velocity to simply land-speed if last sensor update more than 1 second ago
+    uint32_t dt = hal.scheduler->millis() - _capture_time_ms;
+    if (dt > PRECLAND_SENSOR_TIMEOUT_MS) {
+        _desired_vel.x = 0.0f;
+        _desired_vel.y = 0.0f;
+        _desired_vel.z = -land_speed_cms;
+        _pi_precland_xy.reset_I();
+        _pi_precland_xy.reset_filter();
+
+    } else if (_have_estimate) {
+        // update desired velocity if new estimate received
         // convert earth_frame-angle to desired velocity
         _pi_precland_xy.set_input(_ef_angle_to_target);
-        Vector2f desv = _pi_precland_xy.get_pi();
-        float desv_len = desv.length();
-        if (!is_zero(desv_len) && (desv_len > _speed_xy)) {
-            desv.x = desv.x / desv_len * _speed_xy;
-            desv.x = desv.y / desv_len * _speed_xy;
-        }
-        _desired_vel.x = desv.x;
-        _desired_vel.y = desv.y;
-        _desired_vel.z = land_speed_cms;
 
-        // record we have consumed this reading
-        _have_estimate = false;
-    } else {
-        // decay velocity if last sensor update more than 1 second ago
-        uint32_t dt = hal.scheduler->millis() - _capture_time_ms;
-        if (dt > PRECLAND_SENSOR_TIMEOUT_MS) {
-            _desired_vel.zero();
+        // call pi controller
+        Vector2f desv = _pi_precland_xy.get_p();
+        if (_limit_xy) {
+            // avoid i-term buildup
+            desv += _pi_precland_xy.get_i_shrink();
+        } else {
+            desv += _pi_precland_xy.get_i();
+        }
+        _desired_vel.x = desv.x * 100.0f;   // meters/s to cm/s
+        _desired_vel.y = desv.y * 100.0f;   // meters/s to cm/s
+        _desired_vel.z = -land_speed_cms;
+
+        // shrink to land-speed
+        float desv_horiz_len = pythagorous2(_desired_vel.x, _desired_vel.y);
+        if (!is_zero(desv_horiz_len) && (desv_horiz_len > _speed_xy)) {
+            _desired_vel.x = _desired_vel.x / desv_horiz_len * _speed_xy;
+            _desired_vel.y = _desired_vel.y / desv_horiz_len * _speed_xy;
+            _desired_vel.z = _desired_vel.z / desv_horiz_len * _speed_xy;
+            _limit_xy = true;
+        } else {
+            _limit_xy = false;
         }
     }
+
+    // record we have consumed any reading
+    _have_estimate = false;
 
     // return desired velocity
     return _desired_vel;
