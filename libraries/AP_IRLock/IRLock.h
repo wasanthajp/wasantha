@@ -41,7 +41,7 @@ public:
     // true if irlock sensor is online and healthy
     bool healthy() const { return _flags.healthy; }
 
-    // timestamp of most recent data read from the sensor
+    // timestamp of most recent data read from the sensor (in milliseconds)
     uint32_t last_update() const { return _last_update; }
 
     // returns the number of blocks in the current frame
