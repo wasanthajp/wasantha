@@ -44,7 +44,7 @@ public:
     };
 
     // Constructor
-    AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav, AC_PI_2D& pi_precland_xy, float dt);
+    AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav, AC_PI_2D& pi_precland_xy);
 
     // init - perform any required initialisation of landing controllers
     void init();
@@ -94,9 +94,6 @@ private:
     AP_Int8                     _enabled;           // enabled/disabled and behaviour
     AP_Int8                     _type;              // precision landing controller type
     AP_Float                    _speed_xy;          // maximum horizontal speed in cm/s
-
-    // internal variables
-    float                       _dt;                // time difference (in seconds) between calls from the main program
 
     // output from sensor (stored for logging)
     Vector2f                    _angle_to_target;   // last raw sensor angle to target
