@@ -56,7 +56,7 @@ public:
     void update(float alt_above_terrain_cm);
 
     // initialise desired velocity
-    void set_desired_velocity(const Vector3f &des_vel) { _desired_vel = des_vel; }
+    void set_desired_velocity(const Vector3f &des_vel);
 
     // calculated desired 3D velocity towards target
     const Vector3f& calc_desired_velocity(float land_speed_cms);

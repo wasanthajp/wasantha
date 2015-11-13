@@ -102,6 +102,13 @@ void AC_PrecLand::update(float alt_above_terrain_cm)
     }
 }
 
+// initialise desired velocity
+void AC_PrecLand::set_desired_velocity(const Vector3f &des_vel)
+{
+    _desired_vel = des_vel;
+    _pi_precland_xy.reset_filter();
+}
+
 // get target 3D velocity towards target
 const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
 {
