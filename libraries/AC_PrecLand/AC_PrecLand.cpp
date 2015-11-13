@@ -108,6 +108,7 @@ void AC_PrecLand::set_desired_velocity(const Vector3f &des_vel)
 {
     _desired_vel = des_vel;
     _pi_precland_xy.reset_filter();
+    _pi_precland_xy.set_integrator(Vector2f(des_vel.x,des_vel.y));
 }
 
 // get target 3D velocity towards target
