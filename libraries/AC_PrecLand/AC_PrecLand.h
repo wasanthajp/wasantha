@@ -11,7 +11,7 @@
 #define AC_PRECLAND_SPEED_XY_DEFAULT            100.0f  // maximum horizontal speed
 #define PRECLAND_P                              2.0f    // velocity controller P gain default
 #define PRECLAND_I                              1.0f    // velocity controller I gain default
-#define PRECLAND_IMAX                         500.0f    // velocity controller IMAX default
+#define PRECLAND_IMAX                           1.0f    // velocity controller IMAX default
 #define PRECLAND_UPDATE_TIME                    0.02f   // precland runs at 50hz
 #define PRECLAND_SENSOR_TIMEOUT_MS              1000    // velocity slows to zero if sensor updates not received for a second
 
