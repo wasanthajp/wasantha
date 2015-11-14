@@ -276,7 +276,7 @@ void Copter::land_precision_run()
     }
 
     // process pilot's yaw input
-    float target_yaw_rate = 0;
+    float target_yaw_rate = 0.0f;
     if (!failsafe.radio) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->control_in);
@@ -302,13 +302,8 @@ void Copter::land_precision_run()
     }
 
     // call attitude controller
-    if (auto_yaw_mode == AUTO_YAW_HOLD) {
-        // roll & pitch from waypoint controller, yaw rate from pilot
-        attitude_control.angle_ef_roll_pitch_rate_ef_yaw(pos_control.get_roll(), pos_control.get_pitch(), target_yaw_rate);
-    }else{
-        // roll, pitch from waypoint controller, yaw heading from auto_heading()
-        attitude_control.angle_ef_roll_pitch_yaw(pos_control.get_roll(), pos_control.get_pitch(), get_auto_heading(), true);
-    }
+    // roll & pitch from waypoint controller, yaw rate from pilot
+    attitude_control.angle_ef_roll_pitch_rate_ef_yaw(pos_control.get_roll(), pos_control.get_pitch(), target_yaw_rate);
 
     // any pilot roll input input switches out of precision landing to gps or pilot controlled land on next iteration
     if (!failsafe.radio && g.land_repositioning) {
