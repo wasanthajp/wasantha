@@ -131,6 +131,7 @@ const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
         _desired_vel.z = -land_speed_cms;
         _pi_precland_xy.reset_I();
         _pi_precland_xy.reset_filter();
+        _limit_xy = false;
 
     } else if (_have_estimate) {
         // update desired velocity if new estimate received
@@ -149,7 +150,7 @@ const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
         _desired_vel.y = desv.y * 100.0f;   // meters/s to cm/s
         _desired_vel.z = -land_speed_cms;
 
-        // shrink to land-speed
+        // shrink to speed_xy
         float desv_horiz_len = pythagorous2(_desired_vel.x, _desired_vel.y);
         if (!is_zero(desv_horiz_len) && (desv_horiz_len > _speed_xy)) {
             _desired_vel.x = _desired_vel.x / desv_horiz_len * _speed_xy;
