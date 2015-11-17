@@ -289,17 +289,8 @@ void Copter::land_precision_run()
     Vector3f desvel = precland.calc_desired_velocity(g.land_speed);
     pos_control.set_desired_velocity(desvel);
 
-    // update at poscontrol update rate
-    float dt = pos_control.time_since_last_xy_update();
-    if (dt >= pos_control.get_dt_xy()) {
-        // sanity check dt
-        if (dt >= 0.2f) {
-            dt = 0.0f;
-        }
-
-        // call velocity controller which includes z axis controller
-        pos_control.update_vel_controller_xyz(ekfNavVelGainScaler);
-    }
+    // call velocity controller which includes z axis controller
+    pos_control.update_vel_controller_xyz(ekfNavVelGainScaler);
 
     // call attitude controller
     // roll & pitch from waypoint controller, yaw rate from pilot
