@@ -14,6 +14,7 @@
 #define PRECLAND_IMAX                           1.0f    // velocity controller IMAX default
 #define PRECLAND_UPDATE_TIME                    0.02f   // precland runs at 50hz
 #define PRECLAND_SENSOR_TIMEOUT_MS              1000    // velocity slows to zero if sensor updates not received for a second
+#define PRECLAND_DESVEL_FILTER_HZ               5.0f    // filter frequency of desired velocity filter
 
 // declare backend classes
 class AC_PrecLand_Backend;
@@ -70,7 +71,7 @@ public:
     // accessors for logging
     bool enabled() const { return _enabled; }
     const Vector2f& last_bf_angle_to_target() const { return _angle_to_target; }
-    const Vector2f& last_ef_angle_to_target() const { return _ef_angle_to_target; }
+    const Vector3f& last_vec_to_target_ef() const { return _vec_to_target_ef; }
 
     // parameter var table
     static const struct AP_Param::GroupInfo var_info[];
@@ -97,7 +98,7 @@ private:
 
     // output from sensor (stored for logging)
     Vector2f                    _angle_to_target;   // last raw sensor angle to target
-    Vector2f                    _ef_angle_to_target;// last earth-frame angle to target
+    Vector3f                    _vec_to_target_ef;  // last earth-frame angle to target
     uint32_t                    _capture_time_ms;   // system time in milliseconds of last sensor update
 
     bool                        _have_estimate : 1; // true if we have a recent estimated position offset
@@ -105,6 +106,7 @@ private:
 
     // output from controller
     Vector3f                    _desired_vel;       // desired velocity towards target in earth-frame
+    LowPassFilterVector3f       _desired_vel_filter;    // desired velocity
 
     // backend state
     struct precland_state {

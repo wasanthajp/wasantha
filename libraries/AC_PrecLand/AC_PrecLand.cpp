@@ -43,6 +43,7 @@ AC_PrecLand::AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav,
     _capture_time_ms(0),
     _have_estimate(false),
     _limit_xy(false),
+    _desired_vel_filter(PRECLAND_DESVEL_FILTER_HZ),
     _backend(NULL)
 {
     // set parameters to defaults
@@ -107,6 +108,7 @@ void AC_PrecLand::update(float alt_above_terrain_cm)
 void AC_PrecLand::set_desired_velocity(const Vector3f &des_vel)
 {
     _desired_vel = des_vel;
+    _desired_vel_filter.reset(Vector3f(0.0f,0.0f,0.0f));
     _pi_precland_xy.reset_filter();
     _pi_precland_xy.set_integrator(Vector2f(des_vel.x/100.0f,des_vel.y/100.0f));
 }
@@ -134,39 +136,22 @@ const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
         _limit_xy = false;
 
     } else if (_have_estimate) {
-        // update desired velocity if new estimate received
-        // convert earth_frame-angle to desired velocity
-        _pi_precland_xy.set_input(_ef_angle_to_target);
 
-        // call pi controller
-        Vector2f desv = _pi_precland_xy.get_p();
-        if (_limit_xy) {
-            // avoid i-term buildup
-            desv += _pi_precland_xy.get_i_shrink();
-        } else {
-            desv += _pi_precland_xy.get_i();
-        }
-        _desired_vel.x = desv.x * 100.0f;   // meters/s to cm/s
-        _desired_vel.y = desv.y * 100.0f;   // meters/s to cm/s
-        _desired_vel.z = -land_speed_cms;
-
-        // shrink to speed_xy
-        float desv_horiz_len = pythagorous2(_desired_vel.x, _desired_vel.y);
-        if (!is_zero(desv_horiz_len) && (desv_horiz_len > _speed_xy)) {
-            _desired_vel.x = _desired_vel.x / desv_horiz_len * _speed_xy;
-            _desired_vel.y = _desired_vel.y / desv_horiz_len * _speed_xy;
-            _desired_vel.z = _desired_vel.z / desv_horiz_len * _speed_xy;
-            _limit_xy = true;
-        } else {
-            _limit_xy = false;
-        }
+        _desired_vel.x = _vec_to_target_ef.x * _pi_precland_xy.kP();
+        _desired_vel.y = _vec_to_target_ef.y * _pi_precland_xy.kP();
+        _desired_vel.z = -1.0f;
+        //_desired_vel.normalize();
+        _desired_vel *= land_speed_cms;
     }
 
     // record we have consumed any reading
     _have_estimate = false;
 
+    // filter output
+    _desired_vel_filter.apply(_desired_vel, 0.0025f);
+
     // return desired velocity
-    return _desired_vel;
+    return _desired_vel_filter.get();
 }
 
 // calc_angles - converts sensor's body-frame angles to earth-frame angles and desired velocity
@@ -186,22 +171,38 @@ void AC_PrecLand::calc_angles()
         return;
     }
 
-    float x_rad;
-    float y_rad;
+    if(_backend->get_frame_of_reference() == MAV_FRAME_BODY_NED) {
+        // angles provided in body frame
+        Vector3f vec_to_target_bf(sinf(-_angle_to_target.y), sinf(_angle_to_target.x), 1.0f);
+        if (!is_zero(_ahrs.cos_pitch())) {
+            // convert earth frame vector angle to body frame
+            _vec_to_target_ef.x = (_ahrs.cos_pitch() * _ahrs.cos_yaw()) * vec_to_target_bf.x +
+                (_ahrs.sin_roll() * _ahrs.sin_pitch() * _ahrs.cos_yaw() - _ahrs.cos_roll() * _ahrs.sin_yaw()) * vec_to_target_bf.y +
+                (_ahrs.cos_roll() * _ahrs.sin_pitch() * _ahrs.cos_yaw() + _ahrs.sin_roll() * _ahrs.sin_yaw()) * vec_to_target_bf.z;
 
-    if(_backend->get_frame_of_reference() == MAV_FRAME_LOCAL_NED){
-        //don't subtract vehicle lean angles
-        x_rad = _angle_to_target.x;
-        y_rad = -_angle_to_target.y;
-    }else{ // assume MAV_FRAME_BODY_NED (i.e. a hard-mounted sensor)
-        // subtract vehicle lean angles
-        x_rad = _angle_to_target.x - _ahrs.roll;
-        y_rad = -_angle_to_target.y + _ahrs.pitch;
+            _vec_to_target_ef.y = (_ahrs.cos_pitch() * _ahrs.sin_yaw()) * vec_to_target_bf.x +
+                (_ahrs.sin_roll() * _ahrs.sin_pitch() * _ahrs.sin_yaw() + _ahrs.cos_roll() * _ahrs.cos_yaw()) * vec_to_target_bf.y +
+                (_ahrs.cos_roll() * _ahrs.sin_pitch() * _ahrs.sin_yaw() - _ahrs.sin_roll() * _ahrs.cos_yaw()) * vec_to_target_bf.z;
+
+            _vec_to_target_ef.z = -_ahrs.sin_pitch() * vec_to_target_bf.x +
+                _ahrs.sin_roll() * _ahrs.cos_pitch() * vec_to_target_bf.y +
+                _ahrs.cos_roll() * _ahrs.cos_pitch() * vec_to_target_bf.z;
+
+            _vec_to_target_ef.normalize();
+        } else {
+            _vec_to_target_ef.zero();
+        }
+    } else {
+        // angles already in earth-frame
+        _vec_to_target_ef(sinf(-_angle_to_target.y), sinf(_angle_to_target.x), 1.0f);
+        _vec_to_target_ef.normalize();
+
+        // rotate to point north
+        float x = _vec_to_target_ef.x;
+        float y = _vec_to_target_ef.y;
+        _vec_to_target_ef.x = x*_ahrs.cos_yaw() - y*_ahrs.sin_yaw();
+        _vec_to_target_ef.y = x*_ahrs.sin_yaw() + y*_ahrs.cos_yaw();
     }
-
-    // rotate to earth-frame angles
-    _ef_angle_to_target.x = y_rad*_ahrs.cos_yaw() - x_rad*_ahrs.sin_yaw();
-    _ef_angle_to_target.y = y_rad*_ahrs.sin_yaw() + x_rad*_ahrs.cos_yaw();
 
     _have_estimate = true;
 }
