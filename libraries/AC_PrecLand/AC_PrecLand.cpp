@@ -139,8 +139,10 @@ const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
 
         _desired_vel.x = _vec_to_target_ef.x * _pi_precland_xy.kP();
         _desired_vel.y = _vec_to_target_ef.y * _pi_precland_xy.kP();
-        _desired_vel.z = -1.0f;
+        //_desired_vel.z = -1.0f;
         //_desired_vel.normalize();
+        //_desired_vel.z = min(0.0f, (-1.0f+(pythagorous2(_vec_to_target_ef.x, _vec_to_target_ef.y)*PRECLAND_CAUTION_GAIN)));
+        _desired_vel.z = min(0.0f, (-1.0f+(pythagorous2(_vec_to_target_ef.x, _vec_to_target_ef.y)*_pi_precland_xy.kI())));
         _desired_vel *= land_speed_cms;
     }
 

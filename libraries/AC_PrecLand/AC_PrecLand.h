@@ -15,6 +15,7 @@
 #define PRECLAND_UPDATE_TIME                    0.02f   // precland runs at 50hz
 #define PRECLAND_SENSOR_TIMEOUT_MS              1000    // velocity slows to zero if sensor updates not received for a second
 #define PRECLAND_DESVEL_FILTER_HZ               5.0f    // filter frequency of desired velocity filter
+#define PRECLAND_CAUTION_GAIN                   2.0f    // gain controlling rate of descent vs angle to target.  0 = always descend at land speed, higher number cause descent to slow more depending upon angle to target
 
 // declare backend classes
 class AC_PrecLand_Backend;
