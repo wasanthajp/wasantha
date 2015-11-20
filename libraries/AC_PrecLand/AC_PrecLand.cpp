@@ -44,6 +44,12 @@ AC_PrecLand::AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav,
     _have_estimate(false),
     _limit_xy(false),
     _desired_vel_filter(PRECLAND_DESVEL_FILTER_HZ),
+    _buff_ahrs_sin_roll(),
+    _buff_ahrs_cos_roll(),
+    _buff_ahrs_sin_pitch(),
+    _buff_ahrs_cos_pitch(),
+    _buff_ahrs_sin_yaw(),
+    _buff_ahrs_cos_yaw(),
     _backend(NULL)
 {
     // set parameters to defaults
@@ -51,6 +57,14 @@ AC_PrecLand::AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav,
 
     // other initialisation
     _backend_state.healthy = false;
+
+    // clear buffers
+    _buff_ahrs_sin_roll.clear();
+    _buff_ahrs_cos_roll.clear();
+    _buff_ahrs_sin_pitch.clear();
+    _buff_ahrs_cos_pitch.clear();
+    _buff_ahrs_sin_yaw.clear();
+    _buff_ahrs_cos_yaw.clear();
 }
 
 
@@ -101,6 +115,14 @@ void AC_PrecLand::update(float alt_above_terrain_cm)
 
         // calculate angles to target
         calc_angles();
+
+        // update attitude buffers
+        _buff_ahrs_sin_roll.push_back(_ahrs.sin_roll());
+        _buff_ahrs_cos_roll.push_back(_ahrs.cos_roll());
+        _buff_ahrs_sin_pitch.push_back(_ahrs.sin_pitch());
+        _buff_ahrs_cos_pitch.push_back(_ahrs.cos_pitch());
+        _buff_ahrs_sin_yaw.push_back(_ahrs.sin_yaw());
+        _buff_ahrs_cos_yaw.push_back(_ahrs.cos_yaw());
     }
 }
 
@@ -178,6 +200,24 @@ void AC_PrecLand::calc_angles()
         Vector3f vec_to_target_bf(sinf(-_angle_to_target.y), sinf(_angle_to_target.x), 1.0f);
         if (!is_zero(_ahrs.cos_pitch())) {
             // convert earth frame vector angle to body frame
+            float sin_roll = _buff_ahrs_sin_roll.peek(0);
+            float cos_roll = _buff_ahrs_cos_roll.peek(0);
+            float sin_pitch = _buff_ahrs_sin_pitch.peek(0);
+            float cos_pitch = _buff_ahrs_cos_pitch.peek(0);
+            float sin_yaw = _buff_ahrs_sin_yaw.peek(0);
+            float cos_yaw = _buff_ahrs_cos_yaw.peek(0);
+            _vec_to_target_ef.x = (cos_pitch * cos_yaw) * vec_to_target_bf.x +
+                (sin_roll * sin_pitch * cos_yaw - cos_roll * sin_yaw) * vec_to_target_bf.y +
+                (cos_roll * sin_pitch * cos_yaw + sin_roll * sin_yaw) * vec_to_target_bf.z;
+
+            _vec_to_target_ef.y = (cos_pitch * sin_yaw) * vec_to_target_bf.x +
+                (sin_roll * sin_pitch * sin_yaw + cos_roll * cos_yaw) * vec_to_target_bf.y +
+                (cos_roll * sin_pitch * sin_yaw - sin_roll * cos_yaw) * vec_to_target_bf.z;
+
+            _vec_to_target_ef.z = -sin_pitch * vec_to_target_bf.x +
+                sin_roll * cos_pitch * vec_to_target_bf.y +
+                cos_roll * cos_pitch * vec_to_target_bf.z;
+            /*
             _vec_to_target_ef.x = (_ahrs.cos_pitch() * _ahrs.cos_yaw()) * vec_to_target_bf.x +
                 (_ahrs.sin_roll() * _ahrs.sin_pitch() * _ahrs.cos_yaw() - _ahrs.cos_roll() * _ahrs.sin_yaw()) * vec_to_target_bf.y +
                 (_ahrs.cos_roll() * _ahrs.sin_pitch() * _ahrs.cos_yaw() + _ahrs.sin_roll() * _ahrs.sin_yaw()) * vec_to_target_bf.z;
@@ -189,6 +229,7 @@ void AC_PrecLand::calc_angles()
             _vec_to_target_ef.z = -_ahrs.sin_pitch() * vec_to_target_bf.x +
                 _ahrs.sin_roll() * _ahrs.cos_pitch() * vec_to_target_bf.y +
                 _ahrs.cos_roll() * _ahrs.cos_pitch() * vec_to_target_bf.z;
+            */
 
             _vec_to_target_ef.normalize();
         } else {

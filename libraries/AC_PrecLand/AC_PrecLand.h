@@ -6,6 +6,7 @@
 #include <AP_Math/AP_Math.h>
 #include <AC_PID/AC_PI_2D.h>
 #include <AP_InertialNav/AP_InertialNav.h>
+#include <AP_Buffer/AP_Buffer.h>
 
 // definitions
 #define AC_PRECLAND_SPEED_XY_DEFAULT            100.0f  // maximum horizontal speed
@@ -108,6 +109,14 @@ private:
     // output from controller
     Vector3f                    _desired_vel;       // desired velocity towards target in earth-frame
     LowPassFilterVector3f       _desired_vel_filter;    // desired velocity
+
+    // attitude buffers
+    AP_BufferFloat_Size3        _buff_ahrs_sin_roll;
+    AP_BufferFloat_Size3        _buff_ahrs_cos_roll;
+    AP_BufferFloat_Size3        _buff_ahrs_sin_pitch;
+    AP_BufferFloat_Size3        _buff_ahrs_cos_pitch;
+    AP_BufferFloat_Size3        _buff_ahrs_sin_yaw;
+    AP_BufferFloat_Size3        _buff_ahrs_cos_yaw;
 
     // backend state
     struct precland_state {
