@@ -116,9 +116,6 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(three_hz_loop,        133,     75),
     SCHED_TASK(compass_accumulate,     4,    100),
     SCHED_TASK(barometer_accumulate,   8,     90),
-#if PRECISION_LANDING == ENABLED
-    SCHED_TASK(update_precland,        8,     50),
-#endif
 #if FRAME_CONFIG == HELI_FRAME
     SCHED_TASK(check_dynamic_flight,   8,     75),
 #endif
@@ -275,6 +272,11 @@ void Copter::fast_loop()
 
     // check if ekf has reset target heading
     check_ekf_yaw_reset();
+
+#if PRECISION_LANDING == ENABLED
+    // run precision landing
+    update_precland();
+#endif
 
     // run the attitude controllers
     update_flight_mode();
