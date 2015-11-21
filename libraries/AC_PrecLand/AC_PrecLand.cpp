@@ -106,24 +106,30 @@ void AC_PrecLand::init()
 }
 
 // update - give chance to driver to get updates from sensor
-void AC_PrecLand::update(float alt_above_terrain_cm)
+bool AC_PrecLand::update(float alt_above_terrain_cm)
 {
+    bool updated = false;
+
     // run backend update
     if (_backend != NULL) {
         // read from sensor
-        _backend->update();
+        updated = _backend->update();
 
         // calculate angles to target
         calc_angles();
 
         // update attitude buffers
-        _buff_ahrs_sin_roll.push_back(_ahrs.sin_roll());
-        _buff_ahrs_cos_roll.push_back(_ahrs.cos_roll());
-        _buff_ahrs_sin_pitch.push_back(_ahrs.sin_pitch());
-        _buff_ahrs_cos_pitch.push_back(_ahrs.cos_pitch());
-        _buff_ahrs_sin_yaw.push_back(_ahrs.sin_yaw());
-        _buff_ahrs_cos_yaw.push_back(_ahrs.cos_yaw());
+        if (updated) {
+            _buff_ahrs_sin_roll.push_back(_ahrs.sin_roll());
+            _buff_ahrs_cos_roll.push_back(_ahrs.cos_roll());
+            _buff_ahrs_sin_pitch.push_back(_ahrs.sin_pitch());
+            _buff_ahrs_cos_pitch.push_back(_ahrs.cos_pitch());
+            _buff_ahrs_sin_yaw.push_back(_ahrs.sin_yaw());
+            _buff_ahrs_cos_yaw.push_back(_ahrs.cos_yaw());
+        }
     }
+
+    return updated;
 }
 
 // initialise desired velocity

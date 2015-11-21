@@ -56,7 +56,8 @@ public:
     bool healthy() { return _backend_state.healthy; }
 
     // update - give chance to driver to get updates from sensor
-    void update(float alt_above_terrain_cm);
+    //  returns true if new values received from landing sensor
+    bool update(float alt_above_terrain_cm);
 
     // initialise desired velocity
     void set_desired_velocity(const Vector3f &des_vel);
