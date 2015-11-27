@@ -36,8 +36,9 @@ public:
     //  returns true if angles are available, false if not (i.e. no target)
     //  x_angle_rad : roll direction, positive = target is to right (looking down)
     //  y_angle_rad : pitch direction, positive = target is forward (looking down)
+    //  size_rad : target's size in radians
     //  capture_time_ms : system time in milliseconds that angles were captured
-    virtual bool get_angle_to_target(float &x_angle_rad, float &y_angle_rad, uint32_t &capture_time_ms) = 0;
+    virtual bool get_angle_to_target(float &x_angle_rad, float &y_angle_rad, float &size_rad, uint32_t &capture_time_ms) = 0;
 
     // handle_msg - parses a mavlink message from the companion computer
     virtual void handle_msg(mavlink_message_t* msg) = 0;
