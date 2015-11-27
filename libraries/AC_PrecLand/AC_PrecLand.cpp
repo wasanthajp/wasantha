@@ -28,6 +28,14 @@ const AP_Param::GroupInfo AC_PrecLand::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("SPEED",   2, AC_PrecLand, _speed_xy, AC_PRECLAND_SPEED_XY_DEFAULT),
 
+    // @Param: SIZE_RAD
+    // @DisplayName: Precision Landing target's apparent size at 1m distance in radians
+    // @Description: Precision Landing target's apparent size at 1m distance in radians
+    // @Range: 0.01 1.5
+    // @Values: 10cm:0.1, 15cm:0.15, 20cm:0.2
+    // @User: Advanced
+    AP_GROUPINFO("TARG_SIZE",   3, AC_PrecLand, _target_size_1m_rad, PRECLAND_TARGET_AT_1M_SIZE_RAD_DEFAULT),
+
     AP_GROUPEND
 };
 
@@ -40,6 +48,9 @@ AC_PrecLand::AC_PrecLand(const AP_AHRS& ahrs, const AP_InertialNav& inav,
     _ahrs(ahrs),
     _inav(inav),
     _pi_precland_xy(pi_precland_xy),
+    _size_rad(0.0f),
+    _size_rad_filter(PRECLAND_TARGET_SIZE_FILT_HZ),
+    _distance_est(0.0f),
     _capture_time_ms(0),
     _have_estimate(false),
     _limit_xy(false),
@@ -116,7 +127,7 @@ bool AC_PrecLand::update(float alt_above_terrain_cm)
         updated = _backend->update();
 
         // calculate angles to target
-        calc_angles();
+        calc_angles(alt_above_terrain_cm);
 
         // update attitude buffers
         if (updated) {
@@ -153,6 +164,9 @@ const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
     // ensure land_speed_cms is positive
     land_speed_cms = fabsf(land_speed_cms);
 
+    // increase gain with distance (i.e. gain is 0.1 at 1m, 1.0 at 10m)
+    float gain = constrain_float(_distance_est, PRECLAND_VELGAIN_DISTANCE_MIN, PRECLAND_VELGAIN_DISTANCE_MAX) / PRECLAND_VELGAIN_DISTANCE_MAX;
+
     // set velocity to simply land-speed if last sensor update more than 1 second ago
     uint32_t dt = hal.scheduler->millis() - _capture_time_ms;
     if (dt > PRECLAND_SENSOR_TIMEOUT_MS) {
@@ -162,11 +176,12 @@ const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
         _pi_precland_xy.reset_I();
         _pi_precland_xy.reset_filter();
         _limit_xy = false;
+        _size_rad_reset = true;
 
     } else if (_have_estimate) {
 
-        _desired_vel.x = _vec_to_target_ef.x * _pi_precland_xy.kP();
-        _desired_vel.y = _vec_to_target_ef.y * _pi_precland_xy.kP();
+        _desired_vel.x = _vec_to_target_ef.x * _pi_precland_xy.kP() * gain;
+        _desired_vel.y = _vec_to_target_ef.y * _pi_precland_xy.kP() * gain;
         //_desired_vel.z = -1.0f;
         //_desired_vel.normalize();
         //_desired_vel.z = min(0.0f, (-1.0f+(pythagorous2(_vec_to_target_ef.x, _vec_to_target_ef.y)*PRECLAND_CAUTION_GAIN)));
@@ -187,7 +202,7 @@ const Vector3f& AC_PrecLand::calc_desired_velocity(float land_speed_cms)
 // calc_angles - converts sensor's body-frame angles to earth-frame angles and desired velocity
 //  raw sensor angles stored in _angle_to_target (might be in earth frame, or maybe body frame)
 //  earth-frame angles stored in _ef_angle_to_target
-void AC_PrecLand::calc_angles()
+void AC_PrecLand::calc_angles(float alt_above_terrain_cm)
 {
     // exit immediately if not enabled
     if (_backend == NULL) {
@@ -196,7 +211,7 @@ void AC_PrecLand::calc_angles()
     }
 
     // get angles to target from backend
-    if (!_backend->get_angle_to_target(_angle_to_target.x, _angle_to_target.y, _capture_time_ms)) {
+    if (!_backend->get_angle_to_target(_angle_to_target.x, _angle_to_target.y, _size_rad, _capture_time_ms)) {
         _have_estimate = false;
         return;
     }
@@ -251,6 +266,27 @@ void AC_PrecLand::calc_angles()
         float y = _vec_to_target_ef.y;
         _vec_to_target_ef.x = x*_ahrs.cos_yaw() - y*_ahrs.sin_yaw();
         _vec_to_target_ef.y = x*_ahrs.sin_yaw() + y*_ahrs.cos_yaw();
+    }
+
+    // filter the size
+    if (_size_rad_reset) {
+        _size_rad_filter.reset(_size_rad);
+    } else {
+        _size_rad_filter.apply(_size_rad,_backend->get_delta_time());
+    }
+
+    // calculate distance estimate
+    if (is_zero(_target_size_1m_rad)) {
+        // if target size is not specified use altitude above terrain
+        _distance_est = alt_above_terrain_cm / 100.0f;
+    } else {
+        // if target is very small, default distance to very far (100m)
+        float size = _size_rad_filter.get();
+        if (size <= 0.0f) {
+            _distance_est = PRECLAND_DISTANCE_EST_VERY_FAR;
+        } else {
+            _distance_est = max((_target_size_1m_rad / size),0.0f);
+        }
     }
 
     _have_estimate = true;
