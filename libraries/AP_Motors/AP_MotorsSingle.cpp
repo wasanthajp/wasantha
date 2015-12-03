@@ -171,7 +171,7 @@ void AP_MotorsSingle::output_armed_not_stabilizing()
     _servo4.calc_pwm();
 
     if (throttle_radio_output >= out_min) {
-        throttle_radio_output = apply_thrust_curve_and_volt_scaling(throttle_radio_output, out_min, _throttle_radio_max);
+        throttle_radio_output = apply_thrust_curve_and_volt_scaling_pwm(throttle_radio_output, out_min, _throttle_radio_max);
     }
 
     hal.rcout->cork();
@@ -211,7 +211,7 @@ void AP_MotorsSingle::output_armed_stabilizing()
     throttle_radio_output = calc_throttle_radio_output();
 
     // adjust for thrust curve and voltage scaling
-    throttle_radio_output = apply_thrust_curve_and_volt_scaling(throttle_radio_output, out_min, _throttle_radio_max);
+    throttle_radio_output = apply_thrust_curve_and_volt_scaling_pwm(throttle_radio_output, out_min, _throttle_radio_max);
 
     // ensure motor doesn't drop below a minimum value and stop
     throttle_radio_output = MAX(throttle_radio_output, out_min);
