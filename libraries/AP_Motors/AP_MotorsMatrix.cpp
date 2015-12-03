@@ -155,7 +155,7 @@ void AP_MotorsMatrix::output_armed_not_stabilizing()
         // apply thrust curve and voltage scaling
         for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
             if (motor_enabled[i]) {
-                motor_out[i] = apply_thrust_curve_and_volt_scaling(motor_out[i], out_min_pwm, out_max_pwm);
+                motor_out[i] = apply_thrust_curve_and_volt_scaling_pwm(motor_out[i], out_min_pwm, out_max_pwm);
             }
         }
     }
