@@ -240,7 +240,7 @@ void AP_MotorsMulticopter::current_limit_max_throttle()
 }
 
 // apply_thrust_curve_and_volt_scaling - returns throttle curve adjusted pwm value (i.e. 1000 ~ 2000)
-int16_t AP_MotorsMulticopter::apply_thrust_curve_and_volt_scaling(int16_t pwm_out, int16_t pwm_min, int16_t pwm_max) const
+int16_t AP_MotorsMulticopter::apply_thrust_curve_and_volt_scaling_pwm(int16_t pwm_out, int16_t pwm_min, int16_t pwm_max) const
 {
     // convert to 0.0 to 1.0 ratio
     float throttle_ratio = ((float)(pwm_out-pwm_min))/((float)(pwm_max-pwm_min));
