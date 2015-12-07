@@ -29,18 +29,25 @@
 #include <AP_NavEKF/AP_NavEKF.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
 #include <AP_RangeFinder/AP_RangeFinder.h>
+#include <AP_Scheduler/AP_Scheduler.h>
 
 const AP_HAL::HAL& hal = AP_HAL::get_HAL();
+
+// declare functions
+void setup();
+void loop();
+void motor_order_test();
+void stability_test();
 
 RC_Channel rc1(0), rc2(1), rc3(2), rc4(3);
 
 // uncomment the row below depending upon what frame you are using
-//AP_MotorsTri	motors(rc1, rc2, rc3, rc4, 400);
-AP_MotorsQuad   motors(rc1, rc2, rc3, rc4, 400);
-//AP_MotorsHexa	motors(rc1, rc2, rc3, rc4, 400);
-//AP_MotorsY6	motors(rc1, rc2, rc3, rc4, 400);
-//AP_MotorsOcta	motors(rc1, rc2, rc3, rc4, 400);
-//AP_MotorsOctaQuad	motors(rc1, rc2, rc3, rc4, 400);
+//AP_MotorsTri	motors(400);
+AP_MotorsQuad   motors(400);
+//AP_MotorsHexa	motors(400);
+//AP_MotorsY6	motors(400);
+//AP_MotorsOcta	motors(400);
+//AP_MotorsOctaQuad	motors(400);
 //AP_MotorsHeli	motors(rc1, rc2, rc3, rc4, 400);
 
 
@@ -53,7 +60,7 @@ void setup()
     motors.set_update_rate(490);
     // motors.set_frame_orientation(AP_MOTORS_X_FRAME);
     motors.set_frame_orientation(AP_MOTORS_PLUS_FRAME);
-    motors.set_min_throttle(130);
+    motors.set_throttle_range(130,1100,1900);
     motors.set_hover_throttle(500);
     motors.Init();      // initialise motors
 
@@ -123,7 +130,7 @@ void motor_order_test()
 // stability_test
 void stability_test()
 {
-    int16_t value, roll_in, pitch_in, yaw_in, throttle_in, throttle_radio_in, avg_out;
+    int16_t roll_in, pitch_in, yaw_in, throttle_in, throttle_radio_in, avg_out;
 
     int16_t testing_array[][4] = {
         //  roll,   pitch,  yaw,    throttle
@@ -168,7 +175,7 @@ void stability_test()
     motors.armed(true);
 
     // run stability test
-    for (int16_t i=0; i < testing_array_rows; i++) {
+    for (uint16_t i=0; i < testing_array_rows; i++) {
         roll_in = testing_array[i][0];
         pitch_in = testing_array[i][1];
         yaw_in = testing_array[i][2];
