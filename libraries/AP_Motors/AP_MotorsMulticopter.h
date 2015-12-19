@@ -176,6 +176,7 @@ protected:
     int16_t             _min_throttle;              // the minimum throttle to be sent to the motors when they're on (prevents motors stalling while flying)
     int16_t             _max_throttle;              // the maximum throttle to be sent to the motors (sometimes limited by slow start)
     int16_t             _hover_out;                 // the estimated hover throttle as pct * 10 (i.e. 0 ~ 1000)
+    float               _thrust_rpyt_out[AP_MOTORS_MAX_NUM_MOTORS]; // combined roll, pitch, yaw and throttle outputs to motors in 0~1 range
 
     // battery voltage, current and air pressure compensation variables
     float               _batt_voltage_resting;  // battery voltage reading at minimum throttle

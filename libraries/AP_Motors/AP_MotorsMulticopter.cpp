@@ -121,6 +121,7 @@ AP_MotorsMulticopter::AP_MotorsMulticopter(uint16_t loop_rate, uint16_t speed_hz
 
     // disable all motors by default
     memset(motor_enabled, false, sizeof(motor_enabled));
+    memset(_thrust_rpyt_out, 0.0f, sizeof(_thrust_rpyt_out));
 
     // init flags
     _multicopter_flags.slow_start = false;

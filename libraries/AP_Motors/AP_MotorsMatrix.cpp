@@ -186,7 +186,6 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     float   rpy_high = 0.0f;            // highest motor value
     float   yaw_allowed;                // amount of yaw we can fit in
     float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
-    float   thrust_rpyt_out[AP_MOTORS_MAX_NUM_MOTORS];  // combined roll, pitch, yaw and throttle outputs to motors in 0~1 range
 
     // initialize limits flags
     limit.roll_pitch = false;
@@ -216,15 +215,15 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     // set rpy_low and rpy_high to the lowest and highest values of the motors
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
-            thrust_rpyt_out[i] = roll_thrust * _roll_factor[i] + pitch_thrust * _pitch_factor[i];
+            _thrust_rpyt_out[i] = roll_thrust * _roll_factor[i] + pitch_thrust * _pitch_factor[i];
 
             // record lowest roll pitch command
-            if (thrust_rpyt_out[i] < rpy_low) {
-                rpy_low = thrust_rpyt_out[i];
+            if (_thrust_rpyt_out[i] < rpy_low) {
+                rpy_low = _thrust_rpyt_out[i];
             }
             // record highest roll pich command
-            if (thrust_rpyt_out[i] > rpy_high) {
-                rpy_high = thrust_rpyt_out[i];
+            if (_thrust_rpyt_out[i] > rpy_high) {
+                rpy_high = _thrust_rpyt_out[i];
             }
         }
     }
@@ -267,15 +266,15 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     rpy_high = 0.0f;
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
-            thrust_rpyt_out[i] = thrust_rpyt_out[i] + yaw_thrust * _yaw_factor[i];
+            _thrust_rpyt_out[i] = _thrust_rpyt_out[i] + yaw_thrust * _yaw_factor[i];
 
             // record lowest roll+pitch+yaw command
-            if( thrust_rpyt_out[i] < rpy_low ) {
-                rpy_low = thrust_rpyt_out[i];
+            if( _thrust_rpyt_out[i] < rpy_low ) {
+                rpy_low = _thrust_rpyt_out[i];
             }
             // record highest roll+pitch+yaw command
-            if( thrust_rpyt_out[i] > rpy_high) {
-                rpy_high = thrust_rpyt_out[i];
+            if( _thrust_rpyt_out[i] > rpy_high) {
+                rpy_high = _thrust_rpyt_out[i];
             }
         }
     }
@@ -332,33 +331,9 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     // add scaled roll, pitch, constrained yaw and throttle for each motor
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
-            thrust_rpyt_out[i] = throttle_thrust_best_rpy+thr_adj + rpy_scale*thrust_rpyt_out[i];
+            _thrust_rpyt_out[i] = throttle_thrust_best_rpy+thr_adj + rpy_scale*_thrust_rpyt_out[i];
         }
     }
-
-    // apply voltage scaling
-    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-        if (motor_enabled[i]) {
-            thrust_rpyt_out[i] = apply_thrust_curve_and_volt_scaling(thrust_rpyt_out[i]);
-        }
-    }
-
-    // convert thrusts to motor outputs
-    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];
-    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-        if (motor_enabled[i]) {
-            motor_out[i] = calc_thrust_to_pwm(thrust_rpyt_out[i]);
-        }
-    }
-
-    // send output to each motor
-    hal.rcout->cork();
-    for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
-        if( motor_enabled[i] ) {
-            hal.rcout->write(i, motor_out[i]);
-        }
-    }
-    hal.rcout->push();
 }
 
 // output_disarmed - sends commands to the motors
