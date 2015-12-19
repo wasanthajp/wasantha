@@ -215,14 +215,14 @@ float AP_MotorsMulticopter::get_current_limit_max_throttle()
     // return maximum if current limiting is disabled
     if (_batt_current_max <= 0) {
         _throttle_limit = 1.0f;
-        _max_motor_out = AP_MOTORS_DEFAULT_MAX_THROTTLE;
+        _max_throttle = AP_MOTORS_DEFAULT_MAX_THROTTLE;
         return 1.0f;
     }
 
     // remove throttle limit if throttle is at zero or disarmed
     if(_throttle_control_input <= 0 || !_flags.armed) {
         _throttle_limit = 1.0f;
-        _max_motor_out = AP_MOTORS_DEFAULT_MAX_THROTTLE;
+        _max_throttle = AP_MOTORS_DEFAULT_MAX_THROTTLE;
         return 1.0f;
     }
 
@@ -371,8 +371,8 @@ float AP_MotorsMulticopter::thr_range_to_rel_pwm(float thr) const
 
 int16_t AP_MotorsMulticopter::calc_thrust_to_pwm(float thrust_in) const
 {
-    return constrain_int16((_throttle_radio_min + _min_motor_out + apply_thrust_curve_and_volt_scaling(thrust_in) *
-            ( _throttle_radio_max - (_throttle_radio_min + _min_motor_out))), _throttle_radio_min, _throttle_radio_max);
+    return constrain_int16((_throttle_radio_min + _min_throttle + apply_thrust_curve_and_volt_scaling(thrust_in) *
+            ( _throttle_radio_max - (_throttle_radio_min + _min_throttle))), _throttle_radio_min, _throttle_radio_max);
 }
 
 // set_throttle_range - sets the minimum throttle that will be sent to the engines when they're not off (i.e. to prevents issues with some motors spinning and some not at very low throttle)
@@ -685,7 +685,7 @@ void AP_MotorsMulticopter::output_to_motors()
             // spool motor output up to spin when armed
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _spin_when_armed, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
+                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
                 }
             }
             break;
@@ -693,7 +693,7 @@ void AP_MotorsMulticopter::output_to_motors()
             // set motor output to spin when armed
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
-                    motor_out[i] = _throttle_radio_min + _spin_when_armed;
+                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
                 }
             }
             break;
@@ -701,7 +701,7 @@ void AP_MotorsMulticopter::output_to_motors()
             // spool motor output down to shut down
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _spin_when_armed, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
+                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
                 }
             }
             break;
@@ -709,7 +709,7 @@ void AP_MotorsMulticopter::output_to_motors()
             // spool motor output up to minimum throttle
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _spin_when_armed + _throttle_low_end_pct * (_min_motor_out - _spin_when_armed), _throttle_radio_min, _throttle_radio_min + _min_motor_out);
+                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
                 }
             }
             break;
@@ -717,7 +717,7 @@ void AP_MotorsMulticopter::output_to_motors()
             // set motor output to minimum throttle
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
-                    motor_out[i] = _throttle_radio_min + _min_motor_out;
+                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
                 }
             }
             break;
@@ -725,7 +725,7 @@ void AP_MotorsMulticopter::output_to_motors()
             // spool motor output down to spin when armed
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _spin_when_armed + _throttle_low_end_pct * (_min_motor_out - _spin_when_armed), _throttle_radio_min, _throttle_radio_min + _min_motor_out);
+                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
                 }
             }
             break;
@@ -751,6 +751,18 @@ void AP_MotorsMulticopter::output_to_motors()
         }
     }
     hal.rcout->push();
+
+    static uint16_t counter = 0;
+    counter++;
+    if (counter > 400) {
+        counter = 0;
+        hal.console->printf("SM:%d T0:%4.2f T1:%4.2f T2:%4.2f T3:%4.2f\n",
+                (int)_multicopter_flags.spool_mode,
+                (float)_thrust_rpyt_out[0],
+                (float)_thrust_rpyt_out[1],
+                (float)_thrust_rpyt_out[2],
+                (float)_thrust_rpyt_out[3]);
+    }
 }
 
 // slow_start - set to true to slew motors from current speed to maximum

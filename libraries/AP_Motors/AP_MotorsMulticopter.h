@@ -214,10 +214,6 @@ protected:
     // spool variables
     float               _throttle_low_end_pct;      // throttle percentage (0 ~ 1) between zero and throttle_min
 
-    // internal variables - motor output
-    int16_t             _min_motor_out;             // the minimum throttle to be sent to the motors when they're on (prevents motors stalling while flying)
-    int16_t             _max_motor_out;             // the maximum throttle to be sent to the motors
-
     // battery voltage, current and air pressure compensation variables
     float               _batt_voltage_resting;  // battery voltage reading at minimum throttle
     LowPassFilterFloat  _batt_voltage_filt;     // filtered battery voltage expressed as a percentage (0 ~ 1.0) of batt_voltage_max
