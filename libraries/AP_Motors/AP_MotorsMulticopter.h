@@ -61,6 +61,7 @@ public:
 
     // returns warning throttle
     float               get_throttle_warn() const { return rel_pwm_to_thr_range(_spin_when_armed); }
+    float               get_throttle_warn_low_end_pct() const;
 
     int16_t             throttle_max() const { return _max_throttle; }
     int16_t             throttle_min() const { return rel_pwm_to_thr_range(_min_throttle); }

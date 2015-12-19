@@ -383,6 +383,16 @@ void AP_MotorsMulticopter::set_throttle_range(uint16_t min_throttle, int16_t rad
     _min_throttle = (float)min_throttle * _throttle_pwm_scalar;   
 }
 
+float AP_MotorsMulticopter::get_throttle_warn_low_end_pct() const
+{
+    // protect against divide by zero
+    if ((_min_throttle <= 0) || _spin_when_armed > _min_throttle) {
+        return 1.0f;
+    }
+
+    return constrain_float((float)_spin_when_armed / _min_throttle, 0.0f, 1.0f);
+}
+
 // slow_start - set to true to slew motors from current speed to maximum
 // Note: this must be set immediately before a step up in throttle
 void AP_MotorsMulticopter::slow_start(bool true_false)
