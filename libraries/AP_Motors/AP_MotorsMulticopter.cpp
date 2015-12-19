@@ -144,9 +144,6 @@ void AP_MotorsMulticopter::output()
     // calc filtered battery voltage and lift_max
     update_lift_max_from_batt_voltage();
 
-    // move throttle_low_comp towards desired throttle low comp
-    update_throttle_rpy_mix();
-
     if (_flags.armed) {
         if (!_flags.interlock) {
             output_armed_zero_throttle();
@@ -159,6 +156,7 @@ void AP_MotorsMulticopter::output()
         }
     } else {
         _multicopter_flags.slow_start_low_end = true;
+        _multicopter_flags.spool_desired = DESIRED_SHUT_DOWN;
         output_disarmed();
     }
 };
@@ -429,7 +427,7 @@ void AP_MotorsMulticopter::spool_logic()
             limit.throttle_upper = true;
 
             // make sure the motors are spooling in the correct direction
-            if(_multicopter_flags.spool_desired == SHUT_DOWN){
+            if(_multicopter_flags.spool_desired == DESIRED_SHUT_DOWN){
                 _multicopter_flags.spool_mode = SPIN_WHEN_ARMED_SPOOL_DOWN;
                 break;
             }
@@ -442,7 +440,7 @@ void AP_MotorsMulticopter::spool_logic()
 
             // constrain ramp value and update mode
             if (_throttle_low_end_pct >= spin_when_armed_low_end_pct()) {
-                if(_multicopter_flags.spool_desired == SPIN_WHEN_ARMED) {
+                if(_multicopter_flags.spool_desired == DESIRED_SPIN_WHEN_ARMED) {
                     _multicopter_flags.spool_mode = SPIN_WHEN_ARMED;
                     _throttle_low_end_pct = spin_when_armed_low_end_pct();
                 }else{
@@ -590,7 +588,7 @@ void AP_MotorsMulticopter::spool_logic()
             if (_throttle_low_end_pct >= 1.0f) {
                 _throttle_low_end_pct = 1.0f;
             } else if (_throttle_low_end_pct <= spin_when_armed_low_end_pct()) {
-                if(_multicopter_flags.spool_desired == SPIN_WHEN_ARMED) {
+                if(_multicopter_flags.spool_desired == DESIRED_SPIN_WHEN_ARMED) {
                     _multicopter_flags.spool_mode = SPIN_WHEN_ARMED;
                     _throttle_low_end_pct = spin_when_armed_low_end_pct();
                 }else{

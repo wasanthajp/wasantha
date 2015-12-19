@@ -205,9 +205,8 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         limit.throttle_lower = true;
     }
     // convert throttle_max from 0~1000 to 0~1 range
-    float throttle_thrust_max = _max_throttle / 1000.0f;
-    if (throttle_thrust >= throttle_thrust_max) {
-        throttle_thrust = throttle_thrust_max;
+    if (throttle_thrust >= _throttle_thrust_max) {
+        throttle_thrust = _throttle_thrust_max;
         limit.throttle_upper = true;
     }
 
