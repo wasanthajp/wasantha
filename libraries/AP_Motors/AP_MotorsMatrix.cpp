@@ -240,7 +240,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     //      We will choose #2 (a mix of pilot and hover throttle) only when the throttle is quite low.  We favour reducing throttle instead of better yaw control because the pilot has commanded it
 
     float hover_thrust = _hover_out / 1000.0f;
-    throttle_thrust_best_rpy = MIN(0.5f - (rpy_low+rpy_high)/2.0, MAX(throttle_thrust, throttle_thrust*MAX(0.0f,1.0f-_throttle_thr_mix)+hover_thrust*_throttle_thr_mix));
+    throttle_thrust_best_rpy = MIN(0.5f - (rpy_low+rpy_high)/2.0, MAX(throttle_thrust, throttle_thrust*MAX(0.0f,1.0f-_throttle_rpy_mix)+hover_thrust*_throttle_rpy_mix));
 
     // calculate amount of yaw we can fit into the throttle range
     // this is always equal to or less than the requested yaw from the pilot or rate controller
