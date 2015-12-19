@@ -56,6 +56,8 @@ public:
     void                set_throttle_mix_min() { _throttle_rpy_mix_desired = _thr_mix_min; }
     void                set_throttle_mix_mid() { _throttle_rpy_mix_desired = AP_MOTORS_THR_MIX_MID_DEFAULT; }
     void                set_throttle_mix_max() { _throttle_rpy_mix_desired = _thr_mix_max; }
+    // immediately reset throttle mix to minimum (i.e. prioritise throttle over attitude)
+    void                reset_throttle_mix_min() { _throttle_rpy_mix_desired = _thr_mix_min; _throttle_rpy_mix = 0.1f; }
 
     // get_throttle_rpy_mix - get low throttle compensation value
     bool                is_throttle_mix_min() const { return (_throttle_rpy_mix < 1.25f*_thr_mix_min); }
