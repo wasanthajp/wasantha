@@ -680,45 +680,10 @@ void AP_MotorsMulticopter::output_to_motors()
             }
             break;
         case SPIN_WHEN_ARMED_SPOOL_UP:
-            // spool motor output up to spin when armed
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
-                }
-            }
-            break;
         case SPIN_WHEN_ARMED:
-            // set motor output to spin when armed
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
-                }
-            }
-            break;
         case SPIN_WHEN_ARMED_SPOOL_DOWN:
-            // spool motor output down to shut down
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
-                }
-            }
-            break;
         case SPIN_MIN_THROTTLE_SPOOL_UP:
-            // spool motor output up to minimum throttle
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
-                }
-            }
-            break;
         case SPIN_MIN_THROTTLE:
-            // set motor output to minimum throttle
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
-                }
-            }
-            break;
         case SPIN_MIN_THROTTLE_SPOOL_DOWN:
             // spool motor output down to spin when armed
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
