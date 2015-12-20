@@ -372,7 +372,7 @@ float AP_MotorsMulticopter::thr_range_to_rel_pwm(float thr) const
 int16_t AP_MotorsMulticopter::calc_thrust_to_pwm(float thrust_in) const
 {
     return constrain_int16((_throttle_radio_min + _min_throttle + apply_thrust_curve_and_volt_scaling(thrust_in) *
-            ( _throttle_radio_max - (_throttle_radio_min + _min_throttle))), _throttle_radio_min, _throttle_radio_max);
+            ( _throttle_radio_max - (_throttle_radio_min + _min_throttle))), _throttle_radio_min + _min_throttle, _throttle_radio_max);
 }
 
 // set_throttle_range - sets the minimum throttle that will be sent to the engines when they're not off (i.e. to prevents issues with some motors spinning and some not at very low throttle)
@@ -628,7 +628,6 @@ void AP_MotorsMulticopter::spool_logic()
 
             // set and increment ramp variables
             _throttle_low_end_pct = 1.0f;
-            _throttle_low_end_pct = 1.0f;
             _throttle_thrust_max = get_current_limit_max_throttle();
             update_throttle_rpy_mix();
             break;
@@ -641,7 +640,6 @@ void AP_MotorsMulticopter::spool_logic()
             }
 
             // set and increment ramp variables
-            _throttle_low_end_pct = 1.0f;
             _throttle_low_end_pct = 1.0f;
             _throttle_thrust_max -= 1.0f/(AP_MOTORS_SPOOL_UP_TIME*_loop_rate);
             _throttle_rpy_mix -= 1.0f/(AP_MOTORS_SPOOL_UP_TIME*_loop_rate);
@@ -725,7 +723,7 @@ void AP_MotorsMulticopter::output_to_motors()
             // spool motor output down to spin when armed
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _spin_when_armed);
+                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
                 }
             }
             break;
