@@ -147,13 +147,13 @@ int16_t Copter::get_pilot_desired_throttle(int16_t throttle_control)
     // check throttle is above, below or in the deadband
     if (throttle_control < mid_stick) {
         // below the deadband
-        throttle_out = g.throttle_min + ((float)(throttle_control-g.throttle_min))*((float)(g.throttle_mid - g.throttle_min))/((float)(mid_stick-g.throttle_min));
+        throttle_out = ((float)(throttle_control-g.throttle_min))*0.5f/((float)(mid_stick-g.throttle_min));
     }else if(throttle_control > mid_stick) {
         // above the deadband
-        throttle_out = g.throttle_mid + ((float)(throttle_control-mid_stick)) * (float)(1000-g.throttle_mid) / (float)(1000-mid_stick);
+        throttle_out = 0.5f + ((float)(throttle_control-mid_stick)) * 0.5f / (float)(1000-mid_stick);
     }else{
         // must be in the deadband
-        throttle_out = g.throttle_mid;
+        throttle_out = 0.5f;
     }
 
     return throttle_out;
