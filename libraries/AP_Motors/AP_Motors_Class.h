@@ -72,11 +72,10 @@ public:
     float               get_yaw() const { return _yaw_control_input; }
     float               get_throttle() const { return _throttle_control_input; }
 
-    // accessors for roll, pitch, yaw and throttle inputs to motors within the range -1 ~ +1
+    // accessors for roll, pitch, yaw to motors within the range -1 ~ +1
     float               get_roll_thrust() const { return _roll_control_input / 4500.0f; }
     float               get_pitch_thrust() const { return _pitch_control_input / 4500.0f; }
     float               get_yaw_thrust() const { return _yaw_control_input / 4500.0f; }
-    float               get_throttle_thrust() const { return _throttle_control_input / 1000.0f; }
 
     void                set_throttle_filter_cutoff(float filt_hz) { _throttle_filter.set_cutoff_frequency(filt_hz); }
 
