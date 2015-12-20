@@ -144,21 +144,24 @@ void AP_MotorsMulticopter::output()
     // calc filtered battery voltage and lift_max
     update_lift_max_from_batt_voltage();
 
-    if (_flags.armed) {
-        if (!_flags.interlock) {
-            output_armed_zero_throttle();
-        } else {
+    //if (_flags.armed) {
+        //if (!_flags.interlock) {
+        //    output_armed_zero_throttle();
+        //} else {
             // run spool logic
             spool_logic();
 
+            // calculate thrust
+            output_armed_stabilizing();
+
             // convert rpy_thrust values to pwm
             output_to_motors();
-        }
-    } else {
+        //}
+    /*} else {
         _multicopter_flags.slow_start_low_end = true;
         _multicopter_flags.spool_desired = DESIRED_SHUT_DOWN;
         output_disarmed();
-    }
+    }*/
 };
 
 // update the throttle input filter
@@ -695,8 +698,6 @@ void AP_MotorsMulticopter::output_to_motors()
         case SPOOL_UP:
         case FULL_THROTTLE:
         case SPOOL_DOWN:
-            // calculate thrust
-            output_armed_stabilizing();
             // set motor output based on thrust requests
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
