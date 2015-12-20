@@ -187,12 +187,6 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     float   yaw_allowed;                // amount of yaw we can fit in
     float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
 
-    // initialize limits flags
-    limit.roll_pitch = false;
-    limit.yaw = false;
-    limit.throttle_lower = false;
-    limit.throttle_upper = false;
-
     // apply voltage and air pressure compensation
     roll_thrust = get_roll_thrust() * get_compensation_gain();
     pitch_thrust = get_pitch_thrust() * get_compensation_gain();

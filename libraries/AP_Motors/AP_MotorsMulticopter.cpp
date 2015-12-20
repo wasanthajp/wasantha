@@ -601,6 +601,12 @@ void AP_MotorsMulticopter::spool_logic()
             break;
 
         case SPOOL_UP:
+            // initialize limits flags
+            limit.roll_pitch = false;
+            limit.yaw = false;
+            limit.throttle_lower = false;
+            limit.throttle_upper = false;
+
             // make sure the motors are spooling in the correct direction
             if(_multicopter_flags.spool_desired != DESIRED_FULL_THROTTLE ){
                 _multicopter_flags.spool_mode = SPOOL_DOWN;
@@ -623,6 +629,12 @@ void AP_MotorsMulticopter::spool_logic()
             break;
 
         case FULL_THROTTLE:
+            // initialize limits flags
+            limit.roll_pitch = false;
+            limit.yaw = false;
+            limit.throttle_lower = false;
+            limit.throttle_upper = false;
+
             // make sure the motors are spooling in the correct direction
             if(_multicopter_flags.spool_desired != DESIRED_FULL_THROTTLE ){
                 _multicopter_flags.spool_mode = SPOOL_DOWN;
@@ -636,6 +648,12 @@ void AP_MotorsMulticopter::spool_logic()
             break;
 
         case SPOOL_DOWN:
+            // initialize limits flags
+            limit.roll_pitch = false;
+            limit.yaw = false;
+            limit.throttle_lower = false;
+            limit.throttle_upper = false;
+
             // make sure the motors are spooling in the correct direction
             if(_multicopter_flags.spool_desired == DESIRED_FULL_THROTTLE ){
                 _multicopter_flags.spool_mode = SPOOL_UP;
