@@ -100,7 +100,7 @@ void Copter::update_thr_average()
 {
     // ensure throttle_average has been initialised
     if( is_zero(throttle_average) ) {
-        throttle_average = g.throttle_mid;
+        throttle_average = 0.5f;
         // update position controller
         pos_control.set_throttle_hover(throttle_average);
     }
