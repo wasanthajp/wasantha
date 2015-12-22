@@ -86,15 +86,10 @@ public:
     // spool up states
     enum spool_up_down_mode {
         SHUT_DOWN = 0,                      // all motors stop
-        SPIN_WHEN_ARMED_SPOOL_UP = 1,       // ramp throttle up to spin when armed
-        SPIN_WHEN_ARMED = 2,                // all motors at spin when armed
-        SPIN_MIN_THROTTLE_SPOOL_UP = 3,     // ramp throttle up to min throttle
-        SPIN_MIN_THROTTLE = 4,              // all motors at min throttle
-        SPOOL_UP = 5,                       // increasing maximum throttle while stabilizing
-        FULL_THROTTLE = 6,                  // throttle is no longer constrained by start up procedure
-        SPOOL_DOWN = 7,                     // decreasing maximum throttle while stabilizing
-        SPIN_MIN_THROTTLE_SPOOL_DOWN = 8,   // ramp throttle down to min throttle
-        SPIN_WHEN_ARMED_SPOOL_DOWN = 9,     // ramp throttle down to spin when armed
+        SPIN_WHEN_ARMED = 1,                // all motors at spin when armed
+        SPOOL_UP = 2,                       // increasing maximum throttle while stabilizing
+        THROTTLE_UNLIMITED = 3,                  // throttle is no longer constrained by start up procedure
+        SPOOL_DOWN = 4,                     // decreasing maximum throttle while stabilizing
     };
 
     // spool up states
@@ -102,7 +97,7 @@ public:
         DESIRED_SHUT_DOWN = 0,              // all motors stop
         DESIRED_SPIN_WHEN_ARMED = 1,        // all motors at spin when armed
         DESIRED_SPIN_MIN_THROTTLE = 2,      // all motors at min throttle
-        DESIRED_FULL_THROTTLE = 3,          // throttle is no longer constrained by start up procedure
+        DESIRED_THROTTLE_UNLIMITED = 3,          // throttle is no longer constrained by start up procedure
     };
 
     void                set_desired_spool_state(enum spool_up_down_desired spool) { _multicopter_flags.spool_desired = spool;}
