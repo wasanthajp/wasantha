@@ -539,6 +539,9 @@ void AP_MotorsMulticopter::output_to_motors()
     int8_t i;
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motors
 
+    if (armed()){
+        _multicopter_flags.spool_mode = SHUT_DOWN;
+    }
     switch (_multicopter_flags.spool_mode) {
         case SHUT_DOWN:
             // set motor output for shut down motors

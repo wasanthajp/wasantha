@@ -131,7 +131,6 @@ public:
 protected:
     // output functions that should be overloaded by child classes
     virtual void        output_armed_stabilizing()=0;
-    virtual void        output_armed_not_stabilizing()=0;
     virtual void        output_armed_zero_throttle() { output_min(); }
     virtual void        output_disarmed()=0;
 
