@@ -124,7 +124,7 @@ void Copter::althold_run()
         takeoff_get_climb_rates(target_climb_rate, takeoff_climb_rate);
 
         // set motors to full range
-        motors.set_desired_spool_state(AP_MotorsMulticopter::THROTTLE_UNLIMITED);
+        motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_THROTTLE_UNLIMITED);
 
         // call attitude controller
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
@@ -143,14 +143,14 @@ void Copter::althold_run()
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
         attitude_control.set_throttle_out(get_throttle_pre_takeoff(channel_throttle->control_in),false,g.throttle_filt);
 #else   // Multicopter stabilize roll/pitch/yaw when landed
-        motors.set_desired_spool_state(AP_MotorsMulticopter::THROTTLE_UNLIMITED);
+        motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_THROTTLE_UNLIMITED);
         attitude_control.set_throttle_out(get_throttle_pre_takeoff(channel_throttle->control_in),false,g.throttle_filt);
 #endif
         pos_control.relax_alt_hold_controllers(get_throttle_pre_takeoff(channel_throttle->control_in)-throttle_average);
         break;
 
     case AltHold_Flying:
-        motors.set_desired_spool_state(AP_MotorsMulticopter::THROTTLE_UNLIMITED);
+        motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_THROTTLE_UNLIMITED);
         // call attitude controller
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
 
