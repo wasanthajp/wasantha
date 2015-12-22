@@ -115,7 +115,7 @@ void Copter::rtl_climb_return_run()
 {
     // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
     if(!ap.auto_armed || !motors.get_interlock()) {
-#if FRAME_CONFIG == HELI_FRAME || FRAME_CONFIG == HELI_DUAL_FRAME || FRAME_CONFIG == HELI_COMPOUND_FRAME // Helicopters always stabilize roll/pitch/yaw
+#if FRAME_TYPE == HELICOPTER // Helicopters always stabilize roll/pitch/yaw
         // call attitude controller
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(0, 0, 0, get_smoothing_gain());
         attitude_control.set_throttle_out(0,false,g.throttle_filt);
@@ -177,7 +177,7 @@ void Copter::rtl_loiterathome_run()
 {
     // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
     if(!ap.auto_armed || !motors.get_interlock()) {
-#if FRAME_CONFIG == HELI_FRAME || FRAME_CONFIG == HELI_DUAL_FRAME || FRAME_CONFIG == HELI_COMPOUND_FRAME // Helicopters always stabilize roll/pitch/yaw
+#if FRAME_TYPE == HELICOPTER // Helicopters always stabilize roll/pitch/yaw
         // call attitude controller
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(0, 0, 0, get_smoothing_gain());
         attitude_control.set_throttle_out(0,false,g.throttle_filt);
@@ -253,7 +253,7 @@ void Copter::rtl_descent_run()
 
     // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
     if(!ap.auto_armed || !motors.get_interlock()) {
-#if FRAME_CONFIG == HELI_FRAME || FRAME_CONFIG == HELI_DUAL_FRAME || FRAME_CONFIG == HELI_COMPOUND_FRAME // Helicopters always stabilize roll/pitch/yaw
+#if FRAME_TYPE == HELICOPTER // Helicopters always stabilize roll/pitch/yaw
         // call attitude controller
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(0, 0, 0, get_smoothing_gain());
         attitude_control.set_throttle_out(0,false,g.throttle_filt);
@@ -329,7 +329,7 @@ void Copter::rtl_land_run()
     float target_yaw_rate = 0;
     // if not auto armed or landing completed or motor interlock not enabled set throttle to zero and exit immediately
     if(!ap.auto_armed || ap.land_complete || !motors.get_interlock()) {
-#if FRAME_CONFIG == HELI_FRAME || FRAME_CONFIG == HELI_DUAL_FRAME || FRAME_CONFIG == HELI_COMPOUND_FRAME // Helicopters always stabilize roll/pitch/yaw
+#if FRAME_TYPE == HELICOPTER // Helicopters always stabilize roll/pitch/yaw
         // call attitude controller
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(0, 0, 0, get_smoothing_gain());
         attitude_control.set_throttle_out(0,false,g.throttle_filt);
