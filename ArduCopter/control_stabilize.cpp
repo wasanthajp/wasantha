@@ -49,7 +49,7 @@ void Copter::stabilize_run()
         return;
     }
 
-    motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_FULL_THROTTLE);
+    motors.set_desired_spool_state(AP_MotorsMulticopter::THROTTLE_UNLIMITED);
 
     // apply SIMPLE mode transform to pilot inputs
     update_simple_mode();
