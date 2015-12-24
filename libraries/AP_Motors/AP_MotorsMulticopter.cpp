@@ -149,7 +149,7 @@ void AP_MotorsMulticopter::output()
         //    output_armed_zero_throttle();
         //} else {
             // run spool logic
-            spool_logic();
+            output_logic();
 
             // calculate thrust
             output_armed_stabilizing();
@@ -399,7 +399,7 @@ float AP_MotorsMulticopter::get_throttle_warn_low_end_pct() const
     return constrain_float((float)_spin_when_armed / _min_throttle, 0.0f, 1.0f);
 }
 
-void AP_MotorsMulticopter::spool_logic()
+void AP_MotorsMulticopter::output_logic()
 {
     switch (_multicopter_flags.spool_mode) {
         case SHUT_DOWN:
