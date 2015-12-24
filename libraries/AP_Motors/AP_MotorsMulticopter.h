@@ -101,7 +101,7 @@ public:
     };
 
     void                set_desired_spool_state(enum spool_up_down_desired spool) { _multicopter_flags.spool_desired = spool;}
-    void                spool_logic();
+    void                output_logic();
 
     // output pwm to motors
     void                output_to_motors();
