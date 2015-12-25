@@ -422,7 +422,7 @@ void AP_MotorsMulticopter::output_logic()
             _throttle_rpy_mix_desired = 0.0f;
             break;
 
-        case SPIN_WHEN_ARMED:
+        case SPIN_WHEN_ARMED:{
             // set limits flags
             limit.roll_pitch = true;
             limit.yaw = true;
@@ -436,7 +436,7 @@ void AP_MotorsMulticopter::output_logic()
             }else if(_multicopter_flags.spool_desired == THROTTLE_UNLIMITED ){
                 _throttle_low_end_pct += spool_step;
             }else{
-                _throttle_low_end_pct += constrain(spin_when_armed_low_end_pct()-_throttle_low_end_pct, -spool_step, spool_step);
+                _throttle_low_end_pct += constrain_float(spin_when_armed_low_end_pct()-_throttle_low_end_pct, -spool_step, spool_step);
             }
             _throttle_thrust_max = 0.0f;
             _throttle_rpy_mix = 0.0f;
@@ -451,7 +451,7 @@ void AP_MotorsMulticopter::output_logic()
                 _multicopter_flags.spool_mode = SPOOL_UP;
             }
             break;
-
+        }
         case SPOOL_UP:
             // initialize limits flags
             limit.roll_pitch = false;
@@ -537,7 +537,6 @@ void AP_MotorsMulticopter::output_logic()
 void AP_MotorsMulticopter::output_to_motors()
 {
     int8_t i;
-    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final pwm values sent to the motors
 
     if (!armed()){
         _multicopter_flags.spool_mode = SHUT_DOWN;
