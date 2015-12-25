@@ -123,19 +123,19 @@ void AP_MotorsTri::output_min()
 }
 
 // output_spin_when_armed - sends output to motors when armed but not flying
-void AP_MotorsMatrix::output_spin_when_armed()
+void AP_MotorsTri::output_spin_when_armed()
 {
     // send minimum value to each motor
     hal.rcout->cork();
-    hal.rcout->write(AP_MOTORS_MOT_1, _throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
-    hal.rcout->write(AP_MOTORS_MOT_2, _throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
-    hal.rcout->write(AP_MOTORS_MOT_4, _throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
+    hal.rcout->write(AP_MOTORS_MOT_1, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
+    hal.rcout->write(AP_MOTORS_MOT_2, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
+    hal.rcout->write(AP_MOTORS_MOT_4, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
     hal.rcout->write(AP_MOTORS_CH_TRI_YAW, _yaw_servo_trim);
     hal.rcout->push();
 }
 
 // output_flying - set motor output based on thrust requests
-void AP_MotorsMatrix::output_flying()
+void AP_MotorsTri::output_flying()
 {
     // send output to each motor
     hal.rcout->cork();
@@ -160,7 +160,7 @@ uint16_t AP_MotorsTri::get_motor_mask()
 // output_armed - sends commands to the motors
 // includes new scaling stability patch
 // TODO pull code that is common to output_armed_not_stabilizing into helper functions
-void AP_MotorsMatrix::output_armed_stabilizing()
+void AP_MotorsTri::output_armed_stabilizing()
 {
     uint8_t i;                          // general purpose counter
     float   roll_thrust;                // roll thrust value, initially calculated by calc_roll_thrust() but may be modified after, +/- 1.0
@@ -170,9 +170,9 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     float   throttle_thrust_best_rpy;   // throttle providing maximum roll, pitch and yaw range without climbing
     float   rpy_scale = 1.0f;           // this is used to scale the roll, pitch and yaw to fit within the motor limits
     float   rpy_low = 0.0f;             // lowest motor value
+    float   rpy_high = 0.0f;            // highest motor value
     float   thr_head_room_high = 0.0f;            // highest motor value
     float   thr_head_room_low = 0.0f;             // lowest motor value
-    float   rpy_high = 0.0f;            // highest motor value
     float   yaw_allowed;                // amount of yaw we can fit in
     float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
 
@@ -181,9 +181,8 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     pitch_thrust = get_pitch_thrust() * get_compensation_gain();
     yaw_thrust = get_yaw_thrust() * get_compensation_gain();
     throttle_thrust = get_throttle_thrust() * get_compensation_gain();
-    float pivot_angle = 0.0f;
     float pivot_angle_max = asin(yaw_thrust);
-    float pivot_thrust_max = cos(servo_angle);
+    float pivot_thrust_max = cos(pivot_angle_max);
     float thrust_max = 1.0f;
 
     // sanity check throttle is above zero and below current limited throttle
@@ -209,14 +208,14 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     // set rpy_low and rpy_high to the lowest and highest values of the motors
 
     // record lowest roll pitch command
-    rpy_low = min(_thrust_rpyt_out[AP_MOTORS_MOT_1],_thrust_rpyt_out[AP_MOTORS_MOT_2]);
-    rpy_high = max(_thrust_rpyt_out[AP_MOTORS_MOT_1],_thrust_rpyt_out[AP_MOTORS_MOT_2]);
+    rpy_low = MIN(_thrust_rpyt_out[AP_MOTORS_MOT_1],_thrust_rpyt_out[AP_MOTORS_MOT_2]);
+    rpy_high = MAX(_thrust_rpyt_out[AP_MOTORS_MOT_1],_thrust_rpyt_out[AP_MOTORS_MOT_2]);
     if (rpy_low > _thrust_rpyt_out[AP_MOTORS_MOT_4]){
         rpy_low = _thrust_rpyt_out[AP_MOTORS_MOT_4];
     }
-    if ((1.0f -_rpy_high) > (pivot_thrust_max-_thrust_rpyt_out[AP_MOTORS_MOT_4])){
+    if ((1.0f -rpy_high) > (pivot_thrust_max-_thrust_rpyt_out[AP_MOTORS_MOT_4])){
         thrust_max = pivot_thrust_max;
-        _rpy_high = _thrust_rpyt_out[AP_MOTORS_MOT_4];
+        rpy_high = _thrust_rpyt_out[AP_MOTORS_MOT_4];
     }
 
     // calculate throttle that gives most possible room for yaw (range 1000 ~ 2000) which is the lower of:
@@ -289,13 +288,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     // calculate angle of yaw pivot
     _pivot_angle = atan(yaw_thrust/_thrust_rpyt_out[AP_MOTORS_MOT_4]);
     // scale pivot thrust to account for pivot angle
-    _thrust_rpyt_out[AP_MOTORS_MOT_4] = _thrust_rpyt_out[AP_MOTORS_MOT_4]/cos(servo_angle);
-
-    for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-        if (motor_enabled[i]) {
-            motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
-        }
-    }
+    _thrust_rpyt_out[AP_MOTORS_MOT_4] = _thrust_rpyt_out[AP_MOTORS_MOT_4]/cos(_pivot_angle);
 }
 
 // output_disarmed - sends commands to the motors
