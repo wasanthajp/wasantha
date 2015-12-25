@@ -558,26 +558,6 @@ void AP_MotorsMulticopter::output_to_motors()
             output_flying();
             break;
     }
-
-    static uint16_t counter = 0;
-    counter++;
-    if (counter > 100) {
-        counter = 0;
-        hal.console->printf("SM:%d M0:%4.2f 1:%4.2f 2:%4.2f 3:%4.2f TTM:%4.2f RPYM:%4.2f T0:%4.2f T1:%4.2f T2:%4.2f T3:%4.2f TI:%4.2f\n",
-                (int)_multicopter_flags.spool_mode,
-                (double)motor_out[0],
-                (double)motor_out[1],
-                (double)motor_out[2],
-                (double)motor_out[3],
-                (double)_throttle_thrust_max,
-                (double)_throttle_rpy_mix,
-                (double)_thrust_rpyt_out[0],
-                (double)_thrust_rpyt_out[1],
-                (double)_thrust_rpyt_out[2],
-                (double)_thrust_rpyt_out[3],
-                (double)_throttle_control_input
-                );
-    }
 }
 
 // slow_start - set to true to slew motors from current speed to maximum
