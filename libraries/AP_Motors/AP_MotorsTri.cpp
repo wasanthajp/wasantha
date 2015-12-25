@@ -113,15 +113,36 @@ void AP_MotorsTri::enable()
 // output_min - sends minimum values out to the motors
 void AP_MotorsTri::output_min()
 {
-    // set lower limit flag
-    limit.throttle_lower = true;
-
     // send minimum value to each motor
     hal.rcout->cork();
     hal.rcout->write(AP_MOTORS_MOT_1, _throttle_radio_min);
     hal.rcout->write(AP_MOTORS_MOT_2, _throttle_radio_min);
     hal.rcout->write(AP_MOTORS_MOT_4, _throttle_radio_min);
     hal.rcout->write(AP_MOTORS_CH_TRI_YAW, _yaw_servo_trim);
+    hal.rcout->push();
+}
+
+// output_spin_when_armed - sends output to motors when armed but not flying
+void AP_MotorsMatrix::output_spin_when_armed()
+{
+    // send minimum value to each motor
+    hal.rcout->cork();
+    hal.rcout->write(AP_MOTORS_MOT_1, _throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
+    hal.rcout->write(AP_MOTORS_MOT_2, _throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
+    hal.rcout->write(AP_MOTORS_MOT_4, _throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
+    hal.rcout->write(AP_MOTORS_CH_TRI_YAW, _yaw_servo_trim);
+    hal.rcout->push();
+}
+
+// output_flying - set motor output based on thrust requests
+void AP_MotorsMatrix::output_flying()
+{
+    // send output to each motor
+    hal.rcout->cork();
+    hal.rcout->write(AP_MOTORS_MOT_1, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_1]));
+    hal.rcout->write(AP_MOTORS_MOT_2, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_2]));
+    hal.rcout->write(AP_MOTORS_MOT_4, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_4]));
+    hal.rcout->write(AP_MOTORS_CH_TRI_YAW, calc_yaw_radio_output(_pivot_angle, radians(30.0f)));
     hal.rcout->push();
 }
 
@@ -266,7 +287,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     _thrust_rpyt_out[AP_MOTORS_MOT_4] = throttle_thrust_best_rpy+thr_adj + rpy_scale*_thrust_rpyt_out[AP_MOTORS_MOT_4];
 
     // calculate angle of yaw pivot
-    pivot_angle = atan(yaw_thrust/_thrust_rpyt_out[AP_MOTORS_MOT_4]);
+    _pivot_angle = atan(yaw_thrust/_thrust_rpyt_out[AP_MOTORS_MOT_4]);
     // scale pivot thrust to account for pivot angle
     _thrust_rpyt_out[AP_MOTORS_MOT_4] = _thrust_rpyt_out[AP_MOTORS_MOT_4]/cos(servo_angle);
 
@@ -275,21 +296,6 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
         }
     }
-
-    // convert thrust angle to servo output
-    float yaw_radio_output = calc_yaw_radio_output(pivot_angle, radians(30.0f));
-
-    hal.rcout->cork();
-
-    // send output to each motor
-    hal.rcout->write(AP_MOTORS_MOT_1, motor_out[AP_MOTORS_MOT_1]);
-    hal.rcout->write(AP_MOTORS_MOT_2, motor_out[AP_MOTORS_MOT_2]);
-    hal.rcout->write(AP_MOTORS_MOT_4, motor_out[AP_MOTORS_MOT_4]);
-
-    // send out to yaw command to tail servo
-    hal.rcout->write(AP_MOTORS_CH_TRI_YAW, yaw_radio_output);
-
-    hal.rcout->push();
 }
 
 // output_disarmed - sends commands to the motors

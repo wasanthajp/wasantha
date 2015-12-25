@@ -42,6 +42,12 @@ public:
     // output_min - sends minimum values out to the motors
     virtual void        output_min();
 
+    // output_spin_when_armed - sends output to motors when armed but not flying
+    virtual void        output_spin_when_armed();
+
+    // output_flying - set motor output based on thrust requests
+    virtual void        output_flying();
+
     // get_motor_mask - returns a bitmask of which outputs are being used for motors or servos (1 means being used)
     //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
     virtual uint16_t    get_motor_mask();
@@ -62,6 +68,7 @@ protected:
     AP_Int16        _yaw_servo_trim;                    // Trim or center position of yaw servo
     AP_Int16        _yaw_servo_min;                     // Minimum angle limit of yaw servo
     AP_Int16        _yaw_servo_max;                     // Maximum angle limit of yaw servo
+    float           _pivot_angle;                       // Angle of yaw pivot
 };
 
 #endif  // AP_MOTORSTRI
