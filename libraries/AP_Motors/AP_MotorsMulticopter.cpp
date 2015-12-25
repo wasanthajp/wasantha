@@ -544,41 +544,20 @@ void AP_MotorsMulticopter::output_to_motors()
     }
     switch (_multicopter_flags.spool_mode) {
         case SHUT_DOWN:
-            // set motor output for shut down motors
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = _throttle_radio_min;
-                }
-            }
+            // sends minimum values out to the motors
+            output_min();
             break;
         case SPIN_WHEN_ARMED:
-            // spool motor output down to spin when armed
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
-                }
-            }
+            // sends output to motors when armed but not flying
+            output_spin_when_armed();
             break;
         case SPOOL_UP:
         case THROTTLE_UNLIMITED:
         case SPOOL_DOWN:
             // set motor output based on thrust requests
-            for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
-                }
-            }
+            output_flying();
             break;
     }
-
-    // send output to each motor
-    hal.rcout->cork();
-    for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
-        if( motor_enabled[i] ) {
-            hal.rcout->write(i, motor_out[i]);
-        }
-    }
-    hal.rcout->push();
 
     static uint16_t counter = 0;
     counter++;

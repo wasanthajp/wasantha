@@ -88,17 +88,43 @@ void AP_MotorsMatrix::output_min()
 {
     int8_t i;
 
-    // set limits flags
-    limit.roll_pitch = true;
-    limit.yaw = true;
-    limit.throttle_lower = true;
-    limit.throttle_upper = false;
-
     // fill the motor_out[] array for HIL use and send minimum value to each motor
     hal.rcout->cork();
     for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
         if( motor_enabled[i] ) {
             hal.rcout->write(i, _throttle_radio_min);
+        }
+    }
+    hal.rcout->push();
+}
+
+// output_spin_when_armed - sends output to motors when armed but not flying
+void AP_MotorsMatrix::output_spin_when_armed()
+{
+    int8_t i;
+
+    // send output to each motor
+    hal.rcout->cork();
+    for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
+        if( motor_enabled[i] ) {
+            motor_out[i] = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
+            hal.rcout->write(i, motor_out[i]);
+        }
+    }
+    hal.rcout->push();
+}
+
+// output_flying - set motor output based on thrust requests
+void AP_MotorsMatrix::output_flying()
+{
+    int8_t i;
+
+    // send output to each motor
+    hal.rcout->cork();
+    for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
+        if( motor_enabled[i] ) {
+            motor_out[i] = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
+            hal.rcout->write(i, motor_out[i]);
         }
     }
     hal.rcout->push();
