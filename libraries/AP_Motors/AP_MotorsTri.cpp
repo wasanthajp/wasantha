@@ -178,7 +178,6 @@ uint16_t AP_MotorsTri::get_motor_mask()
 // TODO pull code that is common to output_armed_not_stabilizing into helper functions
 void AP_MotorsTri::output_armed_stabilizing()
 {
-    uint8_t i;                          // general purpose counter
     float   roll_thrust;                // roll thrust value, initially calculated by calc_roll_thrust() but may be modified after, +/- 1.0
     float   pitch_thrust;               // pitch thrust value, initially calculated by calc_roll_thrust() but may be modified after, +/- 1.0
     float   yaw_thrust;                 // yaw thrust value, initially calculated by calc_yaw_thrust() but may be modified after, +/- 1.0
@@ -187,9 +186,6 @@ void AP_MotorsTri::output_armed_stabilizing()
     float   rpy_scale = 1.0f;           // this is used to scale the roll, pitch and yaw to fit within the motor limits
     float   rpy_low = 0.0f;             // lowest motor value
     float   rpy_high = 0.0f;            // highest motor value
-    float   thr_head_room_high = 0.0f;            // highest motor value
-    float   thr_head_room_low = 0.0f;             // lowest motor value
-    float   yaw_allowed;                // amount of yaw we can fit in
     float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
 
     // apply voltage and air pressure compensation
