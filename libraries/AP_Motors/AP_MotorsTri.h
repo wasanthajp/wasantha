@@ -55,7 +55,6 @@ public:
 protected:
     // output - sends commands to the motors
     void                output_armed_stabilizing();
-    void                output_disarmed();
 
     // calc_yaw_radio_output - calculate final radio output for yaw channel
     int16_t             calc_yaw_radio_output(float yaw_input, float yaw_input_max);        // calculate radio output for yaw servo, typically in range of 1100-1900
