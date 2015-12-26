@@ -42,6 +42,7 @@ public:
     // output_min - sends minimum values out to the motors
     virtual void        output_min();
 
+    // output_to_motors - sends minimum values out to the motors
     virtual void        output_to_motors();
 
     // get_motor_mask - returns a bitmask of which outputs are being used for motors or servos (1 means being used)

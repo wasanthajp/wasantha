@@ -53,6 +53,9 @@ public:
     // output - sends commands to the motors
     virtual void        output();
 
+    // output_to_motors - sends commands to the motors
+    virtual void        output_to_motors(){};
+
     // set_yaw_headroom - set yaw headroom (yaw is given at least this amount of pwm)
     void                set_yaw_headroom(int16_t pwm) { _yaw_headroom = pwm; }
 
@@ -102,9 +105,6 @@ public:
 
     void                set_desired_spool_state(enum spool_up_down_desired spool) { _multicopter_flags.spool_desired = spool;}
     void                output_logic();
-
-    // output pwm to motors
-    void                output_to_motors();
 
     // slow_start - set to true to slew motors from current speed to maximum
     // Note: this must be set immediately before a step up in throttle
