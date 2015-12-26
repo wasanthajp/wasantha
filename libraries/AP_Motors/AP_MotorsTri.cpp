@@ -122,28 +122,44 @@ void AP_MotorsTri::output_min()
     hal.rcout->push();
 }
 
-// output_spin_when_armed - sends output to motors when armed but not flying
-void AP_MotorsTri::output_spin_when_armed()
+void AP_MotorsTri::output_to_motors()
 {
-    // send minimum value to each motor
-    hal.rcout->cork();
-    hal.rcout->write(AP_MOTORS_MOT_1, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
-    hal.rcout->write(AP_MOTORS_MOT_2, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
-    hal.rcout->write(AP_MOTORS_MOT_4, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
-    hal.rcout->write(AP_MOTORS_CH_TRI_YAW, _yaw_servo_trim);
-    hal.rcout->push();
-}
+    int8_t i;
 
-// output_flying - set motor output based on thrust requests
-void AP_MotorsTri::output_flying()
-{
-    // send output to each motor
-    hal.rcout->cork();
-    hal.rcout->write(AP_MOTORS_MOT_1, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_1]));
-    hal.rcout->write(AP_MOTORS_MOT_2, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_2]));
-    hal.rcout->write(AP_MOTORS_MOT_4, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_4]));
-    hal.rcout->write(AP_MOTORS_CH_TRI_YAW, calc_yaw_radio_output(_pivot_angle, radians(30.0f)));
-    hal.rcout->push();
+    if (!armed()){
+        _multicopter_flags.spool_mode = SHUT_DOWN;
+    }
+    switch (_multicopter_flags.spool_mode) {
+        case SHUT_DOWN:
+            // sends minimum values out to the motors
+            hal.rcout->cork();
+            hal.rcout->write(AP_MOTORS_MOT_1, _throttle_radio_min);
+            hal.rcout->write(AP_MOTORS_MOT_2, _throttle_radio_min);
+            hal.rcout->write(AP_MOTORS_MOT_4, _throttle_radio_min);
+            hal.rcout->write(AP_MOTORS_CH_TRI_YAW, _yaw_servo_trim);
+            hal.rcout->push();
+            break;
+        case SPIN_WHEN_ARMED:
+            // sends output to motors when armed but not flying
+            hal.rcout->cork();
+            hal.rcout->write(AP_MOTORS_MOT_1, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
+            hal.rcout->write(AP_MOTORS_MOT_2, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
+            hal.rcout->write(AP_MOTORS_MOT_4, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
+            hal.rcout->write(AP_MOTORS_CH_TRI_YAW, _yaw_servo_trim);
+            hal.rcout->push();
+            break;
+        case SPOOL_UP:
+        case THROTTLE_UNLIMITED:
+        case SPOOL_DOWN:
+            // set motor output based on thrust requests
+            hal.rcout->cork();
+            hal.rcout->write(AP_MOTORS_MOT_1, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_1]));
+            hal.rcout->write(AP_MOTORS_MOT_2, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_2]));
+            hal.rcout->write(AP_MOTORS_MOT_4, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_4]));
+            hal.rcout->write(AP_MOTORS_CH_TRI_YAW, calc_yaw_radio_output(_pivot_angle, radians(30.0f)));
+            hal.rcout->push();
+            break;
+    }
 }
 
 // get_motor_mask - returns a bitmask of which outputs are being used for motors or servos (1 means being used)

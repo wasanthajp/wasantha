@@ -42,11 +42,7 @@ public:
     // output_min - sends minimum values out to the motors
     virtual void        output_min();
 
-    // output_spin_when_armed - sends output to motors when armed but not flying
-    virtual void        output_spin_when_armed();
-
-    // output_flying - set motor output based on thrust requests
-    virtual void        output_flying();
+    virtual void        output_to_motors();
 
     // get_motor_mask - returns a bitmask of which outputs are being used for motors or servos (1 means being used)
     //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict

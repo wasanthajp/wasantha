@@ -98,40 +98,6 @@ void AP_MotorsMatrix::output_min()
     hal.rcout->push();
 }
 
-// output_spin_when_armed - sends output to motors when armed but not flying
-void AP_MotorsMatrix::output_spin_when_armed()
-{
-    int8_t i;
-    int16_t motor_out;    // final pwm values sent to the motor
-
-    // send output to each motor
-    hal.rcout->cork();
-    for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
-        if( motor_enabled[i] ) {
-            motor_out = constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle);
-            hal.rcout->write(i, motor_out);
-        }
-    }
-    hal.rcout->push();
-}
-
-// output_flying - set motor output based on thrust requests
-void AP_MotorsMatrix::output_flying()
-{
-    int8_t i;
-    int16_t motor_out;    // final pwm values sent to the motor
-
-    // send output to each motor
-    hal.rcout->cork();
-    for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
-        if( motor_enabled[i] ) {
-            motor_out = calc_thrust_to_pwm(_thrust_rpyt_out[i]);
-            hal.rcout->write(i, motor_out);
-        }
-    }
-    hal.rcout->push();
-}
-
 // get_motor_mask - returns a bitmask of which outputs are being used for motors (1 means being used)
 //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
 uint16_t AP_MotorsMatrix::get_motor_mask()
