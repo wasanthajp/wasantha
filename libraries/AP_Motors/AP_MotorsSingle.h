@@ -52,6 +52,9 @@ public:
     // output_min - sends minimum values out to the motors
     virtual void        output_min();
 
+    // output_to_motors - sends minimum values out to the motors
+    virtual void        output_to_motors();
+
     // get_motor_mask - returns a bitmask of which outputs are being used for motors or servos (1 means being used)
     //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
     virtual uint16_t    get_motor_mask();
@@ -71,6 +74,7 @@ protected:
     RC_Channel&         _servo2;
     RC_Channel&         _servo3;
     RC_Channel&         _servo4;
+    int16_t             _throttle_radio_output;   // total throttle pwm value, summed onto throttle channel minimum, typically ~1100-1900
 };
 
 #endif  // AP_MOTORSSINGLE
