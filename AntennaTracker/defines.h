@@ -26,5 +26,16 @@ enum ServoType {
     SERVO_TYPE_CR=2
 };
 
+//  Logging parameters
+#define LOG_STARTUP_MSG                 0x0A
+
+#define MASK_LOG_ATTITUDE               (1<<0)
+#define MASK_LOG_GPS                    (1<<1)
+#define MASK_LOG_RCIN                   (1<<2)
+#define MASK_LOG_IMU                    (1<<3)
+#define MASK_LOG_RCOUT                  (1<<4)
+#define MASK_LOG_COMPASS                (1<<5)
+#define MASK_LOG_ANY                    0xFFFF
+
 #endif // _DEFINES_H
 
