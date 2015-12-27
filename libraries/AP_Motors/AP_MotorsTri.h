@@ -65,6 +65,7 @@ protected:
     AP_Int16        _yaw_servo_min;                     // Minimum angle limit of yaw servo
     AP_Int16        _yaw_servo_max;                     // Maximum angle limit of yaw servo
     float           _pivot_angle;                       // Angle of yaw pivot
+    float           _thrust_rpyt_out[AP_MOTORS_MAX_NUM_MOTORS]; // combined roll, pitch, yaw and throttle outputs to motors in 0~1 range
 };
 
 #endif  // AP_MOTORSTRI

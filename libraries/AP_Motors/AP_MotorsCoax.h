@@ -71,6 +71,7 @@ protected:
     AP_Int16            _servo_speed;   // servo speed
     RC_Channel&         _servo1;
     RC_Channel&         _servo2;
+    float               _thrust_rpyt_out[AP_MOTORS_MAX_NUM_MOTORS]; // combined roll, pitch, yaw and throttle outputs to motors in 0~1 range
 };
 
 #endif  // AP_MOTORSCOAX
