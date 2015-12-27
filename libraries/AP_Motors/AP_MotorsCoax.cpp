@@ -119,19 +119,50 @@ void AP_MotorsCoax::output_min()
     hal.rcout->push();
 }
 
+void AP_MotorsCoax::output_to_motors()
+{
+    if (!armed()){
+        _multicopter_flags.spool_mode = SHUT_DOWN;
+    }
+    switch (_multicopter_flags.spool_mode) {
+        case SHUT_DOWN:
+            // sends minimum values out to the motors
+            hal.rcout->cork();
+            hal.rcout->write(AP_MOTORS_MOT_1, _servo1.radio_trim);
+            hal.rcout->write(AP_MOTORS_MOT_2, _servo2.radio_trim);
+            hal.rcout->write(AP_MOTORS_MOT_3, _throttle_radio_min);
+            hal.rcout->write(AP_MOTORS_MOT_4, _throttle_radio_min);
+            hal.rcout->push();
+            break;
+        case SPIN_WHEN_ARMED:
+            // sends output to motors when armed but not flying
+            hal.rcout->cork();
+            hal.rcout->write(AP_MOTORS_MOT_1, _servo1.radio_out);
+            hal.rcout->write(AP_MOTORS_MOT_2, _servo2.radio_out);
+            hal.rcout->write(AP_MOTORS_MOT_3, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
+            hal.rcout->write(AP_MOTORS_MOT_4, constrain_int16(_throttle_radio_min + _throttle_low_end_pct * _min_throttle, _throttle_radio_min, _throttle_radio_min + _min_throttle));
+            hal.rcout->push();
+            break;
+        case SPOOL_UP:
+        case THROTTLE_UNLIMITED:
+        case SPOOL_DOWN:
+            // set motor output based on thrust requests
+            hal.rcout->cork();
+            hal.rcout->write(AP_MOTORS_MOT_1, _servo1.radio_out);
+            hal.rcout->write(AP_MOTORS_MOT_2, _servo2.radio_out);
+            hal.rcout->write(AP_MOTORS_MOT_3, _thrust_rpyt_out[AP_MOTORS_MOT_3]);
+            hal.rcout->write(AP_MOTORS_MOT_4, _thrust_rpyt_out[AP_MOTORS_MOT_4]);
+            hal.rcout->push();
+            break;
+    }
+}
+
 // sends commands to the motors
 void AP_MotorsCoax::output_armed_stabilizing()
 {
     int16_t yaw_pwm;                                                // yaw pwm value, initially calculated by calc_yaw_pwm() but may be modified after, +/- 400
     int16_t throttle_radio_output;                                  // total throttle pwm value, summed onto throttle channel minimum, typically ~1100-1900
     int16_t out_min = _throttle_radio_min + _min_throttle;
-    int16_t motor_out[4];
-
-    // initialize limits flags
-    limit.roll_pitch = false;
-    limit.yaw = false;
-    limit.throttle_lower = false;
-    limit.throttle_upper = false;
 
     int16_t thr_in_min = rel_pwm_to_thr_range(_min_throttle);
     if (_throttle_control_input <= thr_in_min) {
@@ -148,8 +179,8 @@ void AP_MotorsCoax::output_armed_stabilizing()
     yaw_pwm = calc_yaw_pwm();
 
     // motors
-    motor_out[AP_MOTORS_MOT_3] = _rev_yaw*yaw_pwm + throttle_radio_output;
-    motor_out[AP_MOTORS_MOT_4] = -_rev_yaw*yaw_pwm + throttle_radio_output;
+    _thrust_rpyt_out[AP_MOTORS_MOT_3] = _rev_yaw*yaw_pwm + throttle_radio_output;
+    _thrust_rpyt_out[AP_MOTORS_MOT_4] = -_rev_yaw*yaw_pwm + throttle_radio_output;
 
     // TODO: set limits.roll_pitch and limits.yaw
 
@@ -162,20 +193,12 @@ void AP_MotorsCoax::output_armed_stabilizing()
     _servo2.calc_pwm();
 
     // adjust for thrust curve and voltage scaling
-    motor_out[AP_MOTORS_MOT_3] = apply_thrust_curve_and_volt_scaling_pwm(motor_out[AP_MOTORS_MOT_3], out_min, _throttle_radio_max);
-    motor_out[AP_MOTORS_MOT_4] = apply_thrust_curve_and_volt_scaling_pwm(motor_out[AP_MOTORS_MOT_4], out_min, _throttle_radio_max);
+    _thrust_rpyt_out[AP_MOTORS_MOT_3] = apply_thrust_curve_and_volt_scaling_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_3], out_min, _throttle_radio_max);
+    _thrust_rpyt_out[AP_MOTORS_MOT_4] = apply_thrust_curve_and_volt_scaling_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_4], out_min, _throttle_radio_max);
 
     // ensure motors don't drop below a minimum value and stop
-    motor_out[AP_MOTORS_MOT_3] = MAX(motor_out[AP_MOTORS_MOT_3],    out_min);
-    motor_out[AP_MOTORS_MOT_4] = MAX(motor_out[AP_MOTORS_MOT_4],    out_min);
-
-    // send output to each motor
-    hal.rcout->cork();
-    hal.rcout->write(AP_MOTORS_MOT_1, _servo1.radio_out);
-    hal.rcout->write(AP_MOTORS_MOT_2, _servo2.radio_out);
-    hal.rcout->write(AP_MOTORS_MOT_3, motor_out[AP_MOTORS_MOT_3]);
-    hal.rcout->write(AP_MOTORS_MOT_4, motor_out[AP_MOTORS_MOT_4]);
-    hal.rcout->push();
+    _thrust_rpyt_out[AP_MOTORS_MOT_3] = MAX(_thrust_rpyt_out[AP_MOTORS_MOT_3],    out_min);
+    _thrust_rpyt_out[AP_MOTORS_MOT_4] = MAX(_thrust_rpyt_out[AP_MOTORS_MOT_4],    out_min);
 }
 
 // output_test - spin a motor at the pwm value specified
