@@ -43,8 +43,10 @@ const AP_Scheduler::Task Tracker::scheduler_tasks[] = {
     SCHED_TASK(update_barometer,        5,   1500),
     SCHED_TASK(compass_accumulate,      1,   1500),
     SCHED_TASK(barometer_accumulate,    1,    900),
+    SCHED_TASK(ten_hz_logging_loop,     5,    300),
     SCHED_TASK(gcs_update,              1,   1700),
     SCHED_TASK(gcs_data_stream_send,    1,   3000),
+    SCHED_TASK(dataflash_periodic,      1,    300),
     SCHED_TASK(update_notify,           1,    100),
     SCHED_TASK(check_usb_mux,           5,    300),
     SCHED_TASK(gcs_retry_deferred,      1,   1000),
@@ -88,6 +90,11 @@ void Tracker::loop()
     scheduler.run(19900UL);
 }
 
+void Tracker::dataflash_periodic(void)
+{
+    DataFlash.periodic_tasks();
+}
+
 void Tracker::one_second_loop()
 {
     // send a heartbeat
@@ -109,6 +116,23 @@ void Tracker::one_second_loop()
             compass.save_offsets();
         }
         one_second_counter = 0;
+    }
+}
+
+void Tracker::ten_hz_logging_loop()
+{
+    if (should_log(MASK_LOG_IMU)) {
+        DataFlash.Log_Write_IMU(ins);
+        DataFlash.Log_Write_IMUDT(ins);
+    }
+    if (should_log(MASK_LOG_ATTITUDE)) {
+        Log_Write_Attitude();
+    }
+    if (should_log(MASK_LOG_RCIN)) {
+        DataFlash.Log_Write_RCIN();
+    }
+    if (should_log(MASK_LOG_RCOUT)) {
+        DataFlash.Log_Write_RCOUT();
     }
 }
 
