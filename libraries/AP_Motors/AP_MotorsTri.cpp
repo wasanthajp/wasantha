@@ -124,8 +124,6 @@ void AP_MotorsTri::output_min()
 
 void AP_MotorsTri::output_to_motors()
 {
-    int8_t i;
-
     if (!armed()){
         _multicopter_flags.spool_mode = SHUT_DOWN;
     }
