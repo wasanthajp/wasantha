@@ -462,7 +462,7 @@ public:
 
 #if FRAME_CONFIG ==     COAX_FRAME
     // Coax copter flaps
-    RC_Channel      single_servo_1, single_servo_2; // servos for two flaps
+    RC_Channel      single_servo_1, single_servo_2, single_servo_3, single_servo_4;     // servos for four flaps
 #endif
 
     // RC channels
@@ -538,6 +538,8 @@ public:
 #if FRAME_CONFIG ==     COAX_FRAME
         single_servo_1        (CH_1),
         single_servo_2        (CH_2),
+        single_servo_3        (CH_3),
+        single_servo_4        (CH_4),
 #endif
 
         rc_1                (CH_1),
