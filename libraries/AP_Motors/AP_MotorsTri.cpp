@@ -38,7 +38,7 @@ const AP_Param::GroupInfo AP_MotorsTri::var_info[] = {
     // @Description: Yaw servo reversing. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel.
     // @Values: -1:Reversed,1:Normal
     // @User: Standard
-    AP_GROUPINFO("YAW_SV_REV", 31,     AP_MotorsTri,  _yaw_servo_reverse, 1),
+    AP_GROUPINFO("YAW_SV_REV", 31,     AP_MotorsTri,  _yaw_reverse, 1),
 
     // @Param: YAW_SV_TRIM
     // @DisplayName: Yaw Servo Trim/Center
@@ -154,7 +154,7 @@ void AP_MotorsTri::output_to_motors()
             hal.rcout->write(AP_MOTORS_MOT_1, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_1]));
             hal.rcout->write(AP_MOTORS_MOT_2, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_2]));
             hal.rcout->write(AP_MOTORS_MOT_4, calc_thrust_to_pwm(_thrust_rpyt_out[AP_MOTORS_MOT_4]));
-            hal.rcout->write(AP_MOTORS_CH_TRI_YAW, calc_yaw_radio_output(_pivot_angle, radians(30.0f)));
+            hal.rcout->write(AP_MOTORS_CH_TRI_YAW, calc_yaw_radio_output(_pivot_angle, _pivot_angle_max));
             hal.rcout->push();
             break;
     }
@@ -191,8 +191,8 @@ void AP_MotorsTri::output_armed_stabilizing()
     pitch_thrust = get_pitch_thrust() * get_compensation_gain();
     yaw_thrust = get_yaw_thrust() * get_compensation_gain();
     throttle_thrust = get_throttle_thrust() * get_compensation_gain();
-    float pivot_angle_max = asin(yaw_thrust);
-    float pivot_thrust_max = cos(pivot_angle_max);
+    float pivot_angle_request_max = asin(yaw_thrust);
+    float pivot_thrust_max = cosf(pivot_angle_request_max);
     float thrust_max = 1.0f;
 
     // sanity check throttle is above zero and below current limited throttle
@@ -241,53 +241,29 @@ void AP_MotorsTri::output_armed_stabilizing()
     float throttle_thrust_hover = get_hover_throttle_as_high_end_pct();
     throttle_thrust_best_rpy = MIN(0.5f*thrust_max - (rpy_low+rpy_high)/2.0, MAX(throttle_thrust, throttle_thrust*MAX(0.0f,1.0f-_throttle_rpy_mix)+throttle_thrust_hover*_throttle_rpy_mix));
 
-    // check everything fits
+    rpy_scale = constrain_float(MIN(-throttle_thrust_best_rpy/rpy_low, (1.0f - throttle_thrust_best_rpy)/rpy_high), 0.0f, 1.0f);
+
     thr_adj = throttle_thrust - throttle_thrust_best_rpy;
-
-    // calculate upper and lower limits of thr_adj
-    float thr_adj_max = MAX(thrust_max-(throttle_thrust_best_rpy+rpy_high),0.0f);
-
-    // if we are increasing the throttle (situation #2 above)..
-    if (thr_adj > 0.0f) {
-        // increase throttle as close as possible to requested throttle
-        // without going over 1.0f
-        if (thr_adj > thr_adj_max){
-            thr_adj = thr_adj_max;
-            // we haven't even been able to apply full throttle command
-            limit.throttle_upper = true;
-        }
-    }else if(thr_adj < 0){
-        // decrease throttle as close as possible to requested throttle
-        // without going under 0.0f or over 1.0f
-        // earlier code ensures we can't break both boundaries
-        float thr_adj_min = MIN(-(throttle_thrust_best_rpy+rpy_low),0.0f);
-        if (thr_adj > thr_adj_max) {
-            thr_adj = thr_adj_max;
-            limit.throttle_upper = true;
-        }
-        if (thr_adj < thr_adj_min) {
-            thr_adj = thr_adj_min;
-        }
-    }
-
-    // do we need to reduce roll, pitch, yaw command
-    // earlier code does not allow both limit's to be passed simultaneously with abs(_yaw_factor)<1
-    if ((rpy_low+throttle_thrust_best_rpy)+thr_adj < 0.0f){
-        // protect against divide by zero
-        if (!is_zero(rpy_low)) {
-            rpy_scale = -(thr_adj+throttle_thrust_best_rpy)/rpy_low;
-        }
-        // we haven't even been able to apply full roll, pitch and minimal yaw without scaling
+    if(rpy_scale < 1.0f){
+        // Full range is being used by roll, pitch, and yaw.
         limit.roll_pitch = true;
         limit.yaw = true;
-    }else if((rpy_high+throttle_thrust_best_rpy)+thr_adj > 1.0f){
-        // protect against divide by zero
-        if (!is_zero(rpy_high)) {
-            rpy_scale = (1.0f-thr_adj-throttle_thrust_best_rpy)/rpy_high;
+        if(thr_adj < 0.0f){
+            limit.throttle_lower = true;
+        }else if(thr_adj > 0.0f){
+            limit.throttle_upper = true;
         }
-        // we haven't even been able to apply full roll, pitch and minimal yaw without scaling
-        limit.roll_pitch = true;
-        limit.yaw = true;
+        thr_adj = 0.0f;
+    }else{
+        if(thr_adj < -(throttle_thrust_best_rpy+rpy_low)){
+            // Throttle can't be reduced to desired value
+            thr_adj = -(throttle_thrust_best_rpy+rpy_low);
+            limit.throttle_lower = true;
+        }else if(thr_adj > 1.0f - (throttle_thrust_best_rpy+rpy_high)){
+            // Throttle can't be increased to desired value
+            thr_adj = 1.0f - (throttle_thrust_best_rpy+rpy_high);
+            limit.throttle_upper = true;
+        }
     }
 
     // add scaled roll, pitch, constrained yaw and throttle for each motor
@@ -298,7 +274,7 @@ void AP_MotorsTri::output_armed_stabilizing()
     // calculate angle of yaw pivot
     _pivot_angle = atan(yaw_thrust/_thrust_rpyt_out[AP_MOTORS_MOT_4]);
     // scale pivot thrust to account for pivot angle
-    _thrust_rpyt_out[AP_MOTORS_MOT_4] = _thrust_rpyt_out[AP_MOTORS_MOT_4]/cos(_pivot_angle);
+    _thrust_rpyt_out[AP_MOTORS_MOT_4] = _thrust_rpyt_out[AP_MOTORS_MOT_4]/cosf(_pivot_angle);
 }
 
 // output_test - spin a motor at the pwm value specified
@@ -339,19 +315,10 @@ void AP_MotorsTri::output_test(uint8_t motor_seq, int16_t pwm)
 int16_t AP_MotorsTri::calc_yaw_radio_output(float yaw_input, float yaw_input_max)
 {
     int16_t ret;
-
-    if (_yaw_servo_reverse < 0) {
-        if (yaw_input >= 0){
-            ret = (_yaw_servo_trim - (yaw_input/yaw_input_max * (_yaw_servo_trim - _yaw_servo_min)));
-        } else {
-            ret = (_yaw_servo_trim - (yaw_input/yaw_input_max * (_yaw_servo_max - _yaw_servo_trim)));
-        }
+    if (yaw_input >= 0){
+        ret = (_yaw_servo_trim + (yaw_input/yaw_input_max * (_yaw_servo_max - _yaw_servo_trim)));
     } else {
-        if (yaw_input >= 0){
-            ret = ((yaw_input/yaw_input_max * (_yaw_servo_max - _yaw_servo_trim)) + _yaw_servo_trim);
-        } else {
-            ret = ((yaw_input/yaw_input_max * (_yaw_servo_trim - _yaw_servo_min)) + _yaw_servo_trim);
-        }
+        ret = (_yaw_servo_trim + (yaw_input/yaw_input_max * (_yaw_servo_trim - _yaw_servo_min)));
     }
 
     return ret;
