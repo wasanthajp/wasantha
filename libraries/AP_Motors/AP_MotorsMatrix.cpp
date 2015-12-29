@@ -198,8 +198,8 @@ void AP_MotorsMatrix::output_armed_stabilizing()
 
     throttle_thrust_rpy_mix = MAX(throttle_thrust, throttle_thrust*MAX(0.0f,1.0f-_throttle_rpy_mix)+throttle_thrust_hover*_throttle_rpy_mix);
 
-    // calculate throttle that gives most possible room for yaw (range 1000 ~ 2000) which is the lower of:
-    //      1. 0.5f - (rpy_low+rpy_high)/2.0 - this would give the maximum possible room margin above the highest motor and below the lowest
+    // calculate throttle that gives most possible room for yaw which is the lower of:
+    //      1. 0.5f - (rpy_low+rpy_high)/2.0 - this would give the maximum possible margin above the highest motor and below the lowest
     //      2. the higher of:
     //            a) the pilot's throttle input
     //            b) the point _throttle_rpy_mix between the pilot's input throttle and hover-throttle
@@ -207,7 +207,6 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     //      Situation #2b allows us to raise the throttle above what the pilot commanded but not so far that it would actually cause the copter to rise.
     //      We will choose #1 (the best throttle for yaw control) if that means reducing throttle to the motors (i.e. we favour reducing throttle *because* it provides better yaw control)
     //      We will choose #2 (a mix of pilot and hover throttle) only when the throttle is quite low.  We favour reducing throttle instead of better yaw control because the pilot has commanded it
-
 
     // calculate amount of yaw we can fit into the throttle range
     // this is always equal to or less than the requested yaw from the pilot or rate controller
@@ -221,12 +220,12 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             _thrust_rpyt_out[i] = roll_thrust * _roll_factor[i] + pitch_thrust * _pitch_factor[i];
             if(!is_zero(_yaw_factor[i])){
                 if (yaw_thrust * _yaw_factor[i] > 0.0f) {
-                    unused_range = fabs((1.0 - (throttle_thrust_best_rpy + _thrust_rpyt_out[i]))/_yaw_factor[i]);
+                    unused_range = fabsf((1.0 - (throttle_thrust_best_rpy + _thrust_rpyt_out[i]))/_yaw_factor[i]);
                     if (yaw_allowed > unused_range) {
                         yaw_allowed = unused_range;
                     }
                 }else{
-                    unused_range = fabs((throttle_thrust_best_rpy + _thrust_rpyt_out[i])/_yaw_factor[i]);
+                    unused_range = fabsf((throttle_thrust_best_rpy + _thrust_rpyt_out[i])/_yaw_factor[i]);
                     if (yaw_allowed > unused_range) {
                         yaw_allowed = unused_range;
                     }
@@ -234,21 +233,12 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             }
         }
     }
+
     yaw_allowed = MAX(yaw_allowed, (float)_yaw_headroom/1000.0f);
 
-    if (yaw_thrust > 0.0f) {
-        // if yawing right
-        if (yaw_allowed < yaw_thrust) {
-            yaw_thrust = yaw_allowed;
-            limit.yaw = true;
-        }
-    }else{
-        // if yawing left
-        yaw_allowed = -yaw_allowed;
-        if (yaw_allowed > yaw_thrust) {
-            yaw_thrust = yaw_allowed;
-            limit.yaw = true;
-        }
+    if(fabsf(yaw_thrust) > yaw_allowed){
+        yaw_thrust = constrain_float(yaw_thrust, -yaw_allowed, yaw_allowed);
+        limit.yaw = true;
     }
 
     // add yaw to intermediate numbers for each motor
@@ -299,7 +289,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     // add scaled roll, pitch, constrained yaw and throttle for each motor
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
-            _thrust_rpyt_out[i] = throttle_thrust_best_rpy+thr_adj + rpy_scale*_thrust_rpyt_out[i];
+            _thrust_rpyt_out[i] = throttle_thrust_best_rpy + thr_adj + rpy_scale*_thrust_rpyt_out[i];
         }
     }
 }
