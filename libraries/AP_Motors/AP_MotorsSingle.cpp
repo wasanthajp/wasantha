@@ -186,18 +186,18 @@ uint16_t AP_MotorsSingle::get_motor_mask()
 void AP_MotorsSingle::output_armed_stabilizing()
 {
     uint8_t i;                          // general purpose counter
-    float   roll_thrust;                // roll thrust value, initially calculated by calcroll_thrust() but may be modified after, +/- 1.0
-    float   pitch_thrust;               // pitch thrust value, initially calculated by calcroll_thrust() but may be modified after, +/- 1.0
-    float   yaw_thrust;                 // yaw thrust value, initially calculated by calc_yaw_thrust() but may be modified after, +/- 1.0
+    float   roll_thrust;                // roll thrust input value, +/- 1.0
+    float   pitch_thrust;               // pitch thrust input value, +/- 1.0
+    float   yaw_thrust;                 // yaw thrust input value, +/- 1.0
+    float   throttle_thrust;            // throttle thrust input value, 0.0 - 1.0
+    float   thrust_min_rp;              // the minimum throttle setting that will not limit the roll and pitch output
+    float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
+    float   throttle_thrust_hover = get_hover_throttle_as_high_end_pct();   // throttle hover thrust value, 0.0 - 1.0
+    float   throttle_thrust_rpy_mix;    // partial calculation of throttle_thrust_best_rpy
     float   rpy_scale = 1.0f;           // this is used to scale the roll, pitch and yaw to fit within the motor limits
-    float   actuator_allowed = 0.0f;         // amount of yaw we can fit in
-    float   actuator_max = 0;
-    float   throttle_thrust;            // throttle thrust value, summed onto throttle channel minimum, 0.0 - 1.0
-    float   thrust_min_rp;              // throttle thrust value, summed onto throttle channel minimum, 0.0 - 1.0
-    float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_rpy_mix
-    float   throttle_thrust_hover = get_hover_throttle_as_high_end_pct();
-    float   throttle_thrust_rpy_mix;   // throttle providing maximum roll, pitch and yaw range without climbing
-    float   actuator[NUM_ACTUATORS];
+    float   actuator_allowed = 0.0f;    // amount of yaw we can fit in
+    float   actuator[NUM_ACTUATORS];    // combined roll, pitch and yaw thrusts for each actuator
+    float   actuator_max = 0.0f;        // maximum actuator value
 
     // apply voltage and air pressure compensation
     // todo: we shouldn't need input reversing with servo reversing
@@ -205,8 +205,6 @@ void AP_MotorsSingle::output_armed_stabilizing()
     pitch_thrust = _pitch_reverse * get_pitch_thrust() * get_compensation_gain();
     yaw_thrust = _yaw_reverse * get_yaw_thrust() * get_compensation_gain();
     throttle_thrust = get_throttle_thrust() * get_compensation_gain();
-
-    thrust_min_rp = MIN((roll_thrust),pitch_thrust);
 
     // sanity check throttle is above zero and below current limited throttle
     if (throttle_thrust <= 0.0f) {
@@ -220,7 +218,8 @@ void AP_MotorsSingle::output_armed_stabilizing()
     }
     throttle_thrust_rpy_mix = MAX(throttle_thrust, throttle_thrust*MAX(0.0f,1.0f-_throttle_rpy_mix)+throttle_thrust_hover*_throttle_rpy_mix);
 
-    rpy_scale = (1.0f - MIN((yaw_thrust), (float)_yaw_headroom/1000.0f)) / MAX((roll_thrust), (pitch_thrust));
+    // calculate how much roll and pitch must be scaled to leave enough range for the minimum yaw
+    rpy_scale = (1.0f - MIN(yaw_thrust, (float)_yaw_headroom/1000.0f)) / MAX(roll_thrust, pitch_thrust);
     if(rpy_scale < 1.0f){
         limit.roll_pitch = true;
     }else{
@@ -232,6 +231,7 @@ void AP_MotorsSingle::output_armed_stabilizing()
         limit.yaw = true;
     }
 
+    // combine roll, pitch and yaw on each actuator
     // front servo
     actuator[0] = rpy_scale * roll_thrust + yaw_thrust;
     // right servo
@@ -241,6 +241,7 @@ void AP_MotorsSingle::output_armed_stabilizing()
     // left servo
     actuator[3] = -rpy_scale * pitch_thrust + yaw_thrust;
 
+    // calculate the minimum thrust that doesn't limit the roll, pitch and yaw forces
     thrust_min_rp = MAX(MAX((actuator[1]), (actuator[2])), MAX((actuator[3]), (actuator[4])));
 
     thr_adj = throttle_thrust - throttle_thrust_rpy_mix;
@@ -256,6 +257,7 @@ void AP_MotorsSingle::output_armed_stabilizing()
         }
     }
 
+    // calculate the throttle setting for the lift fan
     _thrust_out = throttle_thrust_rpy_mix + thr_adj;
 
     if(is_zero((throttle_thrust_rpy_mix + thr_adj))){
@@ -271,6 +273,7 @@ void AP_MotorsSingle::output_armed_stabilizing()
             }
         }
     }else{
+        // calculate the maximum allowed actuator output and maximum requested actuator output
         actuator_allowed = (throttle_thrust_rpy_mix + thr_adj);
         for (i=0; i<NUM_ACTUATORS; i++) {
             if(actuator_max > (actuator[i])){
@@ -278,6 +281,8 @@ void AP_MotorsSingle::output_armed_stabilizing()
             }
         }
         if(actuator_max > actuator_allowed){
+            // roll, pitch and yaw request can not be achieved at full servo defection
+            // reduce roll, pitch and yaw to reduce the requested defection to maximum
             limit.roll_pitch = true;
             limit.yaw = true;
             rpy_scale = actuator_allowed/actuator_max;
