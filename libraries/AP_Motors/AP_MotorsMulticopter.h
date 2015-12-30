@@ -182,7 +182,7 @@ protected:
     float               spin_when_armed_low_end_pct() { return (float)_spin_when_armed.get() / _min_throttle; }
 
     // spin when armed as a percentage of the 0~1 range from 0 to throttle_min
-    void               set_radio_passthrough() { float radio_roll_input, float radio_pitch_input, float radio_throttle_input, float radio_yaw_input }
+    void               set_radio_passthrough(float radio_roll_input, float radio_pitch_input, float radio_throttle_input, float radio_yaw_input);
 
     // flag bitmask
     struct {

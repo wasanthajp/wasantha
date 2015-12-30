@@ -173,7 +173,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     float   rpy_scale = 1.0f;           // this is used to scale the roll, pitch and yaw to fit within the motor limits
     float   rpy_low = 0.0f;             // lowest motor value
     float   rpy_high = 0.0f;            // highest motor value
-    float   yaw_allowed = 0.0f;         // amount of yaw we can fit in
+    float   yaw_allowed = 1.0f;         // amount of yaw we can fit in
     float   unused_range;               // amount of yaw we can fit in the current channel
     float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
     float   throttle_thrust_hover = get_hover_throttle_as_high_end_pct();
@@ -261,7 +261,11 @@ void AP_MotorsMatrix::output_armed_stabilizing()
 
     // check everything fits
     throttle_thrust_best_rpy = MIN(0.5f - (rpy_low+rpy_high)/2.0, throttle_thrust_rpy_mix);
-    rpy_scale = constrain_float(MIN(-throttle_thrust_best_rpy/rpy_low, (1.0f - throttle_thrust_best_rpy)/rpy_high), 0.0f, 1.0f);
+    if(is_zero(rpy_low)){
+        rpy_scale = 0.1f;
+    } else {
+        rpy_scale = constrain_float(-throttle_thrust_best_rpy/rpy_low, 0.0f, 1.0f);
+    }
 
     thr_adj = throttle_thrust - throttle_thrust_best_rpy;
     if(rpy_scale < 1.0f){
