@@ -100,8 +100,8 @@ protected:
     AP_Int16            _servo_4_max;       // Maximum angle limit of pitch servo
 
     float               _actuator_out[NUM_ACTUATORS]; // combined roll, pitch, yaw and throttle outputs to motors in 0~1 range
-    float               _thrust_yt_1;
-    float               _thrust_yt_2;
+    float               _thrust_yt_ccw;
+    float               _thrust_yt_cw;
 };
 
 #endif  // AP_MOTORSCOAX

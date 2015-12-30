@@ -167,8 +167,8 @@ void AP_MotorsCoax::output_to_motors()
             hal.rcout->write(AP_MOTORS_MOT_2, calc_pivot_radio_output(_actuator_out[1]*_servo_2_reverse, _servo_2_min, _servo_2_trim, _servo_2_max));
             hal.rcout->write(AP_MOTORS_MOT_3, calc_pivot_radio_output(_actuator_out[2]*_servo_3_reverse, _servo_3_min, _servo_3_trim, _servo_3_max));
             hal.rcout->write(AP_MOTORS_MOT_4, calc_pivot_radio_output(_actuator_out[3]*_servo_4_reverse, _servo_4_min, _servo_4_trim, _servo_4_max));
-            hal.rcout->write(AP_MOTORS_MOT_5, calc_thrust_to_pwm(_thrust_yt_1));
-            hal.rcout->write(AP_MOTORS_MOT_6, calc_thrust_to_pwm(_thrust_yt_2));
+            hal.rcout->write(AP_MOTORS_MOT_5, calc_thrust_to_pwm(_thrust_yt_ccw));
+            hal.rcout->write(AP_MOTORS_MOT_6, calc_thrust_to_pwm(_thrust_yt_cw));
             hal.rcout->push();
             break;
     }
@@ -185,16 +185,16 @@ uint16_t AP_MotorsCoax::get_motor_mask()
 // sends commands to the motors
 void AP_MotorsCoax::output_armed_stabilizing()
 {
-    float   roll_thrust;                // roll thrust value, initially calculated by calc_roll_thrust() but may be modified after, +/- 1.0
-    float   pitch_thrust;               // pitch thrust value, initially calculated by calc_roll_thrust() but may be modified after, +/- 1.0
-    float   yaw_thrust;                 // yaw thrust value, initially calculated by calc_yaw_thrust() but may be modified after, +/- 1.0
-    float   y_scale = 1.0f;           // this is used to scale the roll, pitch and yaw to fit within the motor limits
-    float   throttle_thrust;            // throttle thrust value, summed onto throttle channel minimum, 0.0 - 1.0
-    float   thrust_min_rp;              // throttle thrust value, summed onto throttle channel minimum, 0.0 - 1.0
+    float   roll_thrust;                // roll thrust input value, +/- 1.0
+    float   pitch_thrust;               // pitch thrust input value, +/- 1.0
+    float   yaw_thrust;                 // yaw thrust input value, +/- 1.0
+    float   throttle_thrust;            // throttle thrust input value, 0.0 - 1.0
+    float   thrust_min_rp;              // the minimum throttle setting that will not limit the roll and pitch output
     float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
-    float   throttle_thrust_hover = get_hover_throttle_as_high_end_pct();
-    float   throttle_thrust_rpy_mix;
+    float   throttle_thrust_hover = get_hover_throttle_as_high_end_pct();   // throttle hover thrust value, 0.0 - 1.0
     float   throttle_thrust_best_rpy;   // throttle providing maximum roll, pitch and yaw range without climbing
+    float   throttle_thrust_rpy_mix;    // partial calculation of throttle_thrust_best_rpy
+    float   y_scale;                    // this is used to scale the yaw to fit within the motor limits
 
     // apply voltage and air pressure compensation
     // todo: we shouldn't need input reversing with servo reversing
@@ -203,6 +203,7 @@ void AP_MotorsCoax::output_armed_stabilizing()
     yaw_thrust = _yaw_reverse * get_yaw_thrust() * get_compensation_gain();
     throttle_thrust = get_throttle_thrust() * get_compensation_gain();
 
+    // assuming maximum actuator defection the maximum roll and pitch torque is approximately proportional to thrust
     thrust_min_rp = MAX(fabsf(roll_thrust), fabsf(pitch_thrust));
 
     // sanity check throttle is above zero and below current limited throttle
@@ -249,8 +250,8 @@ void AP_MotorsCoax::output_armed_stabilizing()
         }
     }
 
-    _thrust_yt_1 = throttle_thrust_best_rpy + thr_adj + 0.5f * y_scale *_thrust_yt_1;
-    _thrust_yt_2 = throttle_thrust_best_rpy + thr_adj - 0.5f * y_scale *_thrust_yt_2;
+    _thrust_yt_ccw = throttle_thrust_best_rpy + thr_adj + 0.5f * y_scale *_thrust_yt_ccw;
+    _thrust_yt_cw = throttle_thrust_best_rpy + thr_adj - 0.5f * y_scale *_thrust_yt_cw;
 
     if(is_zero((throttle_thrust_best_rpy + thr_adj))){
         limit.roll_pitch = true;
@@ -269,18 +270,20 @@ void AP_MotorsCoax::output_armed_stabilizing()
             _actuator_out[1] = 0.0f;
         }
     }else{
-        if(fabsf(roll_thrust/(throttle_thrust_best_rpy + thr_adj)) > 1.0f){
-            limit.roll_pitch = true;
-        }
-        if(fabsf(pitch_thrust/(throttle_thrust_best_rpy + thr_adj)) > 1.0f){
-            limit.roll_pitch = true;
-        }
         // force of a lifting surface is approximately equal to the angle of attack times the airflow velocity squared
         // static thrust is proportional to the airflow velocity squared
         // therefore the torque of the roll and pitch actuators should be approximately proportional to
         // the angle of attack multiplied by the static thrust.
-        _actuator_out[0] = constrain_float(roll_thrust/(throttle_thrust_best_rpy + thr_adj), -1.0f, 1.0f);
-        _actuator_out[1] = constrain_float(pitch_thrust/(throttle_thrust_best_rpy + thr_adj), -1.0f, 1.0f);
+        _actuator_out[0] = roll_thrust/(throttle_thrust_best_rpy + thr_adj);
+        _actuator_out[1] = pitch_thrust/(throttle_thrust_best_rpy + thr_adj);
+        if(fabsf(_actuator_out[0]) > 1.0f){
+            limit.roll_pitch = true;
+            _actuator_out[0] = constrain_float(_actuator_out[0], -1.0f, 1.0f);
+        }
+        if(fabsf(_actuator_out[1]) > 1.0f){
+            limit.roll_pitch = true;
+            _actuator_out[1] = constrain_float(_actuator_out[1], -1.0f, 1.0f);
+        }
     }
     _actuator_out[2] = _actuator_out[0];
     _actuator_out[3] = _actuator_out[1];
