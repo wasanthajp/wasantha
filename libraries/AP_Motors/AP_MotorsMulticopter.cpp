@@ -402,6 +402,9 @@ void AP_MotorsMulticopter::output_logic()
 {
     switch (_multicopter_flags.spool_mode) {
         case SHUT_DOWN:
+            // Motors should be stationary.
+            // Servos set to their trim values or in a test condition.
+
             // set limits flags
             limit.roll_pitch = true;
             limit.yaw = true;
@@ -422,6 +425,9 @@ void AP_MotorsMulticopter::output_logic()
             break;
 
         case SPIN_WHEN_ARMED:{
+            // Motors should be stationary or at spin when armed.
+            // Servoes should be moving to correct the current attitude.
+
             // set limits flags
             limit.roll_pitch = true;
             limit.yaw = true;
@@ -452,6 +458,9 @@ void AP_MotorsMulticopter::output_logic()
             break;
         }
         case SPOOL_UP:
+            // Maximum throttle should move from minimum to maximum.
+            // Servoes should exhibit normal flight behavior.
+
             // initialize limits flags
             limit.roll_pitch = false;
             limit.yaw = false;
@@ -480,6 +489,9 @@ void AP_MotorsMulticopter::output_logic()
             break;
 
         case THROTTLE_UNLIMITED:
+            // Throttle should exhibit normal flight behavior.
+            // Servoes should exhibit normal flight behavior.
+
             // initialize limits flags
             limit.roll_pitch = false;
             limit.yaw = false;
@@ -499,6 +511,9 @@ void AP_MotorsMulticopter::output_logic()
             break;
 
         case SPOOL_DOWN:
+            // Maximum throttle should move from maximum to minimum.
+            // Servoes should exhibit normal flight behavior.
+
             // initialize limits flags
             limit.roll_pitch = false;
             limit.yaw = false;
@@ -558,4 +573,13 @@ void AP_MotorsMulticopter::throttle_pass_through(int16_t pwm)
         }
         hal.rcout->push();
     }
+}
+
+// set_radio_passthrough used to pass radio inputs directly to outputs
+void AP_MotorsMulticopter::set_radio_passthrough(float radio_roll_input, float radio_pitch_input, float radio_throttle_input, float radio_yaw_input)
+{
+    _roll_radio_passthrough = radio_roll_input;
+    _pitch_radio_passthrough = radio_pitch_input;
+    _throttle_radio_passthrough = radio_throttle_input;
+    _yaw_radio_passthrough = radio_yaw_input;
 }

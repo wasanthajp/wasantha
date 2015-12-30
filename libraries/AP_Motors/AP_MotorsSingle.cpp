@@ -139,10 +139,10 @@ void AP_MotorsSingle::output_to_motors()
         case SHUT_DOWN:
             // sends minimum values out to the motors
             hal.rcout->cork();
-            hal.rcout->write(AP_MOTORS_MOT_1, _servo1.radio_trim);
-            hal.rcout->write(AP_MOTORS_MOT_2, _servo2.radio_trim);
-            hal.rcout->write(AP_MOTORS_MOT_3, _servo3.radio_trim);
-            hal.rcout->write(AP_MOTORS_MOT_4, _servo4.radio_trim);
+            hal.rcout->write(AP_MOTORS_MOT_1, calc_pivot_radio_output((_roll_radio_passthrough+_yaw_radio_passthrough) *_servo_1_reverse, _servo_1_min, _servo_1_trim, _servo_1_max));
+            hal.rcout->write(AP_MOTORS_MOT_2, calc_pivot_radio_output((_pitch_radio_passthrough+_yaw_radio_passthrough) *_servo_2_reverse, _servo_2_min, _servo_2_trim, _servo_2_max));
+            hal.rcout->write(AP_MOTORS_MOT_3, calc_pivot_radio_output((-_roll_radio_passthrough+_yaw_radio_passthrough) *_servo_3_reverse, _servo_3_min, _servo_3_trim, _servo_3_max));
+            hal.rcout->write(AP_MOTORS_MOT_4, calc_pivot_radio_output((-_pitch_radio_passthrough+_yaw_radio_passthrough) *_servo_4_reverse, _servo_4_min, _servo_4_trim, _servo_4_max));
             hal.rcout->write(AP_MOTORS_MOT_5, _throttle_radio_min);
             hal.rcout->write(AP_MOTORS_MOT_6, _throttle_radio_min);
             hal.rcout->push();
@@ -200,6 +200,7 @@ void AP_MotorsSingle::output_armed_stabilizing()
     float   actuator[NUM_ACTUATORS];
 
     // apply voltage and air pressure compensation
+    // todo: we shouldn't need input reversing with servo reversing
     roll_thrust = _roll_reverse * get_roll_thrust() * get_compensation_gain();
     pitch_thrust = _pitch_reverse * get_pitch_thrust() * get_compensation_gain();
     yaw_thrust = _yaw_reverse * get_yaw_thrust() * get_compensation_gain();
