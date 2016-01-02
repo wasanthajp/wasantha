@@ -25,7 +25,7 @@ void Copter::stabilize_run()
 {
     float target_roll, target_pitch;
     float target_yaw_rate;
-    int16_t pilot_throttle_scaled;
+    float pilot_throttle_scaled;
 
     // if not armed set throttle to zero and exit immediately
     if(!motors.armed()) {

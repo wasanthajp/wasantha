@@ -96,7 +96,7 @@ bool Copter::flip_init(bool ignore_checks)
 // should be called at 100hz or more
 void Copter::flip_run()
 {
-    int16_t throttle_out;
+    float throttle_out;
     float recovery_angle;
 
     // if pilot inputs roll > 40deg or timeout occurs abandon flip

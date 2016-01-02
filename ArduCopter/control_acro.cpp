@@ -24,7 +24,7 @@ bool Copter::acro_init(bool ignore_checks)
 void Copter::acro_run()
 {
     float target_roll, target_pitch, target_yaw;
-    int16_t pilot_throttle_scaled;
+    float pilot_throttle_scaled;
 
     // if motors not running reset angle targets
     if(!motors.armed() || ap.throttle_zero) {
