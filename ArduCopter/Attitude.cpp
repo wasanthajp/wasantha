@@ -134,9 +134,9 @@ void Copter::set_throttle_takeoff()
 // get_pilot_desired_throttle - transform pilot's throttle input to make cruise throttle mid stick
 // used only for manual throttle modes
 // returns throttle output 0 to 1000
-int16_t Copter::get_pilot_desired_throttle(int16_t throttle_control)
+float Copter::get_pilot_desired_throttle(int16_t throttle_control)
 {
-    int16_t throttle_out;
+    float throttle_out;
 
     int16_t mid_stick = channel_throttle->get_control_mid();
 
