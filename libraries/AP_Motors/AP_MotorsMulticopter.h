@@ -48,7 +48,7 @@ public:
     AP_MotorsMulticopter(uint16_t loop_rate, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT);
 
     // accessors for thrust within the range 0 ~ 1
-    float get_throttle_thrust() const { return _throttle_control_input; }
+    float get_throttle_thrust() const { return _throttle_in; }
 
     // output - sends commands to the motors
     virtual void        output();
@@ -166,7 +166,7 @@ protected:
     float               calc_roll_pwm() { return (_roll_control_input * _rpy_pwm_scalar); }
     float               calc_pitch_pwm() { return (_pitch_control_input * _rpy_pwm_scalar); }
     float               calc_yaw_pwm() { return (_yaw_control_input * _rpy_pwm_scalar); }
-    int16_t             calc_throttle_radio_output() { return (_throttle_control_input * _throttle_pwm_scalar) + _throttle_radio_min;}
+    int16_t             calc_throttle_radio_output() { return (_throttle_in * 1000.0f * _throttle_pwm_scalar) + _throttle_radio_min;}
 
     // convert thrust (0~1) range back to pwm range
     int16_t             calc_thrust_to_pwm(float thrust_in) const;

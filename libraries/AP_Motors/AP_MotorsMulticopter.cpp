@@ -172,8 +172,8 @@ void AP_MotorsMulticopter::update_throttle_filter()
         _throttle_filter.reset(0.0f);
     }
 
-    // constrain throttle signal to 0-1000
-    _throttle_control_input = constrain_float(_throttle_filter.get(),0.0f,1.0f);
+    // constrain throttle signal to 0-1
+    _throttle_in = constrain_float(_throttle_filter.get(),0.0f,1.0f);
 }
 
 // current_limit_max_throttle - limits maximum throttle based on current
@@ -187,7 +187,7 @@ void AP_MotorsMulticopter::current_limit_max_throttle()
     }
 
     // remove throttle limit if throttle is at zero or disarmed
-    if(_throttle_control_input <= 0 || !_flags.armed) {
+    if(_throttle_in <= 0.0f || !_flags.armed) {
         _throttle_limit = 1.0f;
     }
 
@@ -222,7 +222,7 @@ float AP_MotorsMulticopter::get_current_limit_max_throttle()
     }
 
     // remove throttle limit if throttle is at zero or disarmed
-    if(_throttle_control_input <= 0 || !_flags.armed) {
+    if(_throttle_in <= 0.0f || !_flags.armed) {
         _throttle_limit = 1.0f;
         _max_throttle = AP_MOTORS_DEFAULT_MAX_THROTTLE;
         return 1.0f;
@@ -301,14 +301,14 @@ void AP_MotorsMulticopter::update_lift_max_from_batt_voltage()
 void AP_MotorsMulticopter::update_battery_resistance()
 {
     // if motors are stopped, reset resting voltage and current
-    if (_throttle_control_input <= 0 || !_flags.armed) {
+    if (_throttle_in <= 0.0f || !_flags.armed) {
         _batt_voltage_resting = _batt_voltage;
         _batt_current_resting = _batt_current;
         _batt_timer = 0;
     } else {
         // update battery resistance when throttle is over hover throttle
         if ((_batt_timer < 400) && ((_batt_current_resting*2.0f) < _batt_current)) {
-            if (_throttle_control_input >= _hover_out) {
+            if (_throttle_in >= _hover_out) {
                 // filter reaches 90% in 1/4 the test time
                 _batt_resistance += 0.05f*(( (_batt_voltage_resting-_batt_voltage)/(_batt_current-_batt_current_resting) ) - _batt_resistance);
                 _batt_timer += 1;
@@ -464,7 +464,7 @@ void AP_MotorsMulticopter::output_logic()
             _throttle_rpy_mix_desired = 0.0f;
 
             // constrain ramp value and update mode
-            if (_throttle_thrust_max >= MIN(_throttle_control_input, get_current_limit_max_throttle())) {
+            if (_throttle_thrust_max >= MIN(_throttle_in, get_current_limit_max_throttle())) {
                 _throttle_thrust_max = get_current_limit_max_throttle();
                 _multicopter_flags.spool_mode = THROTTLE_UNLIMITED;
             } else if (_throttle_thrust_max < 0.0f) {
@@ -540,7 +540,7 @@ void AP_MotorsMulticopter::slow_start(bool true_false)
     _multicopter_flags.slow_start = true;
 
     // initialise maximum throttle to current throttle
-    _max_throttle = constrain_int16(_throttle_control_input, 0, AP_MOTORS_DEFAULT_MAX_THROTTLE);
+    _max_throttle = constrain_int16(_throttle_in*1000.0f, 0, AP_MOTORS_DEFAULT_MAX_THROTTLE);
 }
 
 // throttle_pass_through - passes provided pwm directly to all motors - dangerous but used for initialising ESCs
