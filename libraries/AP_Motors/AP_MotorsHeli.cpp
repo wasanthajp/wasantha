@@ -210,7 +210,6 @@ void AP_MotorsHeli::output()
         } else if (_flags.stabilizing) {
             output_armed_stabilizing();
         } else {
-            output_armed_not_stabilizing();
         }
     } else {
         output_disarmed();
@@ -225,19 +224,6 @@ void AP_MotorsHeli::output_armed_stabilizing()
         reset_flight_controls();
     }
 
-    move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input);
-
-    update_motor_control(ROTOR_CONTROL_ACTIVE);
-}
-
-void AP_MotorsHeli::output_armed_not_stabilizing()
-{
-    // if manual override active after arming, deactivate it and reinitialize servos
-    if (_servo_mode != SERVO_CONTROL_MODE_AUTOMATED) {
-        reset_flight_controls();
-    }
-
-    // helicopters always run stabilizing flight controls
     move_actuators(_roll_control_input, _pitch_control_input, _throttle_control_input, _yaw_control_input);
 
     update_motor_control(ROTOR_CONTROL_ACTIVE);
