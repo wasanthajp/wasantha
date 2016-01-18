@@ -47,6 +47,9 @@ public:
     // Constructor
     AP_MotorsMulticopter(uint16_t loop_rate, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT);
 
+    // accessors for thrust within the range 0 ~ 1
+    float get_throttle_thrust() const { return _throttle_control_input; }
+
     // output - sends commands to the motors
     virtual void        output();
 
