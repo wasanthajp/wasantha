@@ -153,7 +153,7 @@ void AP_MotorsCoax::output_armed_not_stabilizing()
     _servo2.calc_pwm();
 
     if (motor_out >= out_min) {
-        motor_out = apply_thrust_curve_and_volt_scaling(motor_out, out_min, _throttle_radio_max);
+        motor_out = apply_thrust_curve_and_volt_scaling_pwm(motor_out, out_min, _throttle_radio_max);
     }
 
     hal.rcout->cork();
