@@ -68,7 +68,8 @@ void AP_MotorsSingle::Init()
     set_update_rate(_speed_hz);
 
     // set the motor_enabled flag so that the main ESC can be calibrated like other frame types
-    motor_enabled[AP_MOTORS_MOT_7] = true;
+    motor_enabled[AP_MOTORS_MOT_5] = true;
+    motor_enabled[AP_MOTORS_MOT_6] = true;
 
     // we set four servos to angle
     _servo1.set_type(RC_CHANNEL_TYPE_ANGLE);
@@ -97,7 +98,9 @@ void AP_MotorsSingle::set_update_rate( uint16_t speed_hz )
         1U << AP_MOTORS_MOT_3 |
         1U << AP_MOTORS_MOT_4 ;
     rc_set_freq(mask, _servo_speed);
-    uint32_t mask2 = 1U << AP_MOTORS_MOT_7;
+    uint32_t mask2 =
+        1U << AP_MOTORS_MOT_5 |
+        1U << AP_MOTORS_MOT_6 ;
     rc_set_freq(mask2, _speed_hz);
 }
 
@@ -109,7 +112,8 @@ void AP_MotorsSingle::enable()
     rc_enable_ch(AP_MOTORS_MOT_2);
     rc_enable_ch(AP_MOTORS_MOT_3);
     rc_enable_ch(AP_MOTORS_MOT_4);
-    rc_enable_ch(AP_MOTORS_MOT_7);
+    rc_enable_ch(AP_MOTORS_MOT_5);
+    rc_enable_ch(AP_MOTORS_MOT_6);
 }
 
 // output_min - sends minimum values out to the motor and trim values to the servos
@@ -121,7 +125,8 @@ void AP_MotorsSingle::output_min()
     rc_write(AP_MOTORS_MOT_2, _servo2.radio_trim);
     rc_write(AP_MOTORS_MOT_3, _servo3.radio_trim);
     rc_write(AP_MOTORS_MOT_4, _servo4.radio_trim);
-    rc_write(AP_MOTORS_MOT_7, _throttle_radio_min);
+    rc_write(AP_MOTORS_MOT_5, _throttle_radio_min);
+    rc_write(AP_MOTORS_MOT_6, _throttle_radio_min);
     hal.rcout->push();
 }
 
