@@ -173,7 +173,7 @@ void AP_MotorsMulticopter::update_throttle_filter()
     }
 
     // constrain throttle signal to 0-1000
-    _throttle_control_input = constrain_float(_throttle_filter.get(),0.0f,1000.0f);
+    _throttle_control_input = constrain_float(_throttle_filter.get(),0.0f,1.0f);
 }
 
 // current_limit_max_throttle - limits maximum throttle based on current
