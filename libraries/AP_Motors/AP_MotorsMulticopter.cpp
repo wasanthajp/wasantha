@@ -180,14 +180,12 @@ float AP_MotorsMulticopter::get_current_limit_max_throttle()
     // return maximum if current limiting is disabled
     if (_batt_current_max <= 0) {
         _throttle_limit = 1.0f;
-        _max_throttle = AP_MOTORS_DEFAULT_MAX_THROTTLE;
         return 1.0f;
     }
 
     // remove throttle limit if throttle is at zero or disarmed
-    if(_throttle_in <= 0.0f || !_flags.armed) {
+    if (get_throttle() <= 0.0f || !_flags.armed) {
         _throttle_limit = 1.0f;
-        _max_throttle = AP_MOTORS_DEFAULT_MAX_THROTTLE;
         return 1.0f;
     }
 
