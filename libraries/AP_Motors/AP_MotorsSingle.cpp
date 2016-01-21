@@ -223,7 +223,7 @@ void AP_MotorsSingle::output_armed_stabilizing()
     roll_thrust = _roll_reverse * get_roll_thrust() * get_compensation_gain();
     pitch_thrust = _pitch_reverse * get_pitch_thrust() * get_compensation_gain();
     yaw_thrust = _yaw_reverse * get_yaw_thrust() * get_compensation_gain();
-    throttle_thrust = get_throttle_thrust() * get_compensation_gain();
+    throttle_thrust = get_throttle() * get_compensation_gain();
 
     // sanity check throttle is above zero and below current limited throttle
     if (throttle_thrust <= 0.0f) {
