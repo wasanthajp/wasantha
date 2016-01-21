@@ -143,24 +143,14 @@ void AP_MotorsMulticopter::output()
     // calc filtered battery voltage and lift_max
     update_lift_max_from_batt_voltage();
 
-    //if (_flags.armed) {
-        //if (!_flags.interlock) {
-        //    output_armed_zero_throttle();
-        //} else {
-            // run spool logic
-            output_logic();
+    // run spool logic
+    output_logic();
 
-            // calculate thrust
-            output_armed_stabilizing();
+    // calculate thrust
+    output_armed_stabilizing();
 
-            // convert rpy_thrust values to pwm
-            output_to_motors();
-        //}
-    /*} else {
-        _multicopter_flags.slow_start_low_end = true;
-        _multicopter_flags.spool_desired = DESIRED_SHUT_DOWN;
-        output_disarmed();
-    }*/
+    // convert rpy_thrust values to pwm
+    output_to_motors();
 };
 
 // update the throttle input filter
@@ -315,6 +305,13 @@ void AP_MotorsMulticopter::set_throttle_range(uint16_t min_throttle, int16_t rad
 
 void AP_MotorsMulticopter::output_logic()
 {
+    // force desired and current spool mode if disarmed or not interlocked
+    if (!_flags.armed || !_flags.interlock) {
+        _multicopter_flags.spool_desired = DESIRED_SHUT_DOWN;
+        _multicopter_flags.spool_mode = SHUT_DOWN;
+        _multicopter_flags.slow_start_low_end = true;
+    }
+
     switch (_multicopter_flags.spool_mode) {
         case SHUT_DOWN:
             // Motors should be stationary.
