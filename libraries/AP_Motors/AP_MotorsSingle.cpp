@@ -350,8 +350,12 @@ void AP_MotorsSingle::output_test(uint8_t motor_seq, int16_t pwm)
             rc_write(AP_MOTORS_MOT_4, pwm);
             break;
         case 5:
-            // spin main motor
-            rc_write(AP_MOTORS_MOT_7, pwm);
+            // spin motor 1
+            rc_write(AP_MOTORS_MOT_5, pwm);
+            break;
+        case 6:
+            // spin motor 2
+            rc_write(AP_MOTORS_MOT_6, pwm);
             break;
         default:
             // do nothing
