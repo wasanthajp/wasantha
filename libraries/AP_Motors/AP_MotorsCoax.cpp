@@ -330,12 +330,20 @@ void AP_MotorsCoax::output_test(uint8_t motor_seq, int16_t pwm)
             rc_write(AP_MOTORS_MOT_2, pwm);
             break;
         case 3:
-            // motor 1
+            // flap servo 3
             rc_write(AP_MOTORS_MOT_3, pwm);
             break;
         case 4:
-            // motor 2
+            // flap servo 4
             rc_write(AP_MOTORS_MOT_4, pwm);
+            break;
+        case 5:
+            // motor 1
+            rc_write(AP_MOTORS_MOT_5, pwm);
+            break;
+        case 6:
+            // motor 2
+            rc_write(AP_MOTORS_MOT_6, pwm);
             break;
         default:
             // do nothing
