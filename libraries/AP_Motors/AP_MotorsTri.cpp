@@ -192,7 +192,7 @@ void AP_MotorsTri::output_armed_stabilizing()
     roll_thrust = get_roll_thrust() * get_compensation_gain();
     pitch_thrust = get_pitch_thrust() * get_compensation_gain();
     yaw_thrust = get_yaw_thrust() * get_compensation_gain()*sinf(_pivot_angle_max); // we scale this so a thrust request of 1.0f will ask for full servo deflection at full rear throttle
-    throttle_thrust = get_throttle_thrust() * get_compensation_gain();
+    throttle_thrust = get_throttle() * get_compensation_gain();
     float pivot_angle_request_max = asin(yaw_thrust);
     float pivot_thrust_max = cosf(pivot_angle_request_max);
     float thrust_max = 1.0f;
