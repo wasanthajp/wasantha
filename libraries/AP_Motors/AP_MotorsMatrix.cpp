@@ -214,13 +214,13 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
             _thrust_rpyt_out[i] = roll_thrust * _roll_factor[i] + pitch_thrust * _pitch_factor[i];
-            if(!is_zero(_yaw_factor[i])){
+            if (!is_zero(_yaw_factor[i])){
                 if (yaw_thrust * _yaw_factor[i] > 0.0f) {
                     unused_range = fabsf((1.0 - (throttle_thrust_best_rpy + _thrust_rpyt_out[i]))/_yaw_factor[i]);
                     if (yaw_allowed > unused_range) {
                         yaw_allowed = unused_range;
                     }
-                }else{
+                } else {
                     unused_range = fabsf((throttle_thrust_best_rpy + _thrust_rpyt_out[i])/_yaw_factor[i]);
                     if (yaw_allowed > unused_range) {
                         yaw_allowed = unused_range;
@@ -233,7 +233,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     // todo: make _yaw_headroom 0 to 1
     yaw_allowed = MAX(yaw_allowed, (float)_yaw_headroom/1000.0f);
 
-    if(fabsf(yaw_thrust) > yaw_allowed){
+    if (fabsf(yaw_thrust) > yaw_allowed) {
         yaw_thrust = constrain_float(yaw_thrust, -yaw_allowed, yaw_allowed);
         limit.yaw = true;
     }
@@ -246,11 +246,11 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             _thrust_rpyt_out[i] = _thrust_rpyt_out[i] + yaw_thrust * _yaw_factor[i];
 
             // record lowest roll+pitch+yaw command
-            if( _thrust_rpyt_out[i] < rpy_low ) {
+            if (_thrust_rpyt_out[i] < rpy_low) {
                 rpy_low = _thrust_rpyt_out[i];
             }
             // record highest roll+pitch+yaw command
-            if( _thrust_rpyt_out[i] > rpy_high) {
+            if (_thrust_rpyt_out[i] > rpy_high) {
                 rpy_high = _thrust_rpyt_out[i];
             }
         }
@@ -258,7 +258,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
 
     // check everything fits
     throttle_thrust_best_rpy = MIN(0.5f - (rpy_low+rpy_high)/2.0, throttle_thrust_rpy_mix);
-    if(is_zero(rpy_low)){
+    if (is_zero(rpy_low)){
         rpy_scale = 1.0f;
     } else {
         rpy_scale = constrain_float(-throttle_thrust_best_rpy/rpy_low, 0.0f, 1.0f);
@@ -266,22 +266,22 @@ void AP_MotorsMatrix::output_armed_stabilizing()
 
     // calculate how close the motors can come to the desired throttle
     thr_adj = throttle_thrust - throttle_thrust_best_rpy;
-    if(rpy_scale < 1.0f){
+    if (rpy_scale < 1.0f){
         // Full range is being used by roll, pitch, and yaw.
         limit.roll_pitch = true;
         limit.yaw = true;
-        if(thr_adj < 0.0f){
+        if (thr_adj < 0.0f){
             limit.throttle_lower = true;
-        }else if(thr_adj > 0.0f){
+        } else if (thr_adj > 0.0f){
             limit.throttle_upper = true;
         }
         thr_adj = 0.0f;
-    }else{
-        if(thr_adj < -(throttle_thrust_best_rpy+rpy_low)){
+    } else {
+        if (thr_adj < -(throttle_thrust_best_rpy+rpy_low)){
             // Throttle can't be reduced to desired value
             thr_adj = -(throttle_thrust_best_rpy+rpy_low);
             limit.throttle_lower = true;
-        }else if(thr_adj > 1.0f - (throttle_thrust_best_rpy+rpy_high)){
+        } else if (thr_adj > 1.0f - (throttle_thrust_best_rpy+rpy_high)){
             // Throttle can't be increased to desired value
             thr_adj = 1.0f - (throttle_thrust_best_rpy+rpy_high);
             limit.throttle_upper = true;
