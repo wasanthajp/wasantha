@@ -191,8 +191,14 @@ void AP_MotorsCoax::output_to_motors()
 //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
 uint16_t AP_MotorsCoax::get_motor_mask()
 {
-    // single copter uses channels 1,2,3,4 and 7
-    return (1U << 0 | 1U << 1 | 1U << 2 | 1U << 3 | 1U << 6);
+    uint32_t mask =
+        1U << AP_MOTORS_MOT_1 |
+        1U << AP_MOTORS_MOT_2 |
+        1U << AP_MOTORS_MOT_3 |
+        1U << AP_MOTORS_MOT_4 |
+        1U << AP_MOTORS_MOT_5 |
+        1U << AP_MOTORS_MOT_6;
+    return rc_map_mask(mask);
 }
 
 // sends commands to the motors
