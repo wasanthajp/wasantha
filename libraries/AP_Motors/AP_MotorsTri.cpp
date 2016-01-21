@@ -124,9 +124,6 @@ void AP_MotorsTri::output_min()
 
 void AP_MotorsTri::output_to_motors()
 {
-    if (!armed()){
-        _multicopter_flags.spool_mode = SHUT_DOWN;
-    }
     switch (_multicopter_flags.spool_mode) {
         case SHUT_DOWN:
             // sends minimum values out to the motors
