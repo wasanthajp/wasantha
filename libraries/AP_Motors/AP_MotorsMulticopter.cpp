@@ -407,7 +407,7 @@ void AP_MotorsMulticopter::output_logic()
             _throttle_rpy_mix_desired = 0.0f;
 
             // constrain ramp value and update mode
-            if (_throttle_thrust_max >= MIN(_throttle_in, get_current_limit_max_throttle())) {
+            if (_throttle_thrust_max >= MIN(get_throttle(), get_current_limit_max_throttle())) {
                 _throttle_thrust_max = get_current_limit_max_throttle();
                 _multicopter_flags.spool_mode = THROTTLE_UNLIMITED;
             } else if (_throttle_thrust_max < 0.0f) {
