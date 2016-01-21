@@ -220,7 +220,7 @@ void AP_MotorsCoax::output_armed_stabilizing()
     roll_thrust = _roll_reverse * get_roll_thrust() * get_compensation_gain();
     pitch_thrust = _pitch_reverse * get_pitch_thrust() * get_compensation_gain();
     yaw_thrust = _yaw_reverse * get_yaw_thrust() * get_compensation_gain();
-    throttle_thrust = get_throttle_thrust() * get_compensation_gain();
+    throttle_thrust = get_throttle() * get_compensation_gain();
 
     // assuming maximum actuator defection the maximum roll and pitch torque is approximately proportional to thrust
     thrust_min_rp = MAX(fabsf(roll_thrust), fabsf(pitch_thrust));
