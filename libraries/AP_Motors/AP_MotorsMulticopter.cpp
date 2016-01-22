@@ -180,8 +180,8 @@ float AP_MotorsMulticopter::get_current_limit_max_throttle()
         return 1.0f;
     }
 
-    // remove throttle limit if throttle is at zero or disarmed
-    if (get_throttle() <= 0.0f || !_flags.armed) {
+    // remove throttle limit if disarmed
+    if (!_flags.armed) {
         _throttle_limit = 1.0f;
         return 1.0f;
     }
