@@ -120,11 +120,7 @@ void Copter::auto_takeoff_run()
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(0, 0, 0, get_smoothing_gain());
         attitude_control.set_throttle_out(0,false,g.throttle_filt);
 #else   // multicopters do not stabilize roll/pitch/yaw when disarmed
-        if (!motors.armed() || !motors.get_interlock()) {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SHUT_DOWN);
-        } else {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
-        }
+        motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
         // reset attitude control targets
         attitude_control.set_throttle_out_unstabilized(0,true,g.throttle_filt);
 #endif
@@ -181,11 +177,7 @@ void Copter::auto_wp_run()
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(0, 0, 0, get_smoothing_gain());
         attitude_control.set_throttle_out(0,false,g.throttle_filt);
 #else   // multicopters do not stabilize roll/pitch/yaw when disarmed
-        if (!motors.armed() || !motors.get_interlock()) {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SHUT_DOWN);
-        } else {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
-        }
+        motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
         attitude_control.set_throttle_out_unstabilized(0,true,g.throttle_filt);
 #endif
         // clear i term when we're taking off
@@ -254,11 +246,7 @@ void Copter::auto_spline_run()
         attitude_control.set_throttle_out(0,false,g.throttle_filt);
 #else   // multicopters do not stabilize roll/pitch/yaw when disarmed
         attitude_control.set_throttle_out_unstabilized(0,true,g.throttle_filt);
-        if (!motors.armed() || !motors.get_interlock()) {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SHUT_DOWN);
-        } else {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
-        }
+        motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
 #endif
         // clear i term when we're taking off
         set_throttle_takeoff();
@@ -334,11 +322,7 @@ void Copter::auto_land_run()
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(0, 0, 0, get_smoothing_gain());
         attitude_control.set_throttle_out(0,false,g.throttle_filt);
 #else
-        if (!motors.armed() || !motors.get_interlock()) {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SHUT_DOWN);
-        } else {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
-        }
+        motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
         // multicopters do not stabilize roll/pitch/yaw when disarmed
         attitude_control.set_throttle_out_unstabilized(0,true,g.throttle_filt);
 #endif
@@ -523,11 +507,7 @@ void Copter::auto_loiter_run()
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw_smooth(0, 0, 0, get_smoothing_gain());
         attitude_control.set_throttle_out(0,false,g.throttle_filt);
 #else
-        if (!motors.armed() || !motors.get_interlock()) {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SHUT_DOWN);
-        } else {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
-        }
+        motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
         // multicopters do not stabilize roll/pitch/yaw when disarmed
         attitude_control.set_throttle_out_unstabilized(0,true,g.throttle_filt);
 #endif
