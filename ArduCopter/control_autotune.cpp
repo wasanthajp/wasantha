@@ -269,11 +269,7 @@ void Copter::autotune_run()
     // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
     // this should not actually be possible because of the autotune_init() checks
     if (!motors.armed() || !ap.auto_armed || !motors.get_interlock()) {
-        if (!motors.armed() || !motors.get_interlock()) {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SHUT_DOWN);
-        } else {
-            motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
-        }
+        motors.set_desired_spool_state(AP_MotorsMulticopter::DESIRED_SPIN_WHEN_ARMED);
         attitude_control.set_throttle_out_unstabilized(0,true,g.throttle_filt);
         pos_control.relax_alt_hold_controllers(get_throttle_pre_takeoff(channel_throttle->control_in)-throttle_average);
         return;
