@@ -119,6 +119,9 @@ public:
     // see if we should send a stream now. Called at 50Hz
     bool        stream_trigger(enum streams stream_num);
 
+    // set minimum rate that stream should be sent
+    void        set_data_stream_minimum_rate(enum streams stream_num, uint16_t rate_hz);
+
 	// this costs us 51 bytes per instance, but means that low priority
 	// messages don't block the CPU
     mavlink_statustext_t pending_status;

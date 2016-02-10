@@ -175,6 +175,14 @@ GCS_MAVLINK::queued_waypoint_send()
     }
 }
 
+// set minimum rate that stream should be sent
+void GCS_MAVLINK::set_data_stream_minimum_rate(enum streams stream_num, uint16_t rate_hz)
+{
+    if (streamRates[stream_num] < rate_hz) {
+        streamRates[stream_num] = rate_hz;
+    }
+}
+
 void GCS_MAVLINK::reset_cli_timeout() {
     _cli_timeout = AP_HAL::millis();
 }
