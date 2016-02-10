@@ -565,6 +565,36 @@ void Tracker::mavlink_check_target(const mavlink_message_t* msg)
     target_set = true;
 }
 
+// check tracker is sending position and attitude data to all GCSs at at least 1hz
+void Tracker::mavlink_check_datarate_to_gcs()
+{
+    bool gcs_instance = 0;
+    bool found_gcs = false;
+    uint8_t sysid, compid;
+    mavlink_channel_t chan;
+
+    // search for GCSs in routing table
+    do {
+        if (GCS_MAVLINK::find_by_mavtype(MAV_TYPE_GIMBAL, gcs_instance, sysid, compid, chan)) {
+            //hal.console->printf("GCS on %d\n",(int)chan);
+            ::printf("GCS on %d\n",(int)chan);
+            gcs_instance++;
+            uint8_t chan_num = chan-MAVLINK_COMM_0;
+            if (chan_num < MAVLINK_COMM_NUM_BUFFERS) {
+                // set position and attitude data stream rates to at least 1hz
+                gcs[chan_num].set_data_stream_minimum_rate(GCS_MAVLINK::STREAM_POSITION,1);
+                gcs[chan_num].set_data_stream_minimum_rate(GCS_MAVLINK::STREAM_EXTENDED_STATUS,1);
+                //hal.console->printf("set stream rates to 1hz\n");
+                ::printf("set stream rates to 1hz\n");
+            }
+        }
+    } while (found_gcs);
+    if (gcs_instance == 0) {
+        //hal.console->printf("did not find a GCS\n");
+        ::printf("did not find a GCS\n");
+    }
+}
+
 void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 {
     switch (msg->msgid) {

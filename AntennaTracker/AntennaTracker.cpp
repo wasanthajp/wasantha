@@ -102,6 +102,9 @@ void Tracker::one_second_loop()
     // sync MAVLink system ID
     mavlink_system.sysid = g.sysid_this_mav;
 
+    // check position and attitude are flowing to GCSs
+    mavlink_check_datarate_to_gcs();
+
     // updated armed/disarmed status LEDs
     update_armed_disarmed();
 

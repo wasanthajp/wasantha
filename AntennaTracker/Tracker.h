@@ -206,6 +206,7 @@ private:
     void send_nav_controller_output(mavlink_channel_t chan);
     void send_simstate(mavlink_channel_t chan);
     void mavlink_check_target(const mavlink_message_t* msg);
+    void mavlink_check_datarate_to_gcs();
     void gcs_send_message(enum ap_message id);
     void gcs_data_stream_send(void);
     void gcs_update(void);
