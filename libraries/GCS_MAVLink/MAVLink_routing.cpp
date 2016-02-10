@@ -188,20 +188,31 @@ void MAVLink_routing::send_to_components(const mavlink_message_t* msg)
 }
 
 /*
-  search for the first vehicle or component in the routing table with given mav_type and retrieve it's sysid, compid and channel
-  returns true if a match is found
+  search for a vehicle or component in the routing table with given mav_type and retrieve it's sysid, compid and channel
+  returns true if a match is found.  set instance param to 0 to retrieve 1st instance, set to 1 to retrieve 2nd instance, etc
  */
-bool MAVLink_routing::find_by_mavtype(uint8_t mavtype, uint8_t &sysid, uint8_t &compid, mavlink_channel_t &channel)
+bool MAVLink_routing::find_by_mavtype(uint8_t mavtype, uint8_t instance, uint8_t &sysid, uint8_t &compid, mavlink_channel_t &channel)
 {
+    uint8_t instances_found = 0;
     // check learned routes
     for (uint8_t i=0; i<num_routes; i++) {
         if (routes[i].mavtype == mavtype) {
-            sysid = routes[i].sysid;
-            compid = routes[i].compid;
-            channel = routes[i].channel;
-            return true;
+            if (instances_found == instance) {
+                sysid = routes[i].sysid;
+                compid = routes[i].compid;
+                channel = routes[i].channel;
+                return true;
+            } else {
+                instances_found++;
+            }
         }
+        // debug
+        //::printf("route:%d mt:%d sys:%d comp:%d\n",(int)i,(int)routes[i].mavtype, routes[i].sysid, routes[i].compid);
     }
+    // debug
+    //if (num_routes == 0) {
+    //    ::printf("no routes\n");
+    //}
 
     // if we've reached we have not found the component
     return false;
