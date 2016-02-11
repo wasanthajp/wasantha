@@ -49,7 +49,7 @@ protected:
 
 private:
 
-    int16_t _boost_in;
+    int16_t _boost_in = 0;
     RC_Channel& _servo_aux_1;
     RC_Channel& _servo_aux_2;
     RC_Channel& _servo_yaw_1;
