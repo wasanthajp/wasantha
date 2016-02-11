@@ -174,7 +174,6 @@ public:
         k_param_heli_stab_col_min,  // remove
         k_param_heli_stab_col_max,  // remove
         k_param_heli_servo_rsc,     // 89 = full!
-        k_param_heli_servo_6 = 99,  // 99
 
         //
         // 90: misc2
@@ -461,8 +460,6 @@ public:
 
 #if FRAME_CONFIG ==     HELI_DUAL_FRAME
     // Heli
-    RC_Channel      heli_servo_1, heli_servo_2, heli_servo_3;                   // servos for first swash plate
-    RC_Channel      heli_servo_4, heli_servo_5, heli_servo_6;                   // servos for second swash plate
     RC_Channel      heli_servo_rsc;                                             // servo for rotor speed control output
 #endif
 
@@ -475,10 +472,7 @@ public:
 
 #if FRAME_CONFIG ==     HELI_TILTROTOR_FRAME
     // Heli
-    RC_Channel      heli_servo_1, heli_servo_2, heli_servo_3;                   // servos for first swash plate
-    RC_Channel      heli_servo_4, heli_servo_5, heli_servo_6;                   // servos for second swash plate
     RC_Channel      heli_servo_rsc;                                             // servo for rotor speed control output
-    RC_Channel      heli_servo_tvec;                                            // servo for trust vector control output
 #endif
 
 #if FRAME_CONFIG ==     SINGLE_FRAME
@@ -556,12 +550,6 @@ public:
 #endif
 
 #if FRAME_CONFIG ==     HELI_DUAL_FRAME
-        heli_servo_1        (CH_1),
-        heli_servo_2        (CH_2),
-        heli_servo_3        (CH_3),
-        heli_servo_4        (CH_4),
-        heli_servo_5        (CH_5),
-        heli_servo_6        (CH_6),
         heli_servo_rsc      (CH_8),
 #endif
 
@@ -575,14 +563,7 @@ public:
 #endif
 
 #if FRAME_CONFIG ==     HELI_TILTROTOR_FRAME
-        heli_servo_1        (CH_1),
-        heli_servo_2        (CH_2),
-        heli_servo_3        (CH_3),
-        heli_servo_4        (CH_4),
-        heli_servo_5        (CH_5),
-        heli_servo_6        (CH_6),
         heli_servo_rsc      (CH_8),
-        heli_servo_tvec     (CH_7),
 #endif
 
 #if FRAME_CONFIG ==     SINGLE_FRAME
