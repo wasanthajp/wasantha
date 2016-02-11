@@ -50,7 +50,11 @@ const AP_Param::GroupInfo AP_MotorsHeli_Tiltrotor::var_info[] = {
     // @Description: Sets the tilt mode of the heli, either as TVEC or as AERO.
     // @Values: 0:Aero, 1:TVEC
     // @User: Standard
-    AP_GROUPINFO("TILT_MODE", 9, AP_MotorsHeli_Tiltrotor, _tilt_mode, AP_MOTORS_HELI_TILTROTOR_MODE_TVEC),
+    AP_GROUPINFO("TILT_MODE", 4, AP_MotorsHeli_Tiltrotor, _tilt_mode, AP_MOTORS_HELI_TILTROTOR_MODE_TVEC),
+
+    // @Group: TS_
+    // @Path: ../RC_Channel/RC_Channel.cpp
+    AP_SUBGROUPINFO(_tvec_servo, "TS_", 5, AP_MotorsHeli_Tiltrotor, RC_Channel),
 
     AP_GROUPEND
 };

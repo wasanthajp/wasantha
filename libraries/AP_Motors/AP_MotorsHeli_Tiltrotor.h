@@ -27,18 +27,10 @@
 class AP_MotorsHeli_Tiltrotor : public AP_MotorsHeli_Dual {
 public:
     // constructor
-    AP_MotorsHeli_Tiltrotor(RC_Channel&  servo_rsc,
-                            RC_Channel&  swash_servo_1,
-                            RC_Channel&  swash_servo_2,
-                            RC_Channel&  swash_servo_3,
-                            RC_Channel&  swash_servo_4,
-                            RC_Channel&  swash_servo_5,
-                            RC_Channel&  swash_servo_6,
-                            RC_Channel&  tvec_servo,
-                            uint16_t     loop_rate,
+    AP_MotorsHeli_Tiltrotor(uint16_t     loop_rate,
                             uint16_t     speed_hz = AP_MOTORS_HELI_SPEED_DEFAULT) :
-        AP_MotorsHeli_Dual(servo_rsc, swash_servo_1, swash_servo_2, swash_servo_3, swash_servo_4, swash_servo_5, swash_servo_6, loop_rate, speed_hz),
-        _tvec_servo(tvec_servo)
+        AP_MotorsHeli_Dual(loop_rate, speed_hz),
+        _tvec_servo(CH_7)
     {
         AP_Param::setup_object_defaults(this, var_info);
     };
@@ -76,9 +68,9 @@ private:
     AP_Float            _tvec_angle_min;
     AP_Float            _tilt_effect;
     AP_Int16            _tilt_mode;
+    RC_Channel          _tvec_servo;
 
     // internal variables
-    RC_Channel&         _tvec_servo;
     float               _tvec_angle;
 
 };
