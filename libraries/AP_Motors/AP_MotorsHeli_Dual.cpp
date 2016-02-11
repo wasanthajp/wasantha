@@ -117,6 +117,30 @@ const AP_Param::GroupInfo AP_MotorsHeli_Dual::var_info[] = {
     // @Increment: 0.1
     AP_GROUPINFO("DCP_YAW", 11, AP_MotorsHeli_Dual, _dcp_yaw_effect, 0),
 
+    // @Group: SV1_
+    // @Path: ../RC_Channel/RC_Channel.cpp
+    AP_SUBGROUPINFO(_swash_servo_1, "SV1_", 12, AP_MotorsHeli_Dual, RC_Channel),
+
+    // @Group: SV2_
+    // @Path: ../RC_Channel/RC_Channel.cpp
+    AP_SUBGROUPINFO(_swash_servo_2, "SV2_", 13, AP_MotorsHeli_Dual, RC_Channel),
+
+    // @Group: SV3_
+    // @Path: ../RC_Channel/RC_Channel.cpp
+    AP_SUBGROUPINFO(_swash_servo_3, "SV3_", 14, AP_MotorsHeli_Dual, RC_Channel),
+
+    // @Group: SV4_
+    // @Path: ../RC_Channel/RC_Channel.cpp
+    AP_SUBGROUPINFO(_swash_servo_4, "SV4_", 15, AP_MotorsHeli_Dual, RC_Channel),
+
+    // @Group: SV5_
+    // @Path: ../RC_Channel/RC_Channel.cpp
+    AP_SUBGROUPINFO(_swash_servo_5, "SV5_", 16, AP_MotorsHeli_Dual, RC_Channel),
+
+    // @Group: SV6_
+    // @Path: ../RC_Channel/RC_Channel.cpp
+    AP_SUBGROUPINFO(_swash_servo_6, "SV6_", 17, AP_MotorsHeli_Dual, RC_Channel),
+
     AP_GROUPEND
 };
 

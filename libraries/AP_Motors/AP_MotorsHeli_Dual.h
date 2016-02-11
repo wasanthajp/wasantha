@@ -36,23 +36,16 @@
 class AP_MotorsHeli_Dual : public AP_MotorsHeli {
 public:
     // constructor
-    AP_MotorsHeli_Dual(RC_Channel&  servo_rsc,
-                       RC_Channel&  swash_servo_1,
-                       RC_Channel&  swash_servo_2,
-                       RC_Channel&  swash_servo_3,
-                       RC_Channel&  swash_servo_4,
-                       RC_Channel&  swash_servo_5,
-                       RC_Channel&  swash_servo_6,
-                       uint16_t     loop_rate,
+    AP_MotorsHeli_Dual(uint16_t     loop_rate,
                        uint16_t     speed_hz = AP_MOTORS_HELI_SPEED_DEFAULT) :
         AP_MotorsHeli(loop_rate, speed_hz),
-        _swash_servo_1(swash_servo_1),
-        _swash_servo_2(swash_servo_2),
-        _swash_servo_3(swash_servo_3),
-        _swash_servo_4(swash_servo_4),
-        _swash_servo_5(swash_servo_5),
-        _swash_servo_6(swash_servo_6),
-        _rotor(RC_Channel_aux::k_heli_rsc, AP_MOTORS_HELI_DUAL_RSC, loop_rate)
+        _rotor(RC_Channel_aux::k_heli_rsc, AP_MOTORS_HELI_DUAL_RSC, loop_rate),
+        _swash_servo_1(CH_1),
+        _swash_servo_2(CH_2),
+        _swash_servo_3(CH_3),
+        _swash_servo_4(CH_4),
+        _swash_servo_5(CH_5),
+        _swash_servo_6(CH_6)
     {
         AP_Param::setup_object_defaults(this, var_info);
     };
@@ -118,12 +111,6 @@ protected:
     void move_actuators(int16_t roll_out, int16_t pitch_out, int16_t coll_in, int16_t yaw_out);
 
     //  objects we depend upon
-    RC_Channel&                 _swash_servo_1;     // swash plate servo #1
-    RC_Channel&                 _swash_servo_2;     // swash plate servo #2
-    RC_Channel&                 _swash_servo_3;     // swash plate servo #3
-    RC_Channel&                 _swash_servo_4;     // swash plate servo #4
-    RC_Channel&                 _swash_servo_5;     // swash plate servo #5
-    RC_Channel&                 _swash_servo_6;     // swash plate servo #6
     AP_MotorsHeli_RSC           _rotor;             // main rotor controller
 
     // internal variables
@@ -145,6 +132,13 @@ protected:
     AP_Int8         _dual_mode;                     // which dual mode the heli is
     AP_Float        _dcp_scaler;                    // scaling factor applied to the differential-collective-pitch
     AP_Float        _dcp_yaw_effect;                // feed-forward compensation to automatically add yaw input when differential collective pitch is applied.
+    RC_Channel      _swash_servo_1;                 // swash plate servo #1
+    RC_Channel      _swash_servo_2;                 // swash plate servo #2
+    RC_Channel      _swash_servo_3;                 // swash plate servo #3
+    RC_Channel      _swash_servo_4;                 // swash plate servo #4
+    RC_Channel      _swash_servo_5;                 // swash plate servo #5
+    RC_Channel      _swash_servo_6;                 // swash plate servo #6
+
 
     // internal variables
     float           _yawFactor[AP_MOTORS_HELI_NUM_SWASHPLATE_SERVOS];
