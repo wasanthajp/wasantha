@@ -527,6 +527,11 @@ void Copter::one_hz_loop()
 
     // enable/disable raw gyro/accel logging
     ins.set_raw_logging(should_log(MASK_LOG_IMU_RAW));
+
+    // ins error logging -- debug
+    gcs_send_text_fmt(MAV_SEVERITY_CRITICAL, "INSerr:%d/%d",
+                      (int)ins.get_accel_error_count(0),
+                      (int)ins.get_accel_error_count(1));
 }
 
 // called at 50hz
