@@ -49,7 +49,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case ALT_HOLD:
-            success = althold_init(ignore_checks);
+            success = controller_althold.init(ignore_checks);
+            if (success) {
+                controller = &controller_althold;
+            }
             break;
 
         case AUTO:
@@ -164,10 +167,6 @@ void Copter::update_flight_mode()
             #else
                 stabilize_run();
             #endif
-            break;
-
-        case ALT_HOLD:
-            althold_run();
             break;
 
         case AUTO:
@@ -366,9 +365,6 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
     switch (mode) {
     case STABILIZE:
         port->print("STABILIZE");
-        break;
-    case ALT_HOLD:
-        port->print("ALT_HOLD");
         break;
     case AUTO:
         port->print("AUTO");
