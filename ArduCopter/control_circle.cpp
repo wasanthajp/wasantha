@@ -7,10 +7,10 @@
  */
 
 // circle_init - initialise circle controller flight mode
-bool Copter::circle_init(bool ignore_checks)
+bool Copter::FlightController_CIRCLE::init(bool ignore_checks)
 {
-    if (position_ok() || ignore_checks) {
-        circle_pilot_yaw_override = false;
+    if (_copter.position_ok() || ignore_checks) {
+        pilot_yaw_override = false;
 
         // initialize speeds and accelerations
         pos_control.set_speed_xy(wp_nav.get_speed_xy());
@@ -20,7 +20,7 @@ bool Copter::circle_init(bool ignore_checks)
         pos_control.set_accel_z(g.pilot_accel_z);
 
         // initialise circle controller including setting the circle center based on vehicle speed
-        circle_nav.init();
+        _copter.circle_nav.init();
 
         return true;
     }else{
@@ -30,7 +30,7 @@ bool Copter::circle_init(bool ignore_checks)
 
 // circle_run - runs the circle flight mode
 // should be called at 100hz or more
-void Copter::circle_run()
+void Copter::FlightController_CIRCLE::run()
 {
     float target_yaw_rate = 0;
     float target_climb_rate = 0;
@@ -58,11 +58,11 @@ void Copter::circle_run()
     }
 
     // process pilot inputs
-    if (!failsafe.radio) {
+    if (!_copter.failsafe.radio) {
         // get pilot's desired yaw rate
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->control_in);
         if (!is_zero(target_yaw_rate)) {
-            circle_pilot_yaw_override = true;
+            pilot_yaw_override = true;
         }
 
         // get pilot desired climb rate
@@ -71,9 +71,9 @@ void Copter::circle_run()
         // check for pilot requested take-off
         if (ap.land_complete && target_climb_rate > 0) {
             // indicate we are taking off
-            set_land_complete(false);
+            _copter.set_land_complete(false);
             // clear i term when we're taking off
-            set_throttle_takeoff();
+            _copter.set_throttle_takeoff();
         }
     }
 
@@ -81,21 +81,21 @@ void Copter::circle_run()
     motors.set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
     // run circle controller
-    circle_nav.update();
+    _copter.circle_nav.update();
 
     // call attitude controller
-    if (circle_pilot_yaw_override) {
-        attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(circle_nav.get_roll(), circle_nav.get_pitch(), target_yaw_rate);
+    if (pilot_yaw_override) {
+        attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(_copter.circle_nav.get_roll(), _copter.circle_nav.get_pitch(), target_yaw_rate);
     }else{
-        attitude_control.input_euler_angle_roll_pitch_yaw(circle_nav.get_roll(), circle_nav.get_pitch(), circle_nav.get_yaw(),true);
+        attitude_control.input_euler_angle_roll_pitch_yaw(_copter.circle_nav.get_roll(), _copter.circle_nav.get_pitch(), _copter.circle_nav.get_yaw(),true);
     }
 
     // run altitude controller
-    if (sonar_enabled && (sonar_alt_health >= SONAR_ALT_HEALTH_MAX)) {
+    if (_copter.sonar_enabled && (_copter.sonar_alt_health >= SONAR_ALT_HEALTH_MAX)) {
         // if sonar is ok, use surface tracking
-        target_climb_rate = get_surface_tracking_climb_rate(target_climb_rate, pos_control.get_alt_target(), G_Dt);
+        target_climb_rate = get_surface_tracking_climb_rate(target_climb_rate, pos_control.get_alt_target(), _copter.G_Dt);
     }
     // update altitude target and call position controller
-    pos_control.set_alt_target_from_climb_rate(target_climb_rate, G_Dt, false);
+    pos_control.set_alt_target_from_climb_rate(target_climb_rate, _copter.G_Dt, false);
     pos_control.update_z_controller();
 }

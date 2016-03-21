@@ -62,7 +62,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case CIRCLE:
-            success = circle_init(ignore_checks);
+            success = controller_circle.init(ignore_checks);
+            if (success) {
+                controller = &controller_circle;
+            }
             break;
 
         case LOITER:
@@ -163,10 +166,6 @@ void Copter::update_flight_mode()
     }
 
     switch (control_mode) {
-        case CIRCLE:
-            circle_run();
-            break;
-
         case LOITER:
             loiter_run();
             break;
@@ -281,7 +280,6 @@ bool Copter::mode_requires_GPS() {
         case GUIDED:
         case LOITER:
         case RTL:
-        case CIRCLE:
         case DRIFT:
         case POSHOLD:
         case BRAKE:
@@ -329,7 +327,6 @@ void Copter::notify_flight_mode() {
     switch(control_mode) {
         case GUIDED:
         case RTL:
-        case CIRCLE:
         case LAND:
             // autopilot modes
             AP_Notify::flags.autopilot_mode = true;
@@ -359,9 +356,6 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     case RTL:
         port->print("RTL");
-        break;
-    case CIRCLE:
-        port->print("CIRCLE");
         break;
     case LAND:
         port->print("LAND");

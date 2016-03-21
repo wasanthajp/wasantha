@@ -355,9 +355,6 @@ private:
         bool terrain_used;
     } rtl_path;
 
-    // Circle
-    bool circle_pilot_yaw_override; // true if pilot is overriding yaw
-
     // SIMPLE Mode
     // Used to track the orientation of the copter for Simple mode. This value is reset at each arming
     // or in SuperSimple mode when the copter leaves a 20m radius from home.
@@ -742,8 +739,6 @@ private:
     void adsb_handle_vehicle_threats(void);
     bool brake_init(bool ignore_checks);
     void brake_run();
-    bool circle_init(bool ignore_checks);
-    void circle_run();
     bool drift_init(bool ignore_checks);
     void drift_run();
     float get_throttle_assist(float velz, float pilot_throttle_scaled);
@@ -1028,6 +1023,8 @@ private:
     Copter::FlightController_ALTHOLD controller_althold{*this};
 
     Copter::FlightController_AUTO controller_auto{*this};
+
+    Copter::FlightController_CIRCLE controller_circle{*this};
 
 #if FRAME_CONFIG == HELI_FRAME
     Copter::FlightController_STABILIZE_Heli controller_stabilize{*this};

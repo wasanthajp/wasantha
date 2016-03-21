@@ -208,6 +208,33 @@ private:
 
 };
 
+class FlightController_CIRCLE : public FlightController {
+
+public:
+
+    FlightController_CIRCLE(Copter &copter) :
+        Copter::FlightController(copter)
+        { }
+
+    bool init(bool ignore_checks) override;
+    void run() override; // should be called at 100hz or more
+
+    bool requires_GPS() const override { return true; }
+    bool has_manual_throttle() const override { return false; }
+    bool allows_arming(bool from_gcs) const override { return false; };
+    bool is_autopilot() const override { return false; }
+
+protected:
+
+    const char *name() const override { return "CIRCLE"; }
+
+private:
+
+    // Circle
+    bool pilot_yaw_override = false; // true if pilot is overriding yaw
+
+};
+
 
 class FlightController_STABILIZE : public FlightController {
 
