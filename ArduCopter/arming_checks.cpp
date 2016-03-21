@@ -413,7 +413,7 @@ bool Copter::pre_arm_gps_checks(bool display_failure)
     }
 
     // check if flight mode requires GPS
-    bool gps_required = mode_requires_GPS(control_mode);
+    bool gps_required = mode_requires_GPS();
 
     #if AC_FENCE == ENABLED
     // if circular fence is enabled we need GPS
@@ -575,7 +575,7 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     }
 
     // always check if the current mode allows arming
-    if (!mode_allows_arming(control_mode, arming_from_gcs)) {
+    if (!mode_allows_arming(arming_from_gcs)) {
         if (display_failure) {
             gcs_send_text(MAV_SEVERITY_CRITICAL,"Arm: Mode not armable");
         }
