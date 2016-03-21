@@ -155,6 +155,60 @@ private:
 };
 
 
+class FlightController_AUTO : public FlightController {
+
+public:
+
+    FlightController_AUTO(Copter &copter) :
+        Copter::FlightController(copter)
+        { }
+
+    virtual bool init(bool ignore_checks) override;
+    virtual void run() override; // should be called at 100hz or more
+
+    virtual bool is_autopilot() const override { return true; }
+    virtual bool requires_GPS() const override { return true; }
+    virtual bool has_manual_throttle() const override { return false; }
+    virtual bool allows_arming(bool from_gcs) const override { return false; };
+
+    // Auto
+    AutoMode mode() { return _mode; }
+
+    bool loiter_start();
+    void rtl_start();
+    void takeoff_start(float final_alt_above_home);
+    void wp_start(const Vector3f& destination);
+    void land_start();
+    void land_start(const Vector3f& destination);
+    void circle_movetoedge_start();
+    void circle_start();
+    void spline_start(const Vector3f& destination, bool stopped_at_start, AC_WPNav::spline_segment_end_type seg_end_type, const Vector3f& next_spline_destination);
+    void nav_guided_start();
+
+    bool landing_gear_should_be_deployed();
+
+protected:
+
+    const char *name() const override { return "AUTO"; }
+
+//    void get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, float &roll_out, float &pitch_out, float &yaw_out);
+
+private:
+
+    void takeoff_run();
+    void wp_run();
+    void spline_run();
+    void land_run();
+    void rtl_run();
+    void circle_run();
+    void nav_guided_run();
+    void loiter_run();
+
+    AutoMode _mode = Auto_TakeOff;   // controls which auto controller is run
+
+};
+
+
 class FlightController_STABILIZE : public FlightController {
 
 public:

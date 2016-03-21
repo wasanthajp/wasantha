@@ -338,9 +338,6 @@ private:
     uint32_t wp_distance;
     uint8_t land_state;              // records state of land (flying to location, descending)
 
-    // Auto
-    AutoMode auto_mode;   // controls which auto controller is run
-
     // Guided
     GuidedMode guided_mode;  // controls which controller is run (pos or vel)
 
@@ -714,26 +711,6 @@ private:
     uint8_t mavlink_compassmot(mavlink_channel_t chan);
     void delay(uint32_t ms);
     void get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, float &roll_out, float &pitch_out, float &yaw_out);
-    bool auto_init(bool ignore_checks);
-    void auto_run();
-    void auto_takeoff_start(const Location& dest_loc);
-    void auto_takeoff_run();
-    void auto_wp_start(const Vector3f& destination);
-    void auto_wp_start(const Location_Class& dest_loc);
-    void auto_wp_run();
-    void auto_spline_run();
-    void auto_land_start();
-    void auto_land_start(const Vector3f& destination);
-    void auto_land_run();
-    void auto_rtl_start();
-    void auto_rtl_run();
-    void auto_circle_movetoedge_start(const Location_Class &circle_center, float radius_m);
-    void auto_circle_start();
-    void auto_circle_run();
-    void auto_nav_guided_start();
-    void auto_nav_guided_run();
-    bool auto_loiter_start();
-    void auto_loiter_run();
     uint8_t get_default_auto_yaw_mode(bool rtl);
     void set_auto_yaw_mode(uint8_t yaw_mode);
     void set_auto_yaw_look_at_heading(float angle_deg, float turn_rate_dps, int8_t direction, uint8_t relative_angle);
@@ -1030,7 +1007,6 @@ private:
 #if NAV_GUIDED == ENABLED
     bool verify_nav_guided_enable(const AP_Mission::Mission_Command& cmd);
 #endif
-    void auto_spline_start(const Location_Class& destination, bool stopped_at_start, AC_WPNav::spline_segment_end_type seg_end_type, const Location_Class& next_destination);
 
     void print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode);
     void log_init(void);
@@ -1050,6 +1026,8 @@ private:
 #endif
 
     Copter::FlightController_ALTHOLD controller_althold{*this};
+
+    Copter::FlightController_AUTO controller_auto{*this};
 
 #if FRAME_CONFIG == HELI_FRAME
     Copter::FlightController_STABILIZE_Heli controller_stabilize{*this};
