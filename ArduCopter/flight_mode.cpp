@@ -41,11 +41,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case STABILIZE:
-            #if FRAME_CONFIG == HELI_FRAME
-                success = heli_stabilize_init(ignore_checks);
-            #else
-                success = stabilize_init(ignore_checks);
-            #endif
+                success = controller_stabilize.init(ignore_checks);
+                if (success) {
+                    controller = &controller_stabilize;
+                }
             break;
 
         case ALT_HOLD:
@@ -161,14 +160,6 @@ void Copter::update_flight_mode()
     }
 
     switch (control_mode) {
-        case STABILIZE:
-            #if FRAME_CONFIG == HELI_FRAME
-                heli_stabilize_run();
-            #else
-                stabilize_run();
-            #endif
-            break;
-
         case AUTO:
             auto_run();
             break;
@@ -363,9 +354,6 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         return;
     }
     switch (mode) {
-    case STABILIZE:
-        port->print("STABILIZE");
-        break;
     case AUTO:
         port->print("AUTO");
         break;

@@ -837,8 +837,6 @@ private:
     void rtl_compute_return_alt(const Location_Class &rtl_origin_point, Location_Class &rtl_return_target, bool terrain_following_allowed);
     bool sport_init(bool ignore_checks);
     void sport_run();
-    bool stabilize_init(bool ignore_checks);
-    void stabilize_run();
     void crash_check();
     void parachute_check();
     void parachute_release();
@@ -878,8 +876,6 @@ private:
     void update_heli_control_dynamics(void);
     void heli_update_landing_swash();
     void heli_update_rotor_speed_targets();
-    bool heli_stabilize_init(bool ignore_checks);
-    void heli_stabilize_run();
     void read_inertia();
     bool land_complete_maybe();
     void update_land_and_crash_detectors();
@@ -1054,6 +1050,13 @@ private:
 #endif
 
     Copter::FlightController_ALTHOLD controller_althold{*this};
+
+#if FRAME_CONFIG == HELI_FRAME
+    Copter::FlightController_STABILIZE_Heli controller_stabilize{*this};
+#else
+    Copter::FlightController_STABILIZE controller_stabilize{*this};
+#endif
+
 
 public:
     void mavlink_delay_cb();

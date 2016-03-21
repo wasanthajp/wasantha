@@ -153,3 +153,48 @@ protected:
 private:
 
 };
+
+
+class FlightController_STABILIZE : public FlightController {
+
+public:
+
+    FlightController_STABILIZE(Copter &copter) :
+        Copter::FlightController(copter)
+        { }
+
+    virtual bool init(bool ignore_checks) override;
+    virtual void run() override; // should be called at 100hz or more
+
+    virtual bool requires_GPS() const override { return false; }
+    virtual bool has_manual_throttle() const override { return true; }
+    virtual bool allows_arming(bool from_gcs) const override { return true; };
+    virtual bool is_autopilot() const override { return false; }
+
+protected:
+
+    const char *name() const override { return "STABILIZE"; }
+
+private:
+
+};
+
+
+#if FRAME_CONFIG == HELI_FRAME
+class FlightController_STABILIZE_Heli : public FlightController_STABILIZE {
+
+public:
+
+    FlightController_STABILIZE_Heli(Copter &copter) :
+        Copter::FlightController_STABILIZE(copter)
+        { }
+
+    bool init(bool ignore_checks) override;
+    void run() override; // should be called at 100hz or more
+
+protected:
+
+private:
+
+};
+#endif
