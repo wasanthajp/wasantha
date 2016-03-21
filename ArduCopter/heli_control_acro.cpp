@@ -8,15 +8,15 @@
  */
 
 // heli_acro_init - initialise acro controller
-bool Copter::heli_acro_init(bool ignore_checks)
+bool Copter::FlightController_ACRO_Heli::init(bool ignore_checks)
 {
     // if heli is equipped with a flybar, then tell the attitude controller to pass through controls directly to servos
-    attitude_control.use_flybar_passthrough(motors.has_flybar(), motors.supports_yaw_passthrough());
+    _copter.attitude_control.use_flybar_passthrough(_copter.motors.has_flybar(), _copter.motors.supports_yaw_passthrough());
 
     motors.set_acro_tail(true);
     
     // set stab collective false to use full collective pitch range
-    input_manager.set_use_stab_col(false);
+    _copter.input_manager.set_use_stab_col(false);
 
     // always successfully enter acro
     return true;
@@ -24,7 +24,7 @@ bool Copter::heli_acro_init(bool ignore_checks)
 
 // heli_acro_run - runs the acro controller
 // should be called at 100hz or more
-void Copter::heli_acro_run()
+void Copter::FlightController_ACRO_Heli::run()
 {
     float target_roll, target_pitch, target_yaw;
     float pilot_throttle_scaled;
@@ -35,27 +35,27 @@ void Copter::heli_acro_run()
     // that the servos move in a realistic fashion while disarmed for operational checks.
     // Also, unlike multicopters we do not set throttle (i.e. collective pitch) to zero so the swash servos move
     
-    if(!motors.armed()) {
-        heli_flags.init_targets_on_arming=true;
+    if(!_copter.motors.armed()) {
+        _copter.heli_flags.init_targets_on_arming=true;
         attitude_control.set_yaw_target_to_current_heading();
     }
     
-    if(motors.armed() && heli_flags.init_targets_on_arming) {
+    if(_copter.motors.armed() && _copter.heli_flags.init_targets_on_arming) {
         attitude_control.set_yaw_target_to_current_heading();
-        if (motors.rotor_speed_above_critical()) {
-            heli_flags.init_targets_on_arming=false;
+        if (_copter.motors.rotor_speed_above_critical()) {
+            _copter.heli_flags.init_targets_on_arming=false;
         }
     }   
 
     if (!motors.has_flybar()){
         // convert the input to the desired body frame rate
-        get_pilot_desired_angle_rates(channel_roll->control_in, channel_pitch->control_in, channel_yaw->control_in, target_roll, target_pitch, target_yaw);
+        get_pilot_desired_angle_rates(_copter.channel_roll->control_in, _copter.channel_pitch->control_in, _copter.channel_yaw->control_in, target_roll, target_pitch, target_yaw);
 
         if (motors.supports_yaw_passthrough()) {
             // if the tail on a flybar heli has an external gyro then
             // also use no deadzone for the yaw control and
             // pass-through the input direct to output.
-            target_yaw = channel_yaw->pwm_to_angle_dz(0);
+            target_yaw = _copter.channel_yaw->pwm_to_angle_dz(0);
         }
 
         // run attitude controller
@@ -86,10 +86,10 @@ void Copter::heli_acro_run()
     }
 
     // get pilot's desired throttle
-    pilot_throttle_scaled = input_manager.get_pilot_desired_collective(channel_throttle->control_in);
+    pilot_throttle_scaled = _copter.input_manager.get_pilot_desired_collective(channel_throttle->control_in);
 
     // output pilot's throttle without angle boost
-    attitude_control.set_throttle_out(pilot_throttle_scaled, false, g.throttle_filt);
+    attitude_control.set_throttle_out(pilot_throttle_scaled, false, _copter.g.throttle_filt);
 }
 
 #endif  //HELI_FRAME

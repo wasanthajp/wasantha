@@ -1,16 +1,16 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #include "Copter.h"
 
+#include "FlightController.h"
 
 /*
  * control_acro.pde - init and run calls for acro flight mode
  */
 
-// acro_init - initialise acro controller
-bool Copter::acro_init(bool ignore_checks)
+bool Copter::FlightController_ACRO::init(bool ignore_checks)
 {
    // if landed and the mode we're switching from does not have manual throttle and the throttle stick is too high
-   if (motors.armed() && ap.land_complete && !mode_has_manual_throttle(control_mode) && (get_pilot_desired_throttle(channel_throttle->control_in) > get_non_takeoff_throttle())) {
+   if (motors.armed() && ap.land_complete && !_copter.mode_has_manual_throttle(_copter.control_mode) && (get_pilot_desired_throttle(channel_throttle->control_in) > _copter.get_non_takeoff_throttle())) {
        return false;
    }
    // set target altitude to zero for reporting
@@ -19,9 +19,7 @@ bool Copter::acro_init(bool ignore_checks)
    return true;
 }
 
-// acro_run - runs the acro controller
-// should be called at 100hz or more
-void Copter::acro_run()
+void Copter::FlightController_ACRO::run()
 {
     float target_roll, target_pitch, target_yaw;
     float pilot_throttle_scaled;
@@ -51,10 +49,12 @@ void Copter::acro_run()
 
 // get_pilot_desired_angle_rates - transform pilot's roll pitch and yaw input into a desired lean angle rates
 // returns desired angle rates in centi-degrees-per-second
-void Copter::get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, float &roll_out, float &pitch_out, float &yaw_out)
+void Copter::FlightController_ACRO::get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, float &roll_out, float &pitch_out, float &yaw_out)
 {
     float rate_limit;
     Vector3f rate_ef_level, rate_bf_level, rate_bf_request;
+
+    AP_Vehicle::MultiCopter &aparm = _copter.aparm;
 
     // apply circular limit to pitch and roll inputs
     float total_in = pythagorous2((float)pitch_in, (float)roll_in);
