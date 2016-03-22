@@ -292,6 +292,37 @@ private:
 };
 
 
+class FlightController_LAND : public FlightController {
+
+public:
+
+    FlightController_LAND(Copter &copter) :
+        Copter::FlightController(copter)
+        { }
+
+    bool init(bool ignore_checks) override;
+    void run() override; // should be called at 100hz or more
+
+    bool requires_GPS() const override { return false; }
+    bool has_manual_throttle() const override { return false; }
+    bool allows_arming(bool from_gcs) const override { return false; };
+    bool is_autopilot() const override { return true; }
+
+    float get_land_descent_speed();
+    bool landing_with_GPS();
+    void do_not_use_GPS();
+
+protected:
+
+    const char *name() const override { return "LAND"; }
+
+private:
+
+    void gps_run();
+    void nogps_run();
+};
+
+
 class FlightController_LOITER : public FlightController {
 
 public:

@@ -83,7 +83,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case LAND:
-            success = land_init(ignore_checks);
+            success = controller_land.init(ignore_checks);
+            if (success) {
+                controller = &controller_land;
+            }
             break;
 
         case RTL:
@@ -172,10 +175,6 @@ void Copter::update_flight_mode()
     }
 
     switch (control_mode) {
-
-        case LAND:
-            land_run();
-            break;
 
         case RTL:
             rtl_run();
@@ -322,12 +321,11 @@ void Copter::notify_flight_mode() {
         return;
     }
     switch(control_mode) {
-        case RTL:
-        case LAND:
+    case RTL:
             // autopilot modes
             AP_Notify::flags.autopilot_mode = true;
             break;
-        default:
+    default:
             // all other are manual flight modes
             AP_Notify::flags.autopilot_mode = false;
             break;
@@ -346,9 +344,6 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
     switch (mode) {
     case RTL:
         port->print("RTL");
-        break;
-    case LAND:
-        port->print("LAND");
         break;
     case DRIFT:
         port->print("DRIFT");

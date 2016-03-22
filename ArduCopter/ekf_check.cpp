@@ -152,7 +152,7 @@ void Copter::failsafe_ekf_event()
 
     // if flight mode is already LAND ensure it's not the GPS controlled LAND
     if (control_mode == LAND) {
-        land_do_not_use_GPS();
+        controller_land.do_not_use_GPS();
     }
 }
 

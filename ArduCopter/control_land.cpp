@@ -2,16 +2,17 @@
 
 #include "Copter.h"
 
+// FIXME? why are these static?
 static bool land_with_gps;
 
 static uint32_t land_start_time;
 static bool land_pause;
 
 // land_init - initialise land controller
-bool Copter::land_init(bool ignore_checks)
+bool Copter::FlightController_LAND::init(bool ignore_checks)
 {
     // check if we have GPS and decide which LAND we're going to do
-    land_with_gps = position_ok();
+    land_with_gps = _copter.position_ok();
     if (land_with_gps) {
         // set target to stopping point
         Vector3f stopping_point;
@@ -38,19 +39,19 @@ bool Copter::land_init(bool ignore_checks)
 
 // land_run - runs the land controller
 // should be called at 100hz or more
-void Copter::land_run()
+void Copter::FlightController_LAND::run()
 {
     if (land_with_gps) {
-        land_gps_run();
+        gps_run();
     }else{
-        land_nogps_run();
+        nogps_run();
     }
 }
 
 // land_run - runs the land controller
 //      horizontal position controlled with loiter controller
 //      should be called at 100hz or more
-void Copter::land_gps_run()
+void Copter::FlightController_LAND::gps_run()
 {
     int16_t roll_control = 0, pitch_control = 0;
     float target_yaw_rate = 0;
@@ -76,7 +77,7 @@ void Copter::land_gps_run()
 #else
         // disarm when the landing detector says we've landed
         if (ap.land_complete) {
-            init_disarm_motors();
+            _copter.init_disarm_motors();
         }
 #endif
         return;
@@ -88,12 +89,12 @@ void Copter::land_gps_run()
     }
 
     // process pilot inputs
-    if (!failsafe.radio) {
-        if ((g.throttle_behavior & THR_BEHAVE_HIGH_THROTTLE_CANCELS_LAND) != 0 && rc_throttle_control_in_filter.get() > LAND_CANCEL_TRIGGER_THR){
-            Log_Write_Event(DATA_LAND_CANCELLED_BY_PILOT);
+    if (!_copter.failsafe.radio) {
+        if ((g.throttle_behavior & THR_BEHAVE_HIGH_THROTTLE_CANCELS_LAND) != 0 && _copter.rc_throttle_control_in_filter.get() > LAND_CANCEL_TRIGGER_THR){
+            _copter.Log_Write_Event(DATA_LAND_CANCELLED_BY_PILOT);
             // exit land if throttle is high
-            if (!set_mode(LOITER, MODE_REASON_THROTTLE_LAND_ESCAPE)) {
-                set_mode(ALT_HOLD, MODE_REASON_THROTTLE_LAND_ESCAPE);
+            if (!_copter.set_mode(LOITER, MODE_REASON_THROTTLE_LAND_ESCAPE)) {
+                _copter.set_mode(ALT_HOLD, MODE_REASON_THROTTLE_LAND_ESCAPE);
             }
         }
 
@@ -124,12 +125,12 @@ void Copter::land_gps_run()
 #if PRECISION_LANDING == ENABLED
     // run precision landing
     if (!ap.land_repo_active) {
-        wp_nav.shift_loiter_target(precland.get_target_shift(wp_nav.get_loiter_target()));
+        wp_nav.shift_loiter_target(_copter.precland.get_target_shift(wp_nav.get_loiter_target()));
     }
 #endif
 
     // run loiter controller
-    wp_nav.update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
+    wp_nav.update_loiter(_copter.ekfGndSpdLimit, _copter.ekfNavVelGainScaler);
 
     // call attitude controller
     attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), target_yaw_rate);
@@ -144,27 +145,27 @@ void Copter::land_gps_run()
     }
 
     // record desired climb rate for logging
-    desired_climb_rate = cmb_rate;
+    _copter.desired_climb_rate = cmb_rate;
 
     // update altitude target and call position controller
-    pos_control.set_alt_target_from_climb_rate(cmb_rate, G_Dt, true);
+    pos_control.set_alt_target_from_climb_rate(cmb_rate, _copter.G_Dt, true);
     pos_control.update_z_controller();
 }
 
 // land_nogps_run - runs the land controller
 //      pilot controls roll and pitch angles
 //      should be called at 100hz or more
-void Copter::land_nogps_run()
+void Copter::FlightController_LAND::nogps_run()
 {
     float target_roll = 0.0f, target_pitch = 0.0f;
     float target_yaw_rate = 0;
 
     // process pilot inputs
-    if (!failsafe.radio) {
-        if ((g.throttle_behavior & THR_BEHAVE_HIGH_THROTTLE_CANCELS_LAND) != 0 && rc_throttle_control_in_filter.get() > LAND_CANCEL_TRIGGER_THR){
-            Log_Write_Event(DATA_LAND_CANCELLED_BY_PILOT);
+    if (!_copter.failsafe.radio) {
+        if ((g.throttle_behavior & THR_BEHAVE_HIGH_THROTTLE_CANCELS_LAND) != 0 && _copter.rc_throttle_control_in_filter.get() > LAND_CANCEL_TRIGGER_THR){
+            _copter.Log_Write_Event(DATA_LAND_CANCELLED_BY_PILOT);
             // exit land if throttle is high
-            set_mode(ALT_HOLD, MODE_REASON_THROTTLE_LAND_ESCAPE);
+            _copter.set_mode(ALT_HOLD, MODE_REASON_THROTTLE_LAND_ESCAPE);
         }
 
         if (g.land_repositioning) {
@@ -172,7 +173,7 @@ void Copter::land_nogps_run()
             update_simple_mode();
 
             // get pilot desired lean angles
-            get_pilot_desired_lean_angles(channel_roll->control_in, channel_pitch->control_in, target_roll, target_pitch, aparm.angle_max);
+            get_pilot_desired_lean_angles(channel_roll->control_in, channel_pitch->control_in, target_roll, target_pitch, _copter.aparm.angle_max);
         }
 
         // get pilot's desired yaw rate
@@ -199,7 +200,7 @@ void Copter::land_nogps_run()
 #else
         // disarm when the landing detector says we've landed
         if (ap.land_complete) {
-            init_disarm_motors();
+            _copter.init_disarm_motors();
         }
 #endif
         return;
@@ -221,20 +222,20 @@ void Copter::land_nogps_run()
     }
 
     // record desired climb rate for logging
-    desired_climb_rate = cmb_rate;
+    _copter.desired_climb_rate = cmb_rate;
 
     // call position controller
-    pos_control.set_alt_target_from_climb_rate(cmb_rate, G_Dt, true);
+    pos_control.set_alt_target_from_climb_rate(cmb_rate, _copter.G_Dt, true);
     pos_control.update_z_controller();
 }
 
 // get_land_descent_speed - high level landing logic
 //      returns climb rate (in cm/s) which should be passed to the position controller
 //      should be called at 100hz or higher
-float Copter::get_land_descent_speed()
+float Copter::FlightController_LAND::get_land_descent_speed()
 {
 #if CONFIG_SONAR == ENABLED
-    bool sonar_ok = sonar_enabled && (sonar.status() == RangeFinder::RangeFinder_Good);
+    bool sonar_ok = _copter.sonar_enabled && (_copter.sonar.status() == RangeFinder::RangeFinder_Good);
 #else
     bool sonar_ok = false;
 #endif
@@ -252,7 +253,7 @@ float Copter::get_land_descent_speed()
     }
 
     // if we are above 10m and the sonar does not sense anything perform regular alt hold descent
-    if ((target_alt_cm >= LAND_START_ALT) && !(sonar_ok && sonar_alt_health >= SONAR_ALT_HEALTH_MAX)) {
+    if ((target_alt_cm >= LAND_START_ALT) && !(sonar_ok && copter.sonar_alt_health >= SONAR_ALT_HEALTH_MAX)) {
         if (g.land_speed_high > 0) {
             // user has asked for a different landing speed than normal descent rate
             return -abs(g.land_speed_high);
@@ -266,7 +267,7 @@ float Copter::get_land_descent_speed()
 // land_do_not_use_GPS - forces land-mode to not use the GPS but instead rely on pilot input for roll and pitch
 //  called during GPS failsafe to ensure that if we were already in LAND mode that we do not use the GPS
 //  has no effect if we are not already in LAND mode
-void Copter::land_do_not_use_GPS()
+void Copter::FlightController_LAND::do_not_use_GPS()
 {
     land_with_gps = false;
 }

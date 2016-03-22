@@ -418,7 +418,7 @@ void Copter::FlightController_AUTO::land_run()
     wp_nav.update_loiter(_copter.ekfGndSpdLimit, _copter.ekfNavVelGainScaler);
 
     // call z-axis position controller
-    float cmb_rate = _copter.get_land_descent_speed();
+    float cmb_rate = _copter.controller_land.get_land_descent_speed();
     pos_control.set_alt_target_from_climb_rate(cmb_rate, _copter.G_Dt, true);
     pos_control.update_z_controller();
 

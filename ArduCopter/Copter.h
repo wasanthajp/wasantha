@@ -741,11 +741,6 @@ private:
     float get_throttle_assist(float velz, float pilot_throttle_scaled);
     bool flip_init(bool ignore_checks);
     void flip_run();
-    bool land_init(bool ignore_checks);
-    void land_run();
-    void land_gps_run();
-    void land_nogps_run();
-    float get_land_descent_speed();
     void land_do_not_use_GPS();
     void set_mode_land_with_pause(mode_reason_t reason);
     bool landing_with_GPS();
@@ -1001,6 +996,8 @@ private:
     Copter::FlightController_CIRCLE controller_circle{*this};
 
     Copter::FlightController_GUIDED controller_guided{*this};
+
+    Copter::FlightController_LAND controller_land{*this};
 
     Copter::FlightController_LOITER controller_loiter{*this};
 
