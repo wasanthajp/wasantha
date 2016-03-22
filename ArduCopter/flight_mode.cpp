@@ -104,7 +104,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case SPORT:
-            success = sport_init(ignore_checks);
+            success = controller_sport.init(ignore_checks);
+            if (success) {
+                controller = &controller_sport;
+            }
             break;
 
         case FLIP:
@@ -181,10 +184,6 @@ void Copter::update_flight_mode()
     }
 
     switch (control_mode) {
-
-        case SPORT:
-            sport_run();
-            break;
 
         case FLIP:
             flip_run();
@@ -334,9 +333,6 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         return;
     }
     switch (mode) {
-    case SPORT:
-        port->print("SPORT");
-        break;
     case FLIP:
         port->print("FLIP");
         break;

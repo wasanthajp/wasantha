@@ -743,8 +743,6 @@ private:
     bool throw_attitude_good();
     bool throw_height_good();
 
-    bool sport_init(bool ignore_checks);
-    void sport_run();
     void crash_check();
     void parachute_check();
     void parachute_release();
@@ -978,6 +976,7 @@ private:
     Copter::FlightController_STABILIZE controller_stabilize{*this};
 #endif
 
+    Copter::FlightController_SPORT controller_sport{*this};
 
 public:
     void mavlink_delay_cb();
