@@ -720,9 +720,6 @@ private:
     void adsb_handle_vehicle_threats(void);
     bool brake_init(bool ignore_checks);
     void brake_run();
-    bool drift_init(bool ignore_checks);
-    void drift_run();
-    float get_throttle_assist(float velz, float pilot_throttle_scaled);
     bool flip_init(bool ignore_checks);
     void flip_run();
     void land_do_not_use_GPS();
@@ -964,6 +961,8 @@ private:
     Copter::FlightController_AUTO controller_auto{*this};
 
     Copter::FlightController_CIRCLE controller_circle{*this};
+
+    Copter::FlightController_DRIFT controller_drift{*this};
 
     Copter::FlightController_GUIDED controller_guided{*this};
 

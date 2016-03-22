@@ -236,6 +236,33 @@ private:
 };
 
 
+class FlightController_DRIFT : public FlightController {
+
+public:
+
+    FlightController_DRIFT(Copter &copter) :
+        Copter::FlightController(copter)
+        { }
+
+    virtual bool init(bool ignore_checks) override;
+    virtual void run() override; // should be called at 100hz or more
+
+    virtual bool requires_GPS() const override { return true; }
+    virtual bool has_manual_throttle() const override { return false; }
+    virtual bool allows_arming(bool from_gcs) const override { return true; };
+    virtual bool is_autopilot() const override { return false; }
+
+protected:
+
+    const char *name() const override { return "DRIFT"; }
+
+private:
+
+    float get_throttle_assist(float velz, float pilot_throttle_scaled);
+
+};
+
+
 class FlightController_GUIDED : public FlightController {
 
 public:
