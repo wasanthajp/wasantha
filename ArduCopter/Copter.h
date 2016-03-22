@@ -358,9 +358,6 @@ private:
     uint16_t loiter_time_max;                // How long we should stay in Loiter Mode for mission scripting (time in seconds)
     uint32_t loiter_time;                    // How long have we been loitering - The start time in millis
 
-    // Flip
-    Vector3f flip_orig_attitude;         // original copter attitude before flip
-
     // Throw
     bool throw_early_exit_interlock = true; // value of the throttle interlock that must be restored when exiting throw mode early
     bool throw_flight_commenced = false;    // true when the throw has been detected and the motors and control loops are running
@@ -720,8 +717,6 @@ private:
     void adsb_handle_vehicle_threats(void);
     bool brake_init(bool ignore_checks);
     void brake_run();
-    bool flip_init(bool ignore_checks);
-    void flip_run();
     void land_do_not_use_GPS();
     void set_mode_land_with_pause(mode_reason_t reason);
     bool landing_with_GPS();
@@ -961,6 +956,8 @@ private:
     Copter::FlightController_CIRCLE controller_circle{*this};
 
     Copter::FlightController_DRIFT controller_drift{*this};
+
+    Copter::FlightController_FLIP controller_flip{*this};
 
     Copter::FlightController_GUIDED controller_guided{*this};
 
