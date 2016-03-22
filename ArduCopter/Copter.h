@@ -338,20 +338,6 @@ private:
     uint32_t wp_distance;
     uint8_t land_state;              // records state of land (flying to location, descending)
 
-    // RTL
-    RTLState rtl_state;  // records state of rtl (initial climb, returning home, etc)
-    bool rtl_state_complete; // set to true if the current state is completed
-
-    struct {
-        // NEU w/ Z element alt-above-ekf-origin unless use_terrain is true in which case Z element is alt-above-terrain
-        Location_Class origin_point;
-        Location_Class climb_target;
-        Location_Class return_target;
-        Location_Class descent_target;
-        bool land;
-        bool terrain_used;
-    } rtl_path;
-
     // SIMPLE Mode
     // Used to track the orientation of the copter for Simple mode. This value is reset at each arming
     // or in SuperSimple mode when the copter leaves a 20m radius from home.
@@ -459,8 +445,6 @@ private:
     uint32_t fast_loopTimer;
     // Counter of main loop executions.  Used for performance monitoring and failsafe processing
     uint16_t mainLoop_count;
-    // Loiter timer - Records how long we have been in loiter
-    uint32_t rtl_loiter_start_time;
 
     // Used to exit the roll and pitch auto trim function
     uint8_t auto_trim_counter;
@@ -762,20 +746,6 @@ private:
     bool throw_attitude_good();
     bool throw_height_good();
 
-    bool rtl_init(bool ignore_checks);
-    void rtl_restart_without_terrain();
-    void rtl_run();
-    void rtl_climb_start();
-    void rtl_return_start();
-    void rtl_climb_return_run();
-    void rtl_loiterathome_start();
-    void rtl_loiterathome_run();
-    void rtl_descent_start();
-    void rtl_descent_run();
-    void rtl_land_start();
-    void rtl_land_run();
-    void rtl_build_path(bool terrain_following_allowed);
-    void rtl_compute_return_alt(const Location_Class &rtl_origin_point, Location_Class &rtl_return_target, bool terrain_following_allowed);
     bool sport_init(bool ignore_checks);
     void sport_run();
     void crash_check();
@@ -1000,6 +970,8 @@ private:
     Copter::FlightController_LAND controller_land{*this};
 
     Copter::FlightController_LOITER controller_loiter{*this};
+
+    Copter::FlightController_RTL controller_rtl{*this};
 
 #if FRAME_CONFIG == HELI_FRAME
     Copter::FlightController_STABILIZE_Heli controller_stabilize{*this};

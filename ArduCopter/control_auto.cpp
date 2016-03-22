@@ -435,7 +435,7 @@ bool Copter::FlightController_AUTO::landing_gear_should_be_deployed()
     case Auto_Land:
         return true;
     case Auto_RTL:
-        switch(_copter.rtl_state) {
+        switch(_copter.controller_rtl.state()) {
         case RTL_LoiterAtHome:
         case RTL_Land:
         case RTL_FinalDescent:
@@ -456,7 +456,7 @@ void Copter::FlightController_AUTO::rtl_start()
     _mode = Auto_RTL;
 
     // call regular rtl flight mode initialisation and ask it to ignore checks
-    _copter.rtl_init(true);
+    _copter.controller_rtl.init(true);
 }
 
 // auto_rtl_run - rtl in AUTO flight mode
@@ -464,7 +464,7 @@ void Copter::FlightController_AUTO::rtl_start()
 void Copter::FlightController_AUTO::rtl_run()
 {
     // call regular rtl flight mode run function
-    _copter.rtl_run();
+    _copter.controller_rtl.run();
 }
 
 // auto_circle_movetoedge_start - initialise waypoint controller to move to edge of a circle with it's center at the specified location
