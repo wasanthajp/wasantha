@@ -236,6 +236,62 @@ private:
 };
 
 
+class FlightController_GUIDED : public FlightController {
+
+public:
+
+    FlightController_GUIDED(Copter &copter) :
+        Copter::FlightController(copter)        { }
+
+    bool init(bool ignore_checks) override;
+    void run() override; // should be called at 100hz or more
+
+    bool requires_GPS() const override { return true; }
+    bool has_manual_throttle() const override { return false; }
+    bool allows_arming(bool from_gcs) const override {
+        if (from_gcs) {
+            return true;
+        }
+        return false;
+    };
+    bool is_autopilot() const override { return false; }
+
+    void set_angle(const Quaternion &q, float climb_rate_cms);
+    void set_destination_posvel(const Vector3f& destination, const Vector3f& velocity);
+    void set_velocity(const Vector3f& velocity);
+    void set_destination(const Vector3f& destination);
+
+    void limit_clear();
+    void limit_init_time_and_pos();
+    void limit_set(uint32_t timeout_ms, float alt_min_cm, float alt_max_cm, float horiz_max_cm);
+    bool limit_check();
+
+    void takeoff_start(float final_alt_above_home);
+
+    GuidedMode mode() { return guided_mode; }
+
+protected:
+
+    const char *name() const override { return "GUIDED"; }
+
+private:
+
+    void pos_control_start();
+    void vel_control_start();
+    void posvel_control_start();
+    void angle_control_start();
+    void takeoff_run();
+    void pos_control_run();
+    void vel_control_run();
+    void posvel_control_run();
+    void angle_control_run();
+
+    // controls which controller is run (pos or vel):
+    GuidedMode guided_mode = Guided_TakeOff;
+
+};
+
+
 class FlightController_LOITER : public FlightController {
 
 public:

@@ -35,7 +35,7 @@ bool Copter::FlightController_AUTO::init(bool ignore_checks)
         wp_nav.wp_and_spline_init();
 
         // clear guided limits
-        _copter.guided_limit_clear();
+        _copter.controller_guided.limit_clear();
 
         // start/resume the mission (based on MIS_RESTART parameter)
         _copter.mission.start_or_resume();
@@ -551,10 +551,10 @@ void Copter::FlightController_AUTO::nav_guided_start()
     _mode = Auto_NavGuided;
 
     // call regular guided flight mode initialisation
-    _copter.guided_init(true);
+    _copter.controller_guided.init(true);
 
     // initialise guided start time and position as reference for limit checking
-    _copter.guided_limit_init_time_and_pos();
+    _copter.controller_guided.limit_init_time_and_pos();
 }
 
 // auto_nav_guided_run - allows control by external navigation controller
@@ -562,7 +562,7 @@ void Copter::FlightController_AUTO::nav_guided_start()
 void Copter::FlightController_AUTO::nav_guided_run()
 {
     // call regular guided flight mode run function
-    _copter.guided_run();
+    _copter.controller_guided.run();
 }
 #endif  // NAV_GUIDED
 
