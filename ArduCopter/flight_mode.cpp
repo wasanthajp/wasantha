@@ -119,7 +119,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
 
 #if AUTOTUNE_ENABLED == ENABLED
         case AUTOTUNE:
-            success = autotune_init(ignore_checks);
+            success = controller_autotune.init(ignore_checks);
+            if (success) {
+                controller = &controller_autotune;
+            }
             break;
 #endif
 
@@ -188,12 +191,6 @@ void Copter::update_flight_mode()
 
     switch (control_mode) {
 
-#if AUTOTUNE_ENABLED == ENABLED
-        case AUTOTUNE:
-            autotune_run();
-            break;
-#endif
-
 #if POSHOLD_ENABLED == ENABLED
         case POSHOLD:
             poshold_run();
@@ -218,7 +215,7 @@ void Copter::exit_mode(control_mode_t old_control_mode, control_mode_t new_contr
 {
 #if AUTOTUNE_ENABLED == ENABLED
     if (old_control_mode == AUTOTUNE) {
-        autotune_stop();
+        controller_autotune.autotune_stop();
     }
 #endif
 
@@ -332,9 +329,6 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         return;
     }
     switch (mode) {
-    case AUTOTUNE:
-        port->print("AUTOTUNE");
-        break;
     case POSHOLD:
         port->print("POSHOLD");
         break;
