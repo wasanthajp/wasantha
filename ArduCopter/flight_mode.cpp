@@ -7,184 +7,135 @@
  *      logic for individual flight modes is in control_acro.pde, control_stabilize.pde, etc
  */
 
+// return the static controller object corresponding to supplied mode
+Copter::FlightController *Copter::controller_for_mode(const uint8_t mode)
+{
+    Copter::FlightController *ret = NULL;
+
+    switch(mode) {
+        case ACRO:
+            ret = &controller_acro;
+            break;
+
+        case STABILIZE:
+            ret = &controller_stabilize;
+            break;
+
+        case ALT_HOLD:
+            ret = &controller_althold;
+            break;
+
+        case AUTO:
+            ret = &controller_auto;
+            break;
+
+        case CIRCLE:
+            ret = &controller_circle;
+            break;
+
+        case LOITER:
+            ret = &controller_loiter;
+            break;
+
+        case GUIDED:
+            ret = &controller_guided;
+            break;
+
+        case LAND:
+            ret = &controller_land;
+            break;
+
+        case RTL:
+            ret = &controller_rtl;
+            break;
+
+        case DRIFT:
+            ret = &controller_drift;
+            break;
+
+        case SPORT:
+            ret = &controller_sport;
+            break;
+
+        case FLIP:
+            ret = &controller_flip;
+            break;
+
+#if AUTOTUNE_ENABLED == ENABLED
+        case AUTOTUNE:
+            ret = &controller_autotune;
+            break;
+#endif
+
+#if POSHOLD_ENABLED == ENABLED
+        case POSHOLD:
+            ret = &controller_poshold;
+            break;
+#endif
+
+        case BRAKE:
+            ret = &controller_brake;
+            break;
+
+        case THROW:
+            ret = &controller_throw;
+            break;
+
+        default:
+            break;
+    }
+
+    return ret;
+}
+
+
 // set_mode - change flight mode and perform any necessary initialisation
 // optional force parameter used to force the flight mode change (used only first time mode is set)
 // returns true if mode was succesfully set
 // ACRO, STABILIZE, ALTHOLD, LAND, DRIFT and SPORT can always be set successfully but the return state of other flight modes should be checked and the caller should deal with failures appropriately
 bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
 {
-    // boolean to record if flight mode could be set
-    bool success = false;
-    bool ignore_checks = !motors.armed();   // allow switching to any mode if disarmed.  We rely on the arming check to perform
 
     // return immediately if we are already in the desired mode
     if (mode == control_mode) {
-        prev_control_mode = control_mode;
-        prev_control_mode_reason = control_mode_reason;
-
         control_mode_reason = reason;
         return true;
     }
 
-    // for transition, we assume no controller object will be used in
-    // the new mode, and if the transition fails we reset the
-    // controller to the previous value
-    Copter::FlightController* old_controller = controller;
-    controller = NULL;
-
-    switch(mode) {
-        case ACRO:
-                success = controller_acro.init(ignore_checks);
-                if (success) {
-                    controller = &controller_acro;
-                }
-            break;
-
-        case STABILIZE:
-                success = controller_stabilize.init(ignore_checks);
-                if (success) {
-                    controller = &controller_stabilize;
-                }
-            break;
-
-        case ALT_HOLD:
-            success = controller_althold.init(ignore_checks);
-            if (success) {
-                controller = &controller_althold;
-            }
-            break;
-
-        case AUTO:
-            success = controller_auto.init(ignore_checks);
-            if (success) {
-                controller = &controller_auto;
-            }
-            break;
-
-        case CIRCLE:
-            success = controller_circle.init(ignore_checks);
-            if (success) {
-                controller = &controller_circle;
-            }
-            break;
-
-        case LOITER:
-            success = controller_loiter.init(ignore_checks);
-            if (success) {
-                controller = &controller_loiter;
-            }
-            break;
-
-        case GUIDED:
-            success = controller_guided.init(ignore_checks);
-            if (success) {
-                controller = &controller_guided;
-            }
-            break;
-
-        case LAND:
-            success = controller_land.init(ignore_checks);
-            if (success) {
-                controller = &controller_land;
-            }
-            break;
-
-        case RTL:
-            success = controller_rtl.init(ignore_checks);
-            if (success) {
-                controller = &controller_rtl;
-            }
-            break;
-
-        case DRIFT:
-            success = controller_drift.init(ignore_checks);
-            if (success) {
-                controller = &controller_drift;
-            }
-            break;
-
-        case SPORT:
-            success = controller_sport.init(ignore_checks);
-            if (success) {
-                controller = &controller_sport;
-            }
-            break;
-
-        case FLIP:
-            success = controller_flip.init(ignore_checks);
-            if (success) {
-                controller = &controller_flip;
-            }
-            break;
-
-#if AUTOTUNE_ENABLED == ENABLED
-        case AUTOTUNE:
-            success = controller_autotune.init(ignore_checks);
-            if (success) {
-                controller = &controller_autotune;
-            }
-            break;
-#endif
-
-#if POSHOLD_ENABLED == ENABLED
-        case POSHOLD:
-            success = controller_poshold.init(ignore_checks);
-            if (success) {
-                controller = &controller_poshold;
-            }
-            break;
-#endif
-
-        case BRAKE:
-            success = controller_brake.init(ignore_checks);
-            if (success) {
-                controller = &controller_brake;
-            }
-            break;
-
-        case THROW:
-            success = controller_throw.init(ignore_checks);
-            if (success) {
-                controller = &controller_throw;
-            }
-            break;
-
-        default:
-            success = false;
-            break;
+    Copter::FlightController *new_controller = controller_for_mode(mode);
+    if (new_controller == NULL) {
+        Log_Write_Error(ERROR_SUBSYSTEM_FLIGHT_MODE,mode);
+        return false;
     }
 
-    // update flight mode
-    if (success) {
-        // perform any cleanup required by previous flight mode
-        exit_mode(control_mode, mode);
-        
-        prev_control_mode = control_mode;
-        prev_control_mode_reason = control_mode_reason;
+    bool ignore_checks = !motors.armed();   // allow switching to any mode if disarmed.  We rely on the arming check to perform
 
-        control_mode = mode;
-        control_mode_reason = reason;
-        DataFlash.Log_Write_Mode(control_mode, control_mode_reason);
+    if (! new_controller->init(ignore_checks)) {
+        Log_Write_Error(ERROR_SUBSYSTEM_FLIGHT_MODE,mode);
+        return false;
+    }
+
+    // perform any cleanup required by previous flight mode
+    exit_mode(control_mode, mode);
+
+    // update flight mode
+    controller = new_controller;
+    control_mode = mode;
+    control_mode_reason = reason;
+    DataFlash.Log_Write_Mode(control_mode);
 
 #if AC_FENCE == ENABLED
         // pilot requested flight mode change during a fence breach indicates pilot is attempting to manually recover
         // this flight mode change could be automatic (i.e. fence, battery, GPS or GCS failsafe)
         // but it should be harmless to disable the fence temporarily in these situations as well
-        fence.manual_recovery_start();
+    fence.manual_recovery_start();
 #endif
-    }else{
-        controller = old_controller;
-        // Log error that we failed to enter desired flight mode
-        Log_Write_Error(ERROR_SUBSYSTEM_FLIGHT_MODE,mode);
-    }
 
     // update notify object
-    if (success) {
-        notify_flight_mode();
-    }
+    notify_flight_mode();
 
-    // return success or failure
-    return success;
+    // return success
+    return true;
 }
 
 // update_flight_mode - calls the appropriate attitude controllers based on flight mode
