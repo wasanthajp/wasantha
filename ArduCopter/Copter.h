@@ -358,12 +358,6 @@ private:
     uint16_t loiter_time_max;                // How long we should stay in Loiter Mode for mission scripting (time in seconds)
     uint32_t loiter_time;                    // How long have we been loitering - The start time in millis
 
-    // Throw
-    bool throw_early_exit_interlock = true; // value of the throttle interlock that must be restored when exiting throw mode early
-    bool throw_flight_commenced = false;    // true when the throw has been detected and the motors and control loops are running
-    uint32_t throw_free_fall_start_ms = 0;  // system time free fall was detected
-    float throw_free_fall_start_velz = 0.0f;// vertical velocity when free fall was detected
-
     // Battery Sensors
     AP_BattMonitor battery;
 
@@ -697,14 +691,6 @@ private:
     void set_mode_land_with_pause(mode_reason_t reason);
     bool landing_with_GPS();
 
-    // Throw to launch functionality
-    bool throw_init(bool ignore_checks);
-    void throw_exit();
-    void throw_run();
-    bool throw_detected();
-    bool throw_attitude_good();
-    bool throw_height_good();
-
     void crash_check();
     void parachute_check();
     void parachute_release();
@@ -951,6 +937,8 @@ private:
 #endif
 
     Copter::FlightController_SPORT controller_sport{*this};
+
+    Copter::FlightController_THROW controller_throw{*this};
 
 public:
     void mavlink_delay_cb();

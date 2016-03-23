@@ -642,3 +642,41 @@ private:
 
 };
 #endif
+
+
+class FlightController_THROW : public FlightController {
+
+public:
+
+    FlightController_THROW(Copter &copter) :
+        Copter::FlightController(copter)
+        { }
+
+    bool init(bool ignore_checks) override;
+    void run() override; // should be called at 100hz or more
+
+    bool requires_GPS() const override { return true; }
+    bool has_manual_throttle() const override { return false; }
+    bool allows_arming(bool from_gcs) const override { return true; };
+    bool is_autopilot() const override { return false; }
+
+    void throw_exit();
+    bool throw_early_exit_interlock = true; // value of the throttle interlock that must be restored when exiting throw mode early
+
+protected:
+
+    const char *name() const override { return "THROW"; }
+
+private:
+
+    // Throw
+    bool throw_flight_commenced = false;    // true when the throw has been detected and the motors and control loops are running
+    uint32_t throw_free_fall_start_ms = 0;  // system time free fall was detected
+    float throw_free_fall_start_velz = 0.0f;// vertical velocity when free fall was detected
+
+    // Throw to launch functionality
+    bool throw_detected();
+    bool throw_attitude_good();
+    bool throw_height_good();
+
+};

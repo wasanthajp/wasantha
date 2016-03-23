@@ -143,7 +143,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case THROW:
-            success = throw_init(ignore_checks);
+            success = controller_throw.init(ignore_checks);
+            if (success) {
+                controller = &controller_throw;
+            }
             break;
 
         default:
@@ -196,13 +199,6 @@ void Copter::update_flight_mode()
     }
 
     switch (control_mode) {
-
-        case THROW:
-            throw_run();
-            break;
-
-        default:
-            break;
     }
 }
 
@@ -226,7 +222,7 @@ void Copter::exit_mode(control_mode_t old_control_mode, control_mode_t new_contr
     }
 
     if (old_control_mode == THROW) {
-        throw_exit();
+        controller_throw.throw_exit();
     }
 
     // smooth throttle transition when switching from manual to automatic flight modes
@@ -264,8 +260,6 @@ bool Copter::mode_requires_GPS() {
         return controller->requires_GPS();
     }
     switch(control_mode) {
-        case THROW:
-            return true;
         default:
             return false;
     }
@@ -323,9 +317,6 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         return;
     }
     switch (mode) {
-    case THROW:
-        port->print("THROW");
-        break;
     default:
         port->printf("Mode(%u)", (unsigned)mode);
         break;

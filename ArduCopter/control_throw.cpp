@@ -4,7 +4,7 @@
 
 
 // throw_init - initialise throw controller
-bool Copter::throw_init(bool ignore_checks)
+bool Copter::FlightController_THROW::init(bool ignore_checks)
 {
 #if FRAME_CONFIG == HELI_FRAME
     // do not allow helis to use throw to start
@@ -21,7 +21,7 @@ bool Copter::throw_init(bool ignore_checks)
 }
 
 // clean up when exiting throw mode
-void Copter::throw_exit()
+void Copter::FlightController_THROW::throw_exit()
 {
     // If exiting throw mode before commencing flight, restore the throttle interlock to the value last set by the switch
     if (!throw_flight_commenced) {
@@ -31,7 +31,7 @@ void Copter::throw_exit()
 
 // runs the throw to start controller
 // should be called at 100hz or more
-void Copter::throw_run()
+void Copter::FlightController_THROW::run()
 {
     static ThrowModeState throw_state = Throw_Disarmed;
 
@@ -63,7 +63,7 @@ void Copter::throw_run()
         throw_flight_commenced = false;
 
     } else if (throw_state == Throw_Disarmed && motors.armed()) {
-        gcs_send_text(MAV_SEVERITY_INFO,"waiting for throw");
+        _copter.gcs_send_text(MAV_SEVERITY_INFO,"waiting for throw");
         throw_state = Throw_Detecting;
 
         // prevent motors from rotating before the throw is detected unless enabled by the user
@@ -74,7 +74,7 @@ void Copter::throw_run()
         }
 
     } else if (throw_state == Throw_Detecting && throw_detected()){
-        gcs_send_text(MAV_SEVERITY_INFO,"throw detected - uprighting");
+        _copter.gcs_send_text(MAV_SEVERITY_INFO,"throw detected - uprighting");
         throw_state = Throw_Uprighting;
 
         // Cancel the waiting for throw tone sequence
@@ -87,7 +87,7 @@ void Copter::throw_run()
         throw_flight_commenced = true;
 
     } else if (throw_state == Throw_Uprighting && throw_attitude_good()) {
-        gcs_send_text(MAV_SEVERITY_INFO,"uprighted - controlling height");
+        _copter.gcs_send_text(MAV_SEVERITY_INFO,"uprighted - controlling height");
         throw_state = Throw_HgtStabilise;
 
         // initialize vertical speed and acceleration limits
@@ -104,17 +104,17 @@ void Copter::throw_run()
         pos_control.set_desired_velocity_z(fmaxf(inertial_nav.get_velocity_z(),0.0f));
 
         // Set the auto_arm status to true to avoid a possible automatic disarm caused by selection of an auto mode with throttle at minimum
-        set_auto_armed(true);
+        _copter.set_auto_armed(true);
 
     } else if (throw_state == Throw_HgtStabilise && throw_height_good()) {
-        gcs_send_text(MAV_SEVERITY_INFO,"height achieved - controlling position");
+        _copter.gcs_send_text(MAV_SEVERITY_INFO,"height achieved - controlling position");
         throw_state = Throw_PosHold;
 
         // initialise the loiter target to the curent position and velocity
         wp_nav.init_loiter_target();
 
         // Set the auto_arm status to true to avoid a possible automatic disarm caused by selection of an auto mode with throttle at minimum
-        set_auto_armed(true);
+        _copter.set_auto_armed(true);
     }
 
     // Throw State Processing
@@ -152,7 +152,7 @@ void Copter::throw_run()
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(0.0f, 0.0f, 0.0f);
 
         // call height controller
-        pos_control.set_alt_target_from_climb_rate_ff(0.0f, G_Dt, false);
+        pos_control.set_alt_target_from_climb_rate_ff(0.0f, _copter.G_Dt, false);
         pos_control.update_z_controller();
 
         break;
@@ -160,20 +160,20 @@ void Copter::throw_run()
     case Throw_PosHold:
 
         // run loiter controller
-        wp_nav.update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
+        wp_nav.update_loiter(_copter.ekfGndSpdLimit, _copter.ekfNavVelGainScaler);
 
         // call attitude controller
         attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), 0.0f);
 
         // call height controller
-        pos_control.set_alt_target_from_climb_rate_ff(0.0f, G_Dt, false);
+        pos_control.set_alt_target_from_climb_rate_ff(0.0f, _copter.G_Dt, false);
         pos_control.update_z_controller();
 
         break;
     }
 }
 
-bool Copter::throw_detected()
+bool Copter::FlightController_THROW::throw_detected()
 {
     // Check that we have a valid navigation solution
     nav_filter_status filt_status = inertial_nav.get_filter_status();
@@ -191,7 +191,7 @@ bool Copter::throw_detected()
     bool free_falling = ahrs.get_accel_ef().z > -0.25 * GRAVITY_MSS;
 
     // Check if the accel length is < 1.0g indicating that any throw action is complete and the copter has been released
-    bool no_throw_action = ins.get_accel().length() < 1.0f * GRAVITY_MSS;
+    bool no_throw_action = _copter.ins.get_accel().length() < 1.0f * GRAVITY_MSS;
 
     // High velocity or free-fall combined with incresing height indicate a possible throw release
     bool possible_throw_detected = (free_falling || high_speed) && gaining_height && no_throw_action;
@@ -213,7 +213,7 @@ bool Copter::throw_detected()
     }
 }
 
-bool Copter::throw_attitude_good()
+bool Copter::FlightController_THROW::throw_attitude_good()
 {
     // Check that we have uprighted the copter
     const Matrix3f &rotMat = ahrs.get_rotation_body_to_ned();
@@ -221,7 +221,7 @@ bool Copter::throw_attitude_good()
     return is_upright;
 }
 
-bool Copter::throw_height_good()
+bool Copter::FlightController_THROW::throw_height_good()
 {
     // Check that we are no more than 0.5m below the demanded height
     return (pos_control.get_alt_error() < 50.0f);
