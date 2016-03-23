@@ -693,8 +693,6 @@ private:
     float get_auto_heading(void);
     void adsb_update(void);
     void adsb_handle_vehicle_threats(void);
-    bool brake_init(bool ignore_checks);
-    void brake_run();
     void land_do_not_use_GPS();
     void set_mode_land_with_pause(mode_reason_t reason);
     bool landing_with_GPS();
@@ -925,6 +923,8 @@ private:
 #if AUTOTUNE_ENABLED == ENABLED
     Copter::FlightController_AUTOTUNE controller_autotune{*this};
 #endif
+
+    Copter::FlightController_BRAKE controller_brake{*this};
 
     Copter::FlightController_CIRCLE controller_circle{*this};
 

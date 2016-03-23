@@ -7,9 +7,9 @@
  */
 
 // brake_init - initialise brake controller
-bool Copter::brake_init(bool ignore_checks)
+bool Copter::FlightController_BRAKE::init(bool ignore_checks)
 {
-    if (position_ok() || ignore_checks) {
+    if (_copter.position_ok() || ignore_checks) {
 
         // set desired acceleration to zero
         wp_nav.clear_pilot_desired_acceleration();
@@ -33,7 +33,7 @@ bool Copter::brake_init(bool ignore_checks)
 
 // brake_run - runs the brake controller
 // should be called at 100hz or more
-void Copter::brake_run()
+void Copter::FlightController_BRAKE::run()
 {
     // if not auto armed set throttle to zero and exit immediately
     if (!motors.armed() || !ap.auto_armed || !motors.get_interlock()) {
@@ -47,7 +47,7 @@ void Copter::brake_run()
         // multicopters do not stabilize roll/pitch/yaw when disarmed
         attitude_control.set_throttle_out_unstabilized(0,true,g.throttle_filt);
 #endif
-        pos_control.relax_alt_hold_controllers(get_throttle_pre_takeoff(0)-throttle_average);
+        pos_control.relax_alt_hold_controllers(get_throttle_pre_takeoff(0)-_copter.throttle_average);
         return;
     }
 
@@ -58,14 +58,14 @@ void Copter::brake_run()
 
     // if landed immediately disarm
     if (ap.land_complete) {
-        init_disarm_motors();
+        _copter.init_disarm_motors();
     }
 
     // set motors to full range
     motors.set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
     // run brake controller
-    wp_nav.update_brake(ekfGndSpdLimit, ekfNavVelGainScaler);
+    wp_nav.update_brake(_copter.ekfGndSpdLimit, _copter.ekfNavVelGainScaler);
 
     // call attitude controller
     attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), 0.0f);
@@ -73,6 +73,6 @@ void Copter::brake_run()
     // body-frame rate controller is run directly from 100hz loop
 
     // update altitude target and call position controller
-    pos_control.set_alt_target_from_climb_rate_ff(0.0f, G_Dt, false);
+    pos_control.set_alt_target_from_climb_rate_ff(0.0f, _copter.G_Dt, false);
     pos_control.update_z_controller();
 }

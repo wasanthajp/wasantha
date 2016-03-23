@@ -136,7 +136,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
 #endif
 
         case BRAKE:
-            success = brake_init(ignore_checks);
+            success = controller_brake.init(ignore_checks);
+            if (success) {
+                controller = &controller_brake;
+            }
             break;
 
         case THROW:
@@ -193,10 +196,6 @@ void Copter::update_flight_mode()
     }
 
     switch (control_mode) {
-
-        case BRAKE:
-            brake_run();
-            break;
 
         case THROW:
             throw_run();
@@ -265,7 +264,6 @@ bool Copter::mode_requires_GPS() {
         return controller->requires_GPS();
     }
     switch(control_mode) {
-        case BRAKE:
         case THROW:
             return true;
         default:
@@ -325,9 +323,6 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         return;
     }
     switch (mode) {
-    case BRAKE:
-        port->print("BRAKE");
-        break;
     case THROW:
         port->print("THROW");
         break;
