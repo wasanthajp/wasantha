@@ -145,12 +145,7 @@ void Copter::update_flight_mode()
     // Update EKF speed limit - used to limit speed when we are using optical flow
     ahrs.getEkfControlLimits(ekfGndSpdLimit, ekfNavVelGainScaler);
 
-    if (controller != NULL) {
-        controller->run();
-    }
-
-    switch (control_mode) {
-    }
+    controller->run();
 }
 
 // exit_mode - high level call to organise cleanup as a flight mode is exited
@@ -231,31 +226,9 @@ bool Copter::mode_has_manual_throttle(control_mode_t mode) {
     return false;
 }
 
-// mode_allows_arming - returns true if vehicle can be armed in the current mode
-//  arming_from_gcs should be set to true if the arming request comes from the ground station
-bool Copter::mode_allows_arming(bool arming_from_gcs) {
-    if (controller != NULL) {
-        return controller->allows_arming(arming_from_gcs);
-    }
-    uint8_t mode = control_mode;
-    if (mode_has_manual_throttle(mode) || mode == LOITER || mode == ALT_HOLD || mode == POSHOLD || mode == DRIFT || mode == SPORT || mode == THROW || (arming_from_gcs && mode == GUIDED)) {
-        return true;
-    }
-    return false;
-}
-
 // notify_flight_mode - sets notify object based on current flight mode.  Only used for OreoLED notify device
 void Copter::notify_flight_mode() {
-    if (controller != NULL) {
-        AP_Notify::flags.autopilot_mode = controller->is_autopilot();
-        return;
-    }
-    switch(control_mode) {
-    default:
-            // all other are manual flight modes
-            AP_Notify::flags.autopilot_mode = false;
-            break;
-    }
+    AP_Notify::flags.autopilot_mode = controller->is_autopilot();
 }
 
 //

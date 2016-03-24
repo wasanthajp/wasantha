@@ -575,7 +575,7 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     }
 
     // always check if the current mode allows arming
-    if (!mode_allows_arming(arming_from_gcs)) {
+    if (!controller->allows_arming(arming_from_gcs)) {
         if (display_failure) {
             gcs_send_text(MAV_SEVERITY_CRITICAL,"Arm: Mode not armable");
         }
