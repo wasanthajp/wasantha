@@ -236,14 +236,11 @@ void Copter::notify_flight_mode() {
 //
 void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
 {
-    if (controller != NULL) {
-        controller->print_FlightMode(port);
+    Copter::FlightController *c = controller_for_mode(mode);
+    if (c == NULL) {
+        port->printf("Unknown Mode(%u)", (unsigned)mode);
         return;
     }
-    switch (mode) {
-    default:
-        port->printf("Mode(%u)", (unsigned)mode);
-        break;
-    }
+    c->print_FlightMode(port);
 }
 
