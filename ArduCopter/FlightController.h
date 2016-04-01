@@ -19,7 +19,8 @@ public:
         channel_roll(_copter.channel_roll),
         channel_pitch(_copter.channel_pitch),
         channel_throttle(_copter.channel_throttle),
-        channel_yaw(_copter.channel_yaw)
+        channel_yaw(_copter.channel_yaw),
+        ap(_copter.ap)
         { };
 
 protected:
@@ -50,6 +51,7 @@ protected:
     RC_Channel *&channel_pitch;
     RC_Channel *&channel_throttle;
     RC_Channel *&channel_yaw;
+    ap_t &ap;
 
     // pass-through functions to reduce code churn on conversion;
     // these are candidates for moving into the FlightController base
