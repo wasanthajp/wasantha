@@ -1,6 +1,7 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #include <AP_HAL/AP_HAL.h>
 #include "AC_WPNav.h"
+#include <stdio.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -104,9 +105,10 @@ const AP_Param::GroupInfo AC_WPNav::var_info[] = {
 // Note that the Vector/Matrix constructors already implicitly zero
 // their values.
 //
-AC_WPNav::AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, AC_PosControl& pos_control, const AC_AttitudeControl& attitude_control) :
+AC_WPNav::AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, const RangeFinder& rng, AC_PosControl& pos_control, const AC_AttitudeControl& attitude_control) :
     _inav(inav),
     _ahrs(ahrs),
+    _rng(rng),
     _pos_control(pos_control),
     _attitude_control(attitude_control),
     _loiter_step(0),
@@ -1154,6 +1156,16 @@ void AC_WPNav::calc_spline_pos_vel(float spline_time, Vector3f& position, Vector
 // get terrain's altitude (in cm above the ekf origin) at the current position (+ve means terrain below vehicle is above ekf origin's altitude)
 bool AC_WPNav::get_terrain_offset(float& offset_cm)
 {
+    // use range finder if connected
+    if (_rng.num_sensors() > 0) {
+        if ((_rng.status() == RangeFinder::RangeFinder_Good) && (_rng.range_valid_count() >= 3)) {
+            offset_cm = _inav.get_altitude() - ((float)_rng.distance_cm() * MAX(0.707f, _ahrs.get_rotation_body_to_ned().c.z));
+            return true;
+        }
+        return false;
+    }
+
+    // use terrain database
     float terr_alt = 0.0f;
     if (_terrain != NULL && _terrain->height_above_terrain(terr_alt, true)) {
         offset_cm = _inav.get_altitude() - (terr_alt * 100.0f);
