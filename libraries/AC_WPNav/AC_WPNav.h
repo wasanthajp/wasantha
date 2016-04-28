@@ -41,6 +41,8 @@
 
 #define WPNAV_YAW_DIST_MIN                 200      // minimum track length which will lead to target yaw being updated to point at next waypoint.  Under this distance the yaw target will be frozen at the current heading
 
+#define WPNAV_RANGEFINDER_FILT_Z         0.25f      // range finder distance filtered at 0.25hz
+
 class AC_WPNav
 {
 public:
@@ -358,4 +360,6 @@ protected:
     // terrain following variables
     bool        _terrain_alt = false;   // true if origin and destination.z are alt-above-terrain, false if alt-above-ekf-origin
     bool        _ekf_origin_terrain_alt_set = false;
+    LowPassFilterFloat _rng_distance_filt;
+    uint32_t    _rng_last_used_ms = 0;
 };

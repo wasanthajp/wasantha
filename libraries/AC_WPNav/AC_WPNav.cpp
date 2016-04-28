@@ -138,6 +138,9 @@ AC_WPNav::AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, const RangeF
     _flags.recalc_wp_leash = false;
     _flags.new_wp_destination = false;
     _flags.segment_type = SEGMENT_STRAIGHT;
+
+    // init filter
+    _rng_distance_filt.set_cutoff_frequency(WPNAV_RANGEFINDER_FILT_Z);
 }
 
 ///
@@ -1158,11 +1161,25 @@ bool AC_WPNav::get_terrain_offset(float& offset_cm)
 {
     // use range finder if connected
     if (_rng.num_sensors() > 0) {
+        uint32_t now = AP_HAL::millis();
         if ((_rng.status() == RangeFinder::RangeFinder_Good) && (_rng.range_valid_count() >= 3)) {
-            offset_cm = _inav.get_altitude() - ((float)_rng.distance_cm() * MAX(0.707f, _ahrs.get_rotation_body_to_ned().c.z));
-            return true;
+            // read distance from range finder and correct for vehicle lean
+            float rng_dist_cm = (float)_rng.distance_cm() * MAX(0.707f, _ahrs.get_rotation_body_to_ned().c.z);
+            if (now - _rng_last_used_ms > 1000) {
+                // reset filter if we haven't used it within the last second
+                _rng_distance_filt.reset(rng_dist_cm);
+            } else {
+                _rng_distance_filt.apply(rng_dist_cm, _pos_control.get_dt_xy());
+            }
+            _rng_last_used_ms = now;
         }
-        return false;
+        // use the filtered value if it's been updated in the last second
+        if ((now - _rng_last_used_ms) <= 1000) {
+            offset_cm = _inav.get_altitude() - _rng_distance_filt.get();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // use terrain database
