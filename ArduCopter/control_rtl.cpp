@@ -13,8 +13,8 @@
 bool Copter::FlightController_RTL::init(bool ignore_checks)
 {
     if (_copter.position_ok() || ignore_checks) {
-        rtl_build_path(true);
-        rtl_climb_start();
+        build_path(true);
+        climb_start();
         return true;
     }else{
         return false;
@@ -22,14 +22,14 @@ bool Copter::FlightController_RTL::init(bool ignore_checks)
 }
 
 // re-start RTL with terrain following disabled
-void Copter::rtl_restart_without_terrain()
+void Copter::FlightController_RTL::restart_without_terrain()
 {
     // log an error
-    Log_Write_Error(ERROR_SUBSYSTEM_NAVIGATION, ERROR_CODE_RESTARTED_RTL);
+    _copter.Log_Write_Error(ERROR_SUBSYSTEM_NAVIGATION, ERROR_CODE_RESTARTED_RTL);
     if (rtl_path.terrain_used) {
-        rtl_build_path(false);
-        rtl_climb_start();
-        gcs_send_text(MAV_SEVERITY_CRITICAL,"Restarting RTL - Terrain data missing");
+        build_path(false);
+        climb_start();
+        _copter.gcs_send_text(MAV_SEVERITY_CRITICAL,"Restarting RTL - Terrain data missing");
     }
 }
 
@@ -104,8 +104,8 @@ void Copter::FlightController_RTL::climb_start()
     // set the destination
     if (!wp_nav.set_wp_destination(rtl_path.climb_target)) {
         // this should not happen because rtl_build_path will have checked terrain data was available
-        Log_Write_Error(ERROR_SUBSYSTEM_NAVIGATION, ERROR_CODE_FAILED_TO_SET_DESTINATION);
-        set_mode(LAND, MODE_REASON_TERRAIN_FAILSAFE);
+        _copter.Log_Write_Error(ERROR_SUBSYSTEM_NAVIGATION, ERROR_CODE_FAILED_TO_SET_DESTINATION);
+        _copter.set_mode(LAND, MODE_REASON_TERRAIN_FAILSAFE);
         return;
     }
     wp_nav.set_fast_waypoint(true);
@@ -122,7 +122,7 @@ void Copter::FlightController_RTL::return_start()
 
     if (!wp_nav.set_wp_destination(rtl_path.return_target)) {
         // failure must be caused by missing terrain data, restart RTL
-        rtl_restart_without_terrain();
+        restart_without_terrain();
     }
 
     // initialise yaw to point home (maybe)
@@ -163,7 +163,7 @@ void Copter::FlightController_RTL::climb_return_run()
     motors.set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
     // run waypoint controller
-    failsafe_terrain_set_status(wp_nav.update_wpnav());
+    _copter.failsafe_terrain_set_status(wp_nav.update_wpnav());
 
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control.update_z_controller();
@@ -230,7 +230,7 @@ void Copter::FlightController_RTL::loiterathome_run()
     motors.set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
     // run waypoint controller
-    failsafe_terrain_set_status(wp_nav.update_wpnav());
+    _copter.failsafe_terrain_set_status(wp_nav.update_wpnav());
 
     // call z-axis position controller (wpnav should have already updated it's alt target)
     pos_control.update_z_controller();
@@ -337,7 +337,7 @@ void Copter::FlightController_RTL::descent_run()
     attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), target_yaw_rate);
 
     // check if we've reached within 20cm of final altitude
-    state_complete = fabsf(rtl_path.descent_target.alt - current_loc.alt) < 20.0f;
+    _state_complete = fabsf(rtl_path.descent_target.alt - _copter.current_loc.alt) < 20.0f;
 }
 
 // rtl_loiterathome_start - initialise controllers to loiter over home
@@ -476,7 +476,7 @@ void Copter::FlightController_RTL::build_path(bool terrain_following_allowed)
 #endif
 
     // compute return altitude
-    rtl_compute_return_alt(rtl_path.origin_point, rtl_path.return_target, terrain_following_allowed);
+    compute_return_alt(rtl_path.origin_point, rtl_path.return_target, terrain_following_allowed);
 
     // climb target is above our origin point at the return altitude
     rtl_path.climb_target = Location_Class(rtl_path.origin_point.lat, rtl_path.origin_point.lng, rtl_path.return_target.alt, rtl_path.return_target.get_alt_frame());
@@ -493,23 +493,23 @@ void Copter::FlightController_RTL::build_path(bool terrain_following_allowed)
 //   rtl_return_target is the home or rally point that the vehicle is returning to.  It's lat, lng and alt values must already have been filled in before this function is called
 //   rtl_return_target's altitude is updated to a higher altitude that the vehicle can safely return at (frame may also be set)
 // return altitude in cm above origin at which vehicle should return home
-float Copter::FlightController_RTL::compute_return_alt_above_origin(const Location_Class &rtl_origin_point, Location_Class &rtl_return_target, bool terrain_following_allowed)
+void Copter::FlightController_RTL::compute_return_alt(const Location_Class &rtl_origin_point, Location_Class &rtl_return_target, bool terrain_following_allowed)
 {
     float rtl_return_dist_cm = rtl_return_target.get_distance(rtl_origin_point) * 100.0f;
 
     // curr_alt is current altitude above home or above terrain depending upon use_terrain
-    int32_t curr_alt = current_loc.alt;
+    int32_t curr_alt = _copter.current_loc.alt;
 
     // decide if we should use terrain altitudes
-    rtl_path.terrain_used = terrain_use() && terrain_following_allowed;
+    rtl_path.terrain_used = _copter.terrain_use() && terrain_following_allowed;
     if (rtl_path.terrain_used) {
         // attempt to retrieve terrain alt for current location, stopping point and origin
         int32_t origin_terr_alt, return_target_terr_alt;
         if (!rtl_origin_point.get_alt_cm(Location_Class::ALT_FRAME_ABOVE_TERRAIN, origin_terr_alt) ||
             !rtl_origin_point.get_alt_cm(Location_Class::ALT_FRAME_ABOVE_TERRAIN, return_target_terr_alt) ||
-            !current_loc.get_alt_cm(Location_Class::ALT_FRAME_ABOVE_TERRAIN, curr_alt)) {
+            !_copter.current_loc.get_alt_cm(Location_Class::ALT_FRAME_ABOVE_TERRAIN, curr_alt)) {
             rtl_path.terrain_used = false;
-            Log_Write_Error(ERROR_SUBSYSTEM_TERRAIN, ERROR_CODE_MISSING_TERRAIN_DATA);
+            _copter.Log_Write_Error(ERROR_SUBSYSTEM_TERRAIN, ERROR_CODE_MISSING_TERRAIN_DATA);
         }
     }
 
