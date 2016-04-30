@@ -174,13 +174,14 @@ public:
 
     bool loiter_start();
     void rtl_start();
-    void takeoff_start(float final_alt_above_home);
+    void takeoff_start(const Location& dest_loc);
     void wp_start(const Vector3f& destination);
+    void wp_start(const Location_Class& dest_loc);
     void land_start();
     void land_start(const Vector3f& destination);
-    void circle_movetoedge_start();
+    void circle_movetoedge_start(const Location_Class &circle_center, float radius_m);
     void circle_start();
-    void spline_start(const Vector3f& destination, bool stopped_at_start, AC_WPNav::spline_segment_end_type seg_end_type, const Vector3f& next_spline_destination);
+    void spline_start(const Location_Class& destination, bool stopped_at_start, AC_WPNav::spline_segment_end_type seg_end_type, const Location_Class& next_spline_destination);
     void nav_guided_start();
 
     bool landing_gear_should_be_deployed();
@@ -391,13 +392,14 @@ public:
     void set_destination_posvel(const Vector3f& destination, const Vector3f& velocity);
     void set_velocity(const Vector3f& velocity);
     void set_destination(const Vector3f& destination);
+    bool set_destination(const Location_Class& destination);
 
     void limit_clear();
     void limit_init_time_and_pos();
     void limit_set(uint32_t timeout_ms, float alt_min_cm, float alt_max_cm, float horiz_max_cm);
     bool limit_check();
 
-    void takeoff_start(float final_alt_above_home);
+    bool takeoff_start(float final_alt_above_home);
 
     GuidedMode mode() { return guided_mode; }
 
@@ -531,6 +533,8 @@ public:
 
     RTLState state() { return _state; }
 
+    void restart_without_terrain();
+
     // this should probably not be exposed
     bool state_complete() { return _state_complete; }
 
@@ -551,8 +555,8 @@ private:
     void descent_run();
     void land_start();
     void land_run();
-    void build_path();
-    float compute_return_alt_above_origin(float rtl_return_dist);
+    void build_path(bool terrain_following_allowed);
+    void compute_return_alt(const Location_Class &rtl_origin_point, Location_Class &rtl_return_target, bool terrain_following_allowed);
 
     // RTL
     RTLState _state = RTL_InitialClimb;  // records state of rtl (initial climb, returning home, etc)
@@ -560,11 +564,12 @@ private:
 
     struct {
         // NEU w/ origin-relative altitude
-        Vector3f origin_point;
-        Vector3f climb_target;
-        Vector3f return_target;
-        Vector3f descent_target;
+        Location_Class origin_point;
+        Location_Class climb_target;
+        Location_Class return_target;
+        Location_Class descent_target;
         bool land;
+        bool terrain_used;
     } rtl_path;
 
     // Loiter timer - Records how long we have been in loiter
