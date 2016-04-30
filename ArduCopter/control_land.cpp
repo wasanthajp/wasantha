@@ -248,8 +248,8 @@ float Copter::FlightController_LAND::get_land_descent_speed()
     target_loc.get_alt_cm(Location_Class::ALT_FRAME_ABOVE_HOME, target_alt_cm);
 
     // try to use terrain if enabled
-    if (terrain_use() && !target_loc.get_alt_cm(Location_Class::ALT_FRAME_ABOVE_TERRAIN, target_alt_cm)) {
-        Log_Write_Error(ERROR_SUBSYSTEM_TERRAIN, ERROR_CODE_MISSING_TERRAIN_DATA);
+    if (_copter.terrain_use() && !target_loc.get_alt_cm(Location_Class::ALT_FRAME_ABOVE_TERRAIN, target_alt_cm)) {
+        _copter.Log_Write_Error(ERROR_SUBSYSTEM_TERRAIN, ERROR_CODE_MISSING_TERRAIN_DATA);
     }
 
     // if we are above 10m and the sonar does not sense anything perform regular alt hold descent
