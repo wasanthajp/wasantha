@@ -360,7 +360,7 @@ void Copter::do_loiter_unlimited(const AP_Mission::Mission_Command& cmd)
     }
 
     // start way point navigator and provide it the desired location
-    controller_auto.auto_wp_start(target_loc);
+    controller_auto.wp_start(target_loc);
 }
 
 // do_circle - initiate moving in a circle
