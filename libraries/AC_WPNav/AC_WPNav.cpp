@@ -98,6 +98,15 @@ const AP_Param::GroupInfo AC_WPNav::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("LOIT_MINA",   9, AC_WPNav, _loiter_accel_min_cmss, WPNAV_LOITER_ACCEL_MIN),
 
+    // @Param: RNGFND_FILT
+    // @DisplayName: Range Finder Filter
+    // @Description: Range Finder filter
+    // @Units: hz
+    // @Range: 0 50
+    // @Increment: 0.05
+    // @User: Advanced
+    AP_GROUPINFO("RNG_FILT", 10, AC_WPNav, _rngfnd_filt_hz, WPNAV_RANGEFINDER_FILT_Z),
+
     AP_GROUPEND
 };
 
@@ -140,7 +149,7 @@ AC_WPNav::AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, const RangeF
     _flags.segment_type = SEGMENT_STRAIGHT;
 
     // init filter
-    _rng_distance_filt.set_cutoff_frequency(WPNAV_RANGEFINDER_FILT_Z);
+    _rng_distance_filt.set_cutoff_frequency(_rngfnd_filt_hz);
 }
 
 ///
@@ -417,6 +426,9 @@ void AC_WPNav::wp_and_spline_init()
     _pos_control.set_accel_z(_wp_accel_z_cms);
     _pos_control.calc_leash_length_xy();
     _pos_control.calc_leash_length_z();
+
+    // init filter
+    _rng_distance_filt.set_cutoff_frequency(_rngfnd_filt_hz);
 }
 
 /// set_speed_xy - allows main code to pass target horizontal velocity for wp navigation

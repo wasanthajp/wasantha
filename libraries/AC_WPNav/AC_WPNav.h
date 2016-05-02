@@ -326,6 +326,7 @@ protected:
     AP_Float    _wp_radius_cm;          // distance from a waypoint in cm that, when crossed, indicates the wp has been reached
     AP_Float    _wp_accel_cms;          // horizontal acceleration in cm/s/s during missions
     AP_Float    _wp_accel_z_cms;        // vertical acceleration in cm/s/s during missions
+    AP_Float    _rngfnd_filt_hz;        // filter applied to range finder reading
 
     // loiter controller internal variables
     uint8_t     _loiter_step;           // used to decide which portion of loiter controller to run during this iteration
