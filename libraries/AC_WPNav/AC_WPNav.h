@@ -6,7 +6,6 @@
 #include <AP_Math/AP_Math.h>
 #include <AP_Common/Location.h>
 #include <AP_InertialNav/AP_InertialNav.h>     // Inertial Navigation library
-#include <AP_RangeFinder/AP_RangeFinder.h>
 #include <AC_AttitudeControl/AC_PosControl.h>      // Position control library
 #include <AC_AttitudeControl/AC_AttitudeControl.h> // Attitude control library
 #include <AP_Terrain/AP_Terrain.h>
@@ -55,10 +54,13 @@ public:
     };
 
     /// Constructor
-    AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, const RangeFinder& rng, AC_PosControl& pos_control, const AC_AttitudeControl& attitude_control);
+    AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, AC_PosControl& pos_control, const AC_AttitudeControl& attitude_control);
 
     /// provide pointer to terrain database
     void set_terrain(AP_Terrain* terrain_ptr) { _terrain = terrain_ptr; }
+
+    /// provide rangefinder altitude
+    void set_rangefinder_alt(bool use, bool healthy, float alt_cm) { _rangefinder_use = use; _rangefinder_healthy = healthy; _rangefinder_alt_cm = alt_cm; }
 
     ///
     /// loiter controller
@@ -310,7 +312,6 @@ protected:
     // references and pointers to external libraries
     const AP_InertialNav&   _inav;
     const AP_AHRS&          _ahrs;
-    const RangeFinder       &_rng;
     AC_PosControl&          _pos_control;
     const AC_AttitudeControl& _attitude_control;
     AP_Terrain              *_terrain = NULL;
@@ -326,7 +327,6 @@ protected:
     AP_Float    _wp_radius_cm;          // distance from a waypoint in cm that, when crossed, indicates the wp has been reached
     AP_Float    _wp_accel_cms;          // horizontal acceleration in cm/s/s during missions
     AP_Float    _wp_accel_z_cms;        // vertical acceleration in cm/s/s during missions
-    AP_Float    _rngfnd_filt_hz;        // filter applied to range finder reading
 
     // loiter controller internal variables
     uint8_t     _loiter_step;           // used to decide which portion of loiter controller to run during this iteration
@@ -361,6 +361,7 @@ protected:
     // terrain following variables
     bool        _terrain_alt = false;   // true if origin and destination.z are alt-above-terrain, false if alt-above-ekf-origin
     bool        _ekf_origin_terrain_alt_set = false;
-    LowPassFilterFloat _rng_distance_filt;
-    uint32_t    _rng_last_used_ms = 0;
+    bool        _rangefinder_use = false;
+    bool        _rangefinder_healthy = false;
+    float       _rangefinder_alt_cm = 0.0f;
 };

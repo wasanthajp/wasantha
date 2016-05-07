@@ -1,7 +1,6 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #include <AP_HAL/AP_HAL.h>
 #include "AC_WPNav.h"
-#include <stdio.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -98,15 +97,6 @@ const AP_Param::GroupInfo AC_WPNav::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("LOIT_MINA",   9, AC_WPNav, _loiter_accel_min_cmss, WPNAV_LOITER_ACCEL_MIN),
 
-    // @Param: RNGFND_FILT
-    // @DisplayName: Range Finder Filter
-    // @Description: Range Finder filter
-    // @Units: hz
-    // @Range: 0 50
-    // @Increment: 0.05
-    // @User: Advanced
-    AP_GROUPINFO("RNG_FILT", 10, AC_WPNav, _rngfnd_filt_hz, WPNAV_RANGEFINDER_FILT_Z),
-
     AP_GROUPEND
 };
 
@@ -114,10 +104,9 @@ const AP_Param::GroupInfo AC_WPNav::var_info[] = {
 // Note that the Vector/Matrix constructors already implicitly zero
 // their values.
 //
-AC_WPNav::AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, const RangeFinder& rng, AC_PosControl& pos_control, const AC_AttitudeControl& attitude_control) :
+AC_WPNav::AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, AC_PosControl& pos_control, const AC_AttitudeControl& attitude_control) :
     _inav(inav),
     _ahrs(ahrs),
-    _rng(rng),
     _pos_control(pos_control),
     _attitude_control(attitude_control),
     _loiter_step(0),
@@ -147,9 +136,6 @@ AC_WPNav::AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, const RangeF
     _flags.recalc_wp_leash = false;
     _flags.new_wp_destination = false;
     _flags.segment_type = SEGMENT_STRAIGHT;
-
-    // init filter
-    _rng_distance_filt.set_cutoff_frequency(_rngfnd_filt_hz);
 }
 
 ///
@@ -426,9 +412,6 @@ void AC_WPNav::wp_and_spline_init()
     _pos_control.set_accel_z(_wp_accel_z_cms);
     _pos_control.calc_leash_length_xy();
     _pos_control.calc_leash_length_z();
-
-    // init filter
-    _rng_distance_filt.set_cutoff_frequency(_rngfnd_filt_hz);
 }
 
 /// set_speed_xy - allows main code to pass target horizontal velocity for wp navigation
@@ -1172,22 +1155,9 @@ void AC_WPNav::calc_spline_pos_vel(float spline_time, Vector3f& position, Vector
 bool AC_WPNav::get_terrain_offset(float& offset_cm)
 {
     // use range finder if connected
-    if (_rng.num_sensors() > 0) {
-        uint32_t now = AP_HAL::millis();
-        if ((_rng.status() == RangeFinder::RangeFinder_Good) && (_rng.range_valid_count() >= 3)) {
-            // read distance from range finder and correct for vehicle lean
-            float rng_dist_cm = (float)_rng.distance_cm() * MAX(0.707f, _ahrs.get_rotation_body_to_ned().c.z);
-            if (now - _rng_last_used_ms > 1000) {
-                // reset filter if we haven't used it within the last second
-                _rng_distance_filt.reset(rng_dist_cm);
-            } else {
-                _rng_distance_filt.apply(rng_dist_cm, _pos_control.get_dt_xy());
-            }
-            _rng_last_used_ms = now;
-        }
-        // use the filtered value if it's been updated in the last second
-        if ((now - _rng_last_used_ms) <= 1000) {
-            offset_cm = _inav.get_altitude() - _rng_distance_filt.get();
+    if (_rangefinder_use) {
+        if (_rangefinder_healthy) {
+            offset_cm = _inav.get_altitude() - _rangefinder_alt_cm;
             return true;
         } else {
             return false;
