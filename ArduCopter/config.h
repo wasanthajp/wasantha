@@ -133,10 +133,6 @@
  # define RANGEFINDER_HEALTH_MAX 3          // number of good reads that indicates a healthy rangefinder
 #endif
 
-#ifndef RANGEFINDER_RELIABLE_DISTANCE_PCT
- # define RANGEFINDER_RELIABLE_DISTANCE_PCT 0.60f   // we trust the rangefinder out to 60% of it's maximum range
-#endif
-
 #ifndef RANGEFINDER_GAIN_DEFAULT
  # define RANGEFINDER_GAIN_DEFAULT 0.8f     // gain for controlling how quickly rangefinder range adjusts target altitude (lower means slower reaction)
 #endif
