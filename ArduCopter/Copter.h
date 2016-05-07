@@ -173,7 +173,7 @@ private:
     RangeFinder rangefinder {serial_manager};
     struct {
         bool enabled:1;
-        bool alt_healthy:1;  // true if we can trust the altitude from the rangefinder
+        bool alt_healthy:1; // true if we can trust the altitude from the rangefinder
         int16_t alt_cm;     // tilt compensated altitude (in cm) from rangefinder
     } rangefinder_state = { true, false, 0 };
 #endif
