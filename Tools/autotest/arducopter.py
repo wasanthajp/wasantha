@@ -843,6 +843,9 @@ def fly_avc_test(mavproxy, mav):
     # set throttle to minimum
     mavproxy.send('rc 3 1000\n')
 
+    # set interlock to minimum
+    mavproxy.send('rc 8 1000\n')
+
     # wait for disarm
     mav.motors_disarmed_wait()
     print("MOTORS DISARMED OK")
@@ -1330,11 +1333,15 @@ def fly_CopterAVC(viewerip=None, map=False, valgrind=False):
         setup_rc(mavproxy)
         homeloc = mav.location()
 
+        # wait 10sec to allow EKF to settle
+        wait_seconds(mav, 10)
+
+        # lower throttle
+        print("Lowering throttle")
+        mavproxy.send('rc 3 1000\n')
+
         print("Lowering rotor speed")
         mavproxy.send('rc 8 1000\n')
-
-        # wait 20sec to allow EKF to settle
-        wait_seconds(mav, 20)
 
         # Arm
         print("# Arm motors")
