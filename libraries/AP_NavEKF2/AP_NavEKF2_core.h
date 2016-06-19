@@ -40,6 +40,11 @@
 #define MASK_GPS_VERT_SPD   (1<<6)
 #define MASK_GPS_HORIZ_SPD  (1<<7)
 
+// active height source
+#define HGT_SOURCE_BARO 0
+#define HGT_SOURCE_RNG  1
+#define HGT_SOURCE_GPS  2
+
 class AP_AHRS;
 
 class NavEKF2_core
@@ -882,6 +887,9 @@ private:
     uint32_t storedRngMeasTime_ms[3];   // Ringbuffer of stored range measurement times
     uint32_t lastRngMeasTime_ms;        // Timestamp of last range measurement
     uint8_t rngMeasIndex;               // Current range measurement ringbuffer index
+
+    // height source selection logic
+    uint8_t activeHgtSource;    // integer defining active height source
 
     // Movement detector
     bool takeOffDetected;           // true when takeoff for optical flow navigation has been detected

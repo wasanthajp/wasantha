@@ -106,8 +106,12 @@ void NavEKF2_core::EstimateTerrainOffset()
     float velHorizSq = sq(stateStruct.velocity.x) + sq(stateStruct.velocity.y);
     float losRateSq = velHorizSq / sq(heightAboveGndEst);
 
-    // don't update terrain offset state if there is no range finder and not generating enough LOS rate, or without GPS, as it is poorly observable
-    if (!rangeDataToFuse && (gpsNotAvailable || PV_AidingMode == AID_RELATIVE || velHorizSq < 25.0f || losRateSq < 0.01f)) {
+    // don't update terrain offset state if there is no range finder
+    // don't update terrain state if not generating enough LOS rate, or without GPS, as it is poorly observable
+    // don't update terrain state if we are using it as a height reference in the main filter
+    bool cantFuseFlowData = (gpsNotAvailable || PV_AidingMode == AID_RELATIVE || velHorizSq < 25.0f || losRateSq < 0.01f);
+    if ((!rangeDataToFuse && cantFuseFlowData) || (activeHgtSource == HGT_SOURCE_RNG)) {
+        // skip update
         inhibitGndState = true;
     } else {
         inhibitGndState = false;
@@ -175,7 +179,7 @@ void NavEKF2_core::EstimateTerrainOffset()
             }
         }
 
-        if (fuseOptFlowData) {
+        if (fuseOptFlowData && !cantFuseFlowData) {
 
             Vector3f relVelSensor; // velocity of sensor relative to ground in sensor axes
             float losPred; // predicted optical flow angular rate measurement

@@ -139,15 +139,12 @@ void NavEKF2_core::ResetHeight(void)
 
 }
 
-// Reset the baro so that it reads zero at the current height
-// Reset the EKF height to zero
-// Adjust the EKf origin height so that the EKF height + origin height is the same as before
+// Zero the EKF height datum
 // Return true if the height datum reset has been performed
-// If using a range finder for height do not reset and return false
 bool NavEKF2_core::resetHeightDatum(void)
 {
-    // if we are using a range finder for height, return false
-    if (frontend->_altSource == 1) {
+    if (activeHgtSource == HGT_SOURCE_RNG) {
+        // by definition the height dataum is at ground level so cannot perform the reset
         return false;
     }
     // record the old height estimate
@@ -160,6 +157,8 @@ bool NavEKF2_core::resetHeightDatum(void)
     if (validOrigin) {
         EKF_origin.alt += oldHgt*100;
     }
+    // adjust the terrain state
+    terrainState += oldHgt;
     return true;
 }
 
@@ -631,14 +630,39 @@ void NavEKF2_core::selectHeightForFusion()
     readBaroData();
     baroDataToFuse = storedBaro.recall(baroDataDelayed, imuDataDelayed.time_ms);
 
-    // determine if we should be using a height source other than baro
-    bool usingRangeForHgt = (frontend->_altSource == 1 && imuSampleTime_ms - rngValidMeaTime_ms < 500 && frontend->_fusionModeGPS == 3);
-    bool usingGpsForHgt = (frontend->_altSource == 2 && imuSampleTime_ms - lastTimeGpsReceived_ms < 500 && validOrigin && gpsAccuracyGood);
+    // select height source
+    if (((frontend->_useRngSwHgt > 0) || (frontend->_altSource == 1)) && (imuSampleTime_ms - rngValidMeaTime_ms < 500)) {
+        if (frontend->_altSource == 1) {
+            // always use range finder
+            activeHgtSource = HGT_SOURCE_RNG;
+        } else {
+            // switch between range finder and primary height source using height bove ground
+            // with hysteresis to avoid rapid switching
+            float rangeMaxUse = 1e-4f * (float)frontend->_rng.max_distance_cm() * (float)frontend->_useRngSwHgt;
+            bool aboveUpperSwHgt = (terrainState - stateStruct.position.z) > rangeMaxUse;
+            bool belowLowerSwHgt = (terrainState - stateStruct.position.z) < 0.7f * rangeMaxUse;
+            if (aboveUpperSwHgt && (activeHgtSource == HGT_SOURCE_RNG)) {
+                // too high for range finder so switch to parmeter specified primary height source
+                if (frontend->_altSource == 0) {
+                    activeHgtSource = HGT_SOURCE_BARO;
+                } else if (frontend->_altSource == 2) {
+                    activeHgtSource = HGT_SOURCE_GPS;
+                }
+            } else if (belowLowerSwHgt && (activeHgtSource != HGT_SOURCE_RNG)) {
+                // low enough to start using range finder
+                activeHgtSource = HGT_SOURCE_RNG;
+            }
+        }
+    } else if ((frontend->_altSource == 2) && ((imuSampleTime_ms - lastTimeGpsReceived_ms) < 500) && validOrigin && gpsAccuracyGood) {
+        activeHgtSource = HGT_SOURCE_GPS;
+    } else {
+        activeHgtSource = HGT_SOURCE_BARO;
+    }
 
     // if there is new baro data to fuse, calculate filterred baro data required by other processes
     if (baroDataToFuse) {
         // calculate offset to baro data that enables baro to be used as a backup if we are using other height sources
-        if  (usingRangeForHgt || usingGpsForHgt) {
+        if  (activeHgtSource != HGT_SOURCE_BARO) {
             calcFiltBaroOffset();
         }
         // filtered baro data used to provide a reference for takeoff
@@ -652,11 +676,14 @@ void NavEKF2_core::selectHeightForFusion()
     }
 
     // Select the height measurement source
-    if (rangeDataToFuse && usingRangeForHgt) {
+    if (rangeDataToFuse && (activeHgtSource == HGT_SOURCE_RNG)) {
         // using range finder data
         // correct for tilt using a flat earth model
         if (prevTnb.c.z >= 0.7) {
+            // calculate height above ground
             hgtMea  = MAX(rangeDataDelayed.rng * prevTnb.c.z, rngOnGnd);
+            // correct for terrain position relative to datum
+            hgtMea -= terrainState;
             // enable fusion
             fuseHgtData = true;
             // set the observation noise
@@ -665,7 +692,7 @@ void NavEKF2_core::selectHeightForFusion()
             // disable fusion if tilted too far
             fuseHgtData = false;
         }
-    } else if  (gpsDataToFuse && usingGpsForHgt) {
+    } else if  (gpsDataToFuse && (activeHgtSource == HGT_SOURCE_GPS)) {
         // using GPS data
         hgtMea = gpsDataDelayed.hgt;
         // enable fusion
@@ -673,7 +700,7 @@ void NavEKF2_core::selectHeightForFusion()
         // set the observation noise to the horizontal GPS noise plus a scaler because GPS vertical position is usually less accurate
         // TODO use VDOP/HDOP, reported accuracy or a separate parameter
         posDownObsNoise = sq(constrain_float(frontend->_gpsHorizPosNoise * 1.5f, 0.1f, 10.0f));
-    } else if (baroDataToFuse && !usingRangeForHgt && !usingGpsForHgt) {
+    } else if (baroDataToFuse && (activeHgtSource == HGT_SOURCE_BARO)) {
         // using Baro data
         hgtMea = baroDataDelayed.hgt - baroHgtOffset;
         // enable fusion
