@@ -2,12 +2,12 @@
 
 const AP_Param::GroupInfo AC_Avoid::var_info[] = {
 
-    // @Param: TYPE
-    // @DisplayName: Fence Type
-    // @Description: Enabled fence types held as bitmask
-    // @Values: 0:None,1:Polygon,2:Circle
+    // @Param: ENABLE
+    // @DisplayName: Avoidance control enable/disable
+    // @Description: Enabled/disable stopping at fence
+    // @Values: 0:None,1:StopAtFence
     // @User: Standard
-    AP_GROUPINFO("TYPE", 1,  AC_Avoid, _enabled_fences, AC_AVOID_TYPE_CIRCLE),
+    AP_GROUPINFO("ENABLE", 1,  AC_Avoid, _enabled, AC_AVOID_STOP_AT_FENCE),
 
     AP_GROUPEND
 
@@ -55,11 +55,14 @@ static Vector2f closest_point(Vector2f p, Vector2f v, Vector2f w)
 
 void AC_Avoid::adjust_velocity(Vector2f &desired_vel, const float accel_cmss)
 {
+    // exit immediately if disabled
+    if (_enabled == AC_AVOID_DISABLED) {
+        return;
+    }
+
     _accel_cmss = accel_cmss;
 
-    if (_enabled_fences == AC_AVOID_TYPE_POLY) {
-        adjust_velocity_poly(desired_vel);
-    } else if (_enabled_fences == AC_AVOID_TYPE_CIRCLE) {
+    if (_enabled == AC_AVOID_STOP_AT_FENCE) {
         adjust_velocity_circle(desired_vel);
     }
 }
@@ -69,6 +72,11 @@ void AC_Avoid::adjust_velocity(Vector2f &desired_vel, const float accel_cmss)
  */
 void AC_Avoid::adjust_velocity_circle(Vector2f &desired_vel)
 {
+    // exit if circular fence is not enabled
+    if ((_fence.get_enabled_fences() & AC_FENCE_TYPE_CIRCLE) == 0) {
+        return;
+    }
+
     const Vector2f position_xy = get_position();
 
     float speed = desired_vel.length();

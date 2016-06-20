@@ -15,9 +15,8 @@
 #define BREAKING_ACCEL_XY_CMSS 250.0f
 
 // bit masks for enabled fence types.
-#define AC_AVOID_TYPE_NONE                          0       // fence disabled
-#define AC_AVOID_TYPE_POLY                          1       // horizontal polygon fence
-#define AC_AVOID_TYPE_CIRCLE                        2       // circular horizontal fence
+#define AC_AVOID_DISABLED               0       // avoidance disabled
+#define AC_AVOID_STOP_AT_FENCE          1       // stop at fence
 
 /*
  * This class prevents the vehicle from leaving a polygon fence in
