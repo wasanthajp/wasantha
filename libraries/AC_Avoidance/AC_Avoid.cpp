@@ -161,8 +161,8 @@ Vector2f AC_Avoid::get_position()
 {
     const Vector3f position_xyz = _inav.get_position();
     const Vector2f position_xy(position_xyz.x,position_xyz.y);
-    const Vector2f diff = location_diff(_inav.get_origin(),_ahrs.get_home());
-    return position_xy + diff;
+    const Vector2f diff = location_diff(_inav.get_origin(),_ahrs.get_home()) * 100.0f;
+    return position_xy - diff;
 }
 
 /*
