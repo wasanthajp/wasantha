@@ -29,10 +29,6 @@ extern const AP_HAL::HAL& hal;
 NavEKF2_core::NavEKF2_core(void) :
     stateStruct(*reinterpret_cast<struct state_elements *>(&statesArray)),
 
-    //variables
-    lastRngMeasTime_ms(0),          // time in msec that the last range measurement was taken
-    rngMeasIndex(0),                // index into ringbuffer of current range measurement
-
     _perf_UpdateFilter(hal.util->perf_alloc(AP_HAL::Util::PC_ELAPSED, "EK2_UpdateFilter")),
     _perf_CovariancePrediction(hal.util->perf_alloc(AP_HAL::Util::PC_ELAPSED, "EK2_CovariancePrediction")),
     _perf_FuseVelPosNED(hal.util->perf_alloc(AP_HAL::Util::PC_ELAPSED, "EK2_FuseVelPosNED")),
@@ -89,7 +85,7 @@ bool NavEKF2_core::setup_core(NavEKF2 *_frontend, uint8_t _imu_index, uint8_t _c
     if(!storedOF.init(OBS_BUFFER_LENGTH)) {
         return false;
     }
-    if(!storedRange.init(OBS_BUFFER_LENGTH)) {
+    if(!storedRange.init(2*OBS_BUFFER_LENGTH)) {
         return false;
     }
     if(!storedIMU.init(imu_buffer_length)) {
@@ -144,6 +140,7 @@ void NavEKF2_core::InitialiseVariables()
     lastPreAlignGpsCheckTime_ms = imuSampleTime_ms;
     lastPosReset_ms = 0;
     lastVelReset_ms = 0;
+    lastRngMeasTime_ms = 0;
 
     // initialise other variables
     gpsNoiseScaler = 1.0f;
@@ -263,6 +260,9 @@ void NavEKF2_core::InitialiseVariables()
     quatAtLastMagReset = stateStruct.quat;
     magFieldLearned = false;
     activeHgtSource = 0;
+    memset(&rngMeasIndex, 0, sizeof(rngMeasIndex));
+    memset(&storedRngMeasTime_ms, 0, sizeof(storedRngMeasTime_ms));
+    memset(&storedRngMeas, 0, sizeof(storedRngMeas));
 
     // zero data buffers
     storedIMU.reset();
