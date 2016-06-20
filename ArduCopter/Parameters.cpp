@@ -826,7 +826,7 @@ const AP_Param::Info Copter::var_info[] = {
 #endif
 
     // @Group: AVOID_
-    // @Path: ../libraries/AC_Avoid/AC_Avoid.cpp
+    // @Path: ../libraries/AC_Avoidance/AC_Avoid.cpp
     GOBJECT(avoid,      "AVOID_",   AC_Avoid),
 
 #if AC_RALLY == ENABLED
