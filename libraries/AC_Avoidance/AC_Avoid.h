@@ -78,13 +78,6 @@ private:
      */
     float get_margin() { return _fence.get_margin() * 100.0f; }
 
-    /* Vector2f _boundary[5] = { */
-    /*   Vector2f(-1000, -1000), */
-    /*   Vector2f(1000, -1000), */
-    /*   Vector2f(1000, 1000), */
-    /*   Vector2f(-1000, 1000), */
-    /*   Vector2f(-1000, -1000) */
-    /* }; */
     Vector2f _boundary[8] = {
         Vector2f(-1000, -1000),
         Vector2f(1000, -1000),
