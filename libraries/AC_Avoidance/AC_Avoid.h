@@ -74,11 +74,6 @@ private:
     float get_stopping_distance(const float speed);
 
     /*
-     * Gets the fence radius in cm
-     */
-    float get_radius() { return _fence.get_radius() * 100.0f; }
-
-    /*
      * Gets the fence margin in cm
      */
     float get_margin() { return _fence.get_margin() * 100.0f; }

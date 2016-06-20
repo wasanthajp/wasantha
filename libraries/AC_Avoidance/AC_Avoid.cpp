@@ -77,11 +77,12 @@ void AC_Avoid::adjust_velocity_circle(Vector2f &desired_vel)
         return;
     }
 
+    // get position as a 2D offset in cm from ahrs home
     const Vector2f position_xy = get_position();
 
     float speed = desired_vel.length();
     // get the fence radius in cm
-    const float fence_radius = get_radius();
+    const float fence_radius = _fence.get_radius() * 100.0f;
     // get the margin to the fence in cm
     const float margin = get_margin();
 
