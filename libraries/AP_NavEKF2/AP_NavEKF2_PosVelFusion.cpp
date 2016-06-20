@@ -636,20 +636,30 @@ void NavEKF2_core::selectHeightForFusion()
             // always use range finder
             activeHgtSource = HGT_SOURCE_RNG;
         } else {
-            // switch between range finder and primary height source using height bove ground
-            // with hysteresis to avoid rapid switching
+            // determine if we are above or below the height switch region
             float rangeMaxUse = 1e-4f * (float)frontend->_rng.max_distance_cm() * (float)frontend->_useRngSwHgt;
             bool aboveUpperSwHgt = (terrainState - stateStruct.position.z) > rangeMaxUse;
             bool belowLowerSwHgt = (terrainState - stateStruct.position.z) < 0.7f * rangeMaxUse;
-            if (aboveUpperSwHgt && (activeHgtSource == HGT_SOURCE_RNG)) {
-                // too high for range finder so switch to parmeter specified primary height source
+
+            // determine if we are above or below the horizontal speed switch region
+            float horizSpeed = norm(stateStruct.velocity.x, stateStruct.velocity.y);
+            bool aboveUpperSwSpd = (horizSpeed > 2.0f);
+            bool belowLowerSwSpd = horizSpeed < 1.0f;
+
+            /*
+             * Switch between range finder and primary height source using height above ground and speed thresholds with
+             * hysteresis to avoid rapid switching. Using range finder for height requires a consistent terrain height
+             * which cannot be assumed if the vehicle is moving horizontally.
+            */
+            if ((aboveUpperSwHgt || aboveUpperSwSpd) && (activeHgtSource == HGT_SOURCE_RNG)) {
+                // too high or too fast for range finder so switch to parmeter specified primary height source
                 if (frontend->_altSource == 0) {
                     activeHgtSource = HGT_SOURCE_BARO;
                 } else if (frontend->_altSource == 2) {
                     activeHgtSource = HGT_SOURCE_GPS;
                 }
-            } else if (belowLowerSwHgt && (activeHgtSource != HGT_SOURCE_RNG)) {
-                // low enough to start using range finder
+            } else if (belowLowerSwHgt && belowLowerSwSpd && (activeHgtSource != HGT_SOURCE_RNG)) {
+                // low and slow enough to start using range finder
                 activeHgtSource = HGT_SOURCE_RNG;
             }
         }
