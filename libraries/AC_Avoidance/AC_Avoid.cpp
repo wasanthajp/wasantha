@@ -7,7 +7,7 @@ const AP_Param::GroupInfo AC_Avoid::var_info[] = {
     // @Description: Enabled fence types held as bitmask
     // @Values: 0:None,1:Polygon,2:Circle
     // @User: Standard
-    AP_GROUPINFO("TYPE",        0,  AC_Avoid,   _enabled_fences,  AC_AVOID_TYPE_CIRCLE),
+    AP_GROUPINFO("TYPE", 1,  AC_Avoid, _enabled_fences, AC_AVOID_TYPE_CIRCLE),
 
     AP_GROUPEND
 
