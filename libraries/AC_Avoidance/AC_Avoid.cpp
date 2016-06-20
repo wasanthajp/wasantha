@@ -58,8 +58,11 @@ void AC_Avoid::adjust_velocity(const float kP, const float accel_cmss, Vector2f 
         return;
     }
 
+    // limit acceleration
+    float accel_cmss_limited = MIN(accel_cmss, AC_AVOID_ACCEL_CMSS_MAX);
+
     if (_enabled == AC_AVOID_STOP_AT_FENCE) {
-        adjust_velocity_circle(kP, accel_cmss, desired_vel);
+        adjust_velocity_circle(kP, accel_cmss_limited, desired_vel);
     }
 }
 

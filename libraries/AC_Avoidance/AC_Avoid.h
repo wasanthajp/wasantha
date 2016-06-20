@@ -12,7 +12,7 @@
 #include <AC_PID/AC_P.h>               // P library
 #include <AC_Fence/AC_Fence.h>         // Failsafe fence library
 
-#define BREAKING_ACCEL_XY_CMSS 250.0f
+#define AC_AVOID_ACCEL_CMSS_MAX         250.0f  // maximum acceleration/deceleration in cm/s/s used to avoid hitting fence
 
 // bit masks for enabled fence types.
 #define AC_AVOID_DISABLED               0       // avoidance disabled
