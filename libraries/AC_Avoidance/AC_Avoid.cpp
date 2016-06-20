@@ -14,13 +14,13 @@ const AP_Param::GroupInfo AC_Avoid::var_info[] = {
 };
 
 /// Constructor
-AC_Avoid::AC_Avoid(const AP_InertialNav& inav, const AP_AHRS& ahrs, AC_P& P, const AC_Fence& fence)
-    : _inav(inav),
-      _ahrs(ahrs),
-      _nvert(sizeof(_boundary)/sizeof(*_boundary)),
+AC_Avoid::AC_Avoid(const AP_AHRS& ahrs, const AP_InertialNav& inav, const AC_Fence& fence, AC_P& P)
+    : _ahrs(ahrs),
+      _inav(inav),
+      _fence(fence),
       _kP(P.kP()),
-      _accel_cmss(BREAKING_ACCEL_XY_CMSS),
-      _fence(fence)
+      _nvert(sizeof(_boundary)/sizeof(*_boundary)),
+      _accel_cmss(BREAKING_ACCEL_XY_CMSS)
 {
     AP_Param::setup_object_defaults(this, var_info);
 }

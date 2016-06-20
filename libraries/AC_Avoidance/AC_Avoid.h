@@ -27,7 +27,7 @@ class AC_Avoid {
 public:
 
     /// Constructor
-    AC_Avoid(const AP_InertialNav& inav, const AP_AHRS& ahrs, AC_P& P, const AC_Fence& fence);
+    AC_Avoid(const AP_AHRS& ahrs, const AP_InertialNav& inav, const AC_Fence& fence, AC_P& P);
 
     /*
      * Adjusts the desired velocity so that the vehicle can stop
@@ -84,8 +84,6 @@ private:
      */
     float get_margin() { return _fence.get_margin() * 100.0f; }
 
-    const AP_InertialNav& _inav;
-    const AP_AHRS& _ahrs;
     /* Vector2f _boundary[5] = { */
     /*   Vector2f(-1000, -1000), */
     /*   Vector2f(1000, -1000), */
@@ -103,9 +101,17 @@ private:
         Vector2f(-1000, 1000),
         Vector2f(-1000, -1000)
     };
-    unsigned _nvert;
-    float _kP;
-    float _accel_cmss;
-    AP_Int8 _enabled_fences;
+
+    // external references
+    const AP_AHRS& _ahrs;
+    const AP_InertialNav& _inav;
     const AC_Fence& _fence;
+
+    // parameters
+    AP_Int8 _enabled;
+
+    // inertial variables
+    float _kP;
+    unsigned _nvert;
+    float _accel_cmss;
 };
