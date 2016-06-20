@@ -26,13 +26,13 @@ class AC_Avoid {
 public:
 
     /// Constructor
-    AC_Avoid(const AP_AHRS& ahrs, const AP_InertialNav& inav, const AC_Fence& fence, AC_P& P);
+    AC_Avoid(const AP_AHRS& ahrs, const AP_InertialNav& inav, const AC_Fence& fence);
 
     /*
      * Adjusts the desired velocity so that the vehicle can stop
      * before the fence/object.
      */
-    void adjust_velocity(Vector2f &desired_vel, const float accel_cmss);
+    void adjust_velocity(const float kP, const float accel_cmss, Vector2f &desired_vel);
 
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -41,12 +41,12 @@ private:
     /*
      * Adjusts the desired velocity for the polygon fence.
      */
-    void adjust_velocity_poly(Vector2f &desired_vel);
+    void adjust_velocity_poly(const float kP, const float accel_cmss, Vector2f &desired_vel);
 
     /*
      * Adjusts the desired velocity for the circular fence.
      */
-    void adjust_velocity_circle(Vector2f &desired_vel);
+    void adjust_velocity_circle(const float kP, const float accel_cmss, Vector2f &desired_vel);
 
     /*
      * Limits the component of desired_vel in the direction of the unit vector
@@ -55,7 +55,7 @@ private:
      * Uses velocity adjustment idea from Randy's second email on this thread:
      * https://groups.google.com/forum/#!searchin/drones-discuss/obstacle/drones-discuss/QwUXz__WuqY/qo3G8iTLSJAJ
      */
-    void limit_velocity(Vector2f &desired_vel, const Vector2f limit_direction, const float limit_distance);
+    void limit_velocity(const float kP, const float accel_cmss, Vector2f &desired_vel, const Vector2f limit_direction, const float limit_distance);
 
     /*
      * Gets the current position, relative to home (not relative to EKF origin)
@@ -66,12 +66,12 @@ private:
      * Computes the speed such that the stopping distance
      * of the vehicle will be exactly the input distance.
      */
-    float get_max_speed(const float distance);
+    float get_max_speed(const float kP, const float accel_cmss, const float distance);
 
     /*
      * Computes distance required to stop, given current speed.
      */
-    float get_stopping_distance(const float speed);
+    float get_stopping_distance(const float kP, const float accel_cmss, const float speed);
 
     /*
      * Gets the fence margin in cm
@@ -105,7 +105,5 @@ private:
     AP_Int8 _enabled;
 
     // inertial variables
-    float _kP;
     unsigned _nvert;
-    float _accel_cmss;
 };
