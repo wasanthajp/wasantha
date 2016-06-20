@@ -46,7 +46,7 @@ void NavEKF2_core::SelectFlowFusion()
     // check is the terrain offset estimate is still valid
     gndOffsetValid = ((imuSampleTime_ms - gndHgtValidTime_ms) < 5000);
     // Perform tilt check
-    bool tiltOK = (Tnb_flow.c.z > frontend->DCM33FlowMin);
+    bool tiltOK = (prevTnb.c.z > frontend->DCM33FlowMin);
     // Constrain measurements to zero if we are using optical flow and are on the ground
     if (frontend->_fusionModeGPS == 3 && !takeOffDetected && isAiding) {
         ofDataDelayed.flowRadXYcomp.zero();
@@ -134,7 +134,7 @@ void NavEKF2_core::EstimateTerrainOffset()
         // fuse range finder data
         if (rangeDataToFuse) {
             // predict range
-            float predRngMeas = MAX((terrainState - stateStruct.position[2]),rngOnGnd) / Tnb_flow.c.z;
+            float predRngMeas = MAX((terrainState - stateStruct.position[2]),rngOnGnd) / prevTnb.c.z;
 
             // Copy required states to local variable names
             float q0 = stateStruct.quat[0]; // quaternion at optical flow measurement time
@@ -191,13 +191,13 @@ void NavEKF2_core::EstimateTerrainOffset()
             float H_OPT;
 
             // predict range to centre of image
-            float flowRngPred = MAX((terrainState - stateStruct.position[2]),rngOnGnd) / Tnb_flow.c.z;
+            float flowRngPred = MAX((terrainState - stateStruct.position[2]),rngOnGnd) / prevTnb.c.z;
 
             // constrain terrain height to be below the vehicle
             terrainState = MAX(terrainState, stateStruct.position[2] + rngOnGnd);
 
             // calculate relative velocity in sensor frame
-            relVelSensor = Tnb_flow*stateStruct.velocity;
+            relVelSensor = prevTnb*stateStruct.velocity;
 
             // divide velocity by range, subtract body rates and apply scale factor to
             // get predicted sensed angular optical rates relative to X and Y sensor axes
@@ -317,10 +317,10 @@ void NavEKF2_core::FuseOptFlow()
     // Fuse X and Y axis measurements sequentially assuming observation errors are uncorrelated
     for (uint8_t obsIndex=0; obsIndex<=1; obsIndex++) { // fuse X axis data first
         // calculate range from ground plain to centre of sensor fov assuming flat earth
-        float range = constrain_float((heightAboveGndEst/Tnb_flow.c.z),rngOnGnd,1000.0f);
+        float range = constrain_float((heightAboveGndEst/prevTnb.c.z),rngOnGnd,1000.0f);
 
         // calculate relative velocity in sensor frame
-        relVelSensor = Tnb_flow*stateStruct.velocity;
+        relVelSensor = prevTnb*stateStruct.velocity;
 
         // divide velocity by range  to get predicted angular LOS rates relative to X and Y axes
         losPred[0] =  relVelSensor.y/range;
