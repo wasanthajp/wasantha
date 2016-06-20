@@ -55,10 +55,13 @@ public:
     };
 
     /// Constructor
-    AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, AC_PosControl& pos_control, const AC_AttitudeControl& attitude_control, AC_Avoid& avoid);
+    AC_WPNav(const AP_InertialNav& inav, const AP_AHRS& ahrs, AC_PosControl& pos_control, const AC_AttitudeControl& attitude_control);
 
     /// provide pointer to terrain database
     void set_terrain(AP_Terrain* terrain_ptr) { _terrain = terrain_ptr; }
+
+    /// provide pointer to avoidance library
+    void set_avoidance(AC_Avoid* avoid_ptr) { _avoid = avoid_ptr; }
 
     /// provide rangefinder altitude
     void set_rangefinder_alt(bool use, bool healthy, float alt_cm) { _rangefinder_use = use; _rangefinder_healthy = healthy; _rangefinder_alt_cm = alt_cm; }
@@ -316,7 +319,7 @@ protected:
     AC_PosControl&          _pos_control;
     const AC_AttitudeControl& _attitude_control;
     AP_Terrain              *_terrain = NULL;
-    AC_Avoid& _avoid;
+    AC_Avoid                *_avoid = NULL;
 
     // parameters
     AP_Float    _loiter_speed_cms;      // maximum horizontal speed in cm/s while in loiter
