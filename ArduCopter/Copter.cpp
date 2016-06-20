@@ -76,7 +76,7 @@ Copter::Copter(void) :
     pos_control(ahrs, inertial_nav, motors, attitude_control,
                 g.p_alt_hold, g.p_vel_z, g.pid_accel_z,
                 g.p_pos_xy, g.pi_vel_xy),
-    avoid(inertial_nav, ahrs, g.p_pos_xy, fence),
+    avoid(ahrs, inertial_nav, fence, g.p_pos_xy),
     wp_nav(inertial_nav, ahrs, pos_control, attitude_control, avoid),
     circle_nav(inertial_nav, ahrs, pos_control),
     pmTest1(0),

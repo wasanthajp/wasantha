@@ -459,8 +459,7 @@ private:
     AC_AttitudeControl_Multi attitude_control;
 #endif
     AC_PosControl pos_control;
-    // Stop at fence library
-    AC_Avoid    avoid;
+    AC_Avoid avoid;
     AC_WPNav wp_nav;
     AC_Circle circle_nav;
 
