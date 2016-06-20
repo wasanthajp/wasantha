@@ -1023,6 +1023,19 @@ void NavEKF2::setTouchdownExpected(bool val)
     }
 }
 
+// Set to true if the terrain underneath is stable enough to be used as a height reference
+// in combination with a range finder. Set to false if the terrain underneath the vehicle
+// cannot be used as a height reference
+void NavEKF2::setTerrainHgtStable(bool val)
+{
+    if (core) {
+        for (uint8_t i=0; i<num_cores; i++) {
+            core[i].setTerrainHgtStable(val);
+        }
+    }
+
+}
+
 /*
   return the filter fault status as a bitmasked integer
   0 = quaternions are NaN

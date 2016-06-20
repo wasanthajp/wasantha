@@ -641,25 +641,26 @@ void NavEKF2_core::selectHeightForFusion()
             bool aboveUpperSwHgt = (terrainState - stateStruct.position.z) > rangeMaxUse;
             bool belowLowerSwHgt = (terrainState - stateStruct.position.z) < 0.7f * rangeMaxUse;
 
-            // determine if we are above or below the horizontal speed switch region
+            // If the terrain height is consistent and we are moving slowly, then it can be
+            // used as a height reference in combination with a range finder
             float horizSpeed = norm(stateStruct.velocity.x, stateStruct.velocity.y);
-            bool aboveUpperSwSpd = (horizSpeed > 2.0f);
-            bool belowLowerSwSpd = horizSpeed < 1.0f;
+            bool dontTrustTerrain = (horizSpeed > 2.0f) || !terrainHgtStable;
+            bool trustTerrain = (horizSpeed < 1.0f) && terrainHgtStable;
 
             /*
              * Switch between range finder and primary height source using height above ground and speed thresholds with
              * hysteresis to avoid rapid switching. Using range finder for height requires a consistent terrain height
              * which cannot be assumed if the vehicle is moving horizontally.
             */
-            if ((aboveUpperSwHgt || aboveUpperSwSpd) && (activeHgtSource == HGT_SOURCE_RNG)) {
-                // too high or too fast for range finder so switch to parmeter specified primary height source
+            if ((aboveUpperSwHgt || dontTrustTerrain) && (activeHgtSource == HGT_SOURCE_RNG)) {
+                // cannot trust terrain or range finder so stop using range finder height
                 if (frontend->_altSource == 0) {
                     activeHgtSource = HGT_SOURCE_BARO;
                 } else if (frontend->_altSource == 2) {
                     activeHgtSource = HGT_SOURCE_GPS;
                 }
-            } else if (belowLowerSwHgt && belowLowerSwSpd && (activeHgtSource != HGT_SOURCE_RNG)) {
-                // low and slow enough to start using range finder
+            } else if (belowLowerSwHgt && trustTerrain && (activeHgtSource != HGT_SOURCE_RNG)) {
+                // reliable terrain and range finder so start using range finder height
                 activeHgtSource = HGT_SOURCE_RNG;
             }
         }

@@ -196,6 +196,11 @@ public:
     // causes the EKF to compensate for expected barometer errors due to ground effect
     void setTouchdownExpected(bool val);
 
+    // Set to true if the terrain underneath is stable enough to be used as a height reference
+    // in combination with a range finder. Set to false if the terrain underneath the vehicle
+    // cannot be used as a height reference
+    void setTerrainHgtStable(bool val);
+
     /*
     return the filter fault status as a bitmasked integer
      0 = quaternions are NaN
@@ -886,6 +891,8 @@ private:
     uint32_t storedRngMeasTime_ms[2][3];    // Ringbuffers of stored range measurement times for dual range sensors
     uint32_t lastRngMeasTime_ms;            // Timestamp of last range measurement
     uint8_t rngMeasIndex[2];                // Current range measurement ringbuffer index for dual range sensors
+    bool terrainHgtStable;                  // true when the terrain height is stable enough to be used as a height reference
+    uint32_t terrainHgtStableSet_ms;        // system time at which terrainHgtStable was set
 
     // height source selection logic
     uint8_t activeHgtSource;    // integer defining active height source

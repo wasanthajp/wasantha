@@ -141,6 +141,7 @@ void NavEKF2_core::InitialiseVariables()
     lastPosReset_ms = 0;
     lastVelReset_ms = 0;
     lastRngMeasTime_ms = 0;
+    terrainHgtStableSet_ms = 0;
 
     // initialise other variables
     gpsNoiseScaler = 1.0f;
@@ -263,6 +264,7 @@ void NavEKF2_core::InitialiseVariables()
     memset(&rngMeasIndex, 0, sizeof(rngMeasIndex));
     memset(&storedRngMeasTime_ms, 0, sizeof(storedRngMeasTime_ms));
     memset(&storedRngMeas, 0, sizeof(storedRngMeas));
+    terrainHgtStable = true;
 
     // zero data buffers
     storedIMU.reset();
