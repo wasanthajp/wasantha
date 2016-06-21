@@ -11,6 +11,7 @@
 #define AC_FENCE_TYPE_NONE                          0       // fence disabled
 #define AC_FENCE_TYPE_ALT_MAX                       1       // high alt fence which usually initiates an RTL
 #define AC_FENCE_TYPE_CIRCLE                        2       // circular horizontal fence (usually initiates an RTL)
+#define AC_FENCE_TYPE_POLYGON                       4       // polygon horizontal fence
 
 // valid actions should a fence be breached
 #define AC_FENCE_ACTION_REPORT_ONLY                 0       // report to GCS that boundary has been breached but take no further action
@@ -26,6 +27,9 @@
 // give up distance
 #define AC_FENCE_GIVE_UP_DISTANCE                   100.0f  // distance outside the fence at which we should give up and just land.  Note: this is not used by library directly but is intended to be used by the main code
 #define AC_FENCE_MANUAL_RECOVERY_TIME_MIN           10000   // pilot has 10seconds to recover during which time the autopilot will not attempt to re-take control
+
+// number of polygon points
+#define AC_FENCE_POLYGON_MAX                        6        // polygon horizontal fence
 
 class AC_Fence
 {
@@ -107,6 +111,7 @@ private:
     AP_Float        _alt_max;               // altitude upper limit in meters
     AP_Float        _circle_radius;         // circle fence radius in meters
     AP_Float        _margin;                // distance in meters that autopilot's should maintain from the fence to avoid a breach
+    AP_Int8         _total;                 // number of polygon points saved in eeprom
 
     // backup fences
     float           _alt_max_backup;        // backup altitude upper limit in meters used to refire the breach if the vehicle continues to move further away
@@ -125,4 +130,7 @@ private:
     uint16_t        _breach_count;          // number of times we have breached the fence
 
     uint32_t        _manual_recovery_start_ms;  // system time in milliseconds that pilot re-took manual control
+
+    // polygon fence variables
+    Vector2f        _boundary[AC_FENCE_POLYGON_MAX];    // array of boundary points.  Note: point 0 is the return point
 };

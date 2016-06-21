@@ -15,9 +15,10 @@ const AP_Param::GroupInfo AC_Fence::var_info[] = {
     // @Param: TYPE
     // @DisplayName: Fence Type
     // @Description: Enabled fence types held as bitmask
-    // @Values: 0:None,1:Altitude,2:Circle,3:Altitude and Circle
+    // @Values: 0:None,1:Altitude,2:Circle,3:Altitude and Circle,4:Polygon,5:Altitude and Polygon,6:Circle and Polygon,7:All
+    // @Bitmask: 0:Altitude,1:Circle,2:Polygon
     // @User: Standard
-    AP_GROUPINFO("TYPE",        1,  AC_Fence,   _enabled_fences,  AC_FENCE_TYPE_ALT_MAX | AC_FENCE_TYPE_CIRCLE),
+    AP_GROUPINFO("TYPE",        1,  AC_Fence,   _enabled_fences,  AC_FENCE_TYPE_ALT_MAX | AC_FENCE_TYPE_CIRCLE | AC_FENCE_TYPE_POLYGON),
 
     // @Param: ACTION
     // @DisplayName: Fence Action
@@ -50,7 +51,14 @@ const AP_Param::GroupInfo AC_Fence::var_info[] = {
     // @Range: 1 10
     // @User: Standard
     AP_GROUPINFO("MARGIN",      5,  AC_Fence,   _margin, AC_FENCE_MARGIN_DEFAULT),
-    
+
+    // @Param: TOTAL
+    // @DisplayName: Fence polygon point total
+    // @Description: Number of polygon points saved in eeprom (do not update manually)
+    // @Range: 1 20
+    // @User: Standard
+    AP_GROUPINFO("TOTAL",       6,  AC_Fence,   _total, 0),
+
     AP_GROUPEND
 };
 
