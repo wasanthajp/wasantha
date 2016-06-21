@@ -77,7 +77,6 @@ void NavEKF2_core::readRangeFinder(void)
 
                 // limit the measured range to be no less than the on-ground range
                 rangeDataNew.rng = MAX(storedRngMeas[sensorIndex][midIndex],rngOnGnd);
-                rngValidMeaTime_ms = imuSampleTime_ms;
 
                 // write data to buffer with time stamp to be fused when the fusion time horizon catches up with it
                 storedRange.push(rangeDataNew);
@@ -87,14 +86,19 @@ void NavEKF2_core::readRangeFinder(void)
                 rangeDataNew.time_ms = imuSampleTime_ms;
                 rangeDataNew.rng = rngOnGnd;
                 rangeDataNew.time_ms = imuSampleTime_ms;
+
                 // don't allow time to go backwards
                 if (imuSampleTime_ms > rangeDataNew.time_ms) {
                     rangeDataNew.time_ms = imuSampleTime_ms;
                 }
+
                 // write data to buffer with time stamp to be fused when the fusion time horizon catches up with it
                 storedRange.push(rangeDataNew);
 
             }
+
+            rngValidMeaTime_ms = imuSampleTime_ms;
+
         }
     }
 }
