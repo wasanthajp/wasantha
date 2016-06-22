@@ -4,10 +4,6 @@ extern const AP_HAL::HAL& hal;
 
 static const StorageAccess fence_storage(StorageManager::StorageFence);
 
-AP_PolyFence_loader::AP_PolyFence_loader()
-{
-}
-
 /*
   maximum number of fencepoints
  */
@@ -31,7 +27,7 @@ bool AP_PolyFence_loader::load_point_from_eeprom(uint16_t i, Vector2l& point)
 }
 
 // save a fence point to eeprom, returns true on successful save
-bool AP_PolyFence_loader::save_point_to_eeprom(uint16_t i, const Vector2l &point)
+bool AP_PolyFence_loader::save_point_to_eeprom(uint16_t i, const Vector2l& point)
 {
     // sanity check index
     if (i >= max_points()) {
@@ -47,7 +43,7 @@ bool AP_PolyFence_loader::save_point_to_eeprom(uint16_t i, const Vector2l &point
 // validate array of boundary points (expressed as either floats or long ints)
 //   contains_return_point should be true for plane which stores the return point as the first point in the array
 //   returns true if boundary is valid
-bool AP_PolyFence_loader::boundary_valid(uint16_t num_points, const Vector2l& points[], bool contains_return_point)
+bool AP_PolyFence_loader::boundary_valid(uint16_t num_points, const Vector2l* points, bool contains_return_point)
 {
     // start from 2nd point if boundary contains return point (as first point)
     uint8_t start_num = contains_return_point ? 1 : 0;
@@ -70,7 +66,7 @@ bool AP_PolyFence_loader::boundary_valid(uint16_t num_points, const Vector2l& po
     return true;
 }
 
-bool AP_PolyFence_loader::boundary_valid(uint16_t num_points, const Vector2f& points[], bool contains_return_point)
+bool AP_PolyFence_loader::boundary_valid(uint16_t num_points, const Vector2f* points, bool contains_return_point)
 {
     // start from 2nd point if boundary contains return point (as first point)
     uint8_t start_num = contains_return_point ? 1 : 0;
@@ -96,7 +92,7 @@ bool AP_PolyFence_loader::boundary_valid(uint16_t num_points, const Vector2f& po
 // check if a location (expressed as either floats or long ints) is within the boundary
 //   contains_return_point should be true for plane which stores the return point as the first point in the array
 //   returns true if location is outside the boundary
-bool AP_PolyFence_loader::boundary_breached(const Vector2l& location, uint16_t num_points, const Vector2l& points[], bool contains_return_point)
+bool AP_PolyFence_loader::boundary_breached(const Vector2l& location, uint16_t num_points, const Vector2l* points, bool contains_return_point)
 {
     // start from 2nd point if boundary contains return point (as first point)
     uint8_t start_num = contains_return_point ? 1 : 0;
@@ -105,7 +101,7 @@ bool AP_PolyFence_loader::boundary_breached(const Vector2l& location, uint16_t n
     return Polygon_outside(location, &points[start_num], num_points-1);
 }
 
-bool AP_PolyFence_loader::boundary_breached(const Vector2f& location, uint16_t num_points, const Vector2f& points[], bool contains_return_point)
+bool AP_PolyFence_loader::boundary_breached(const Vector2f& location, uint16_t num_points, const Vector2f* points, bool contains_return_point)
 {
     // start from 2nd point if boundary contains return point (as first point)
     uint8_t start_num = contains_return_point ? 1 : 0;
