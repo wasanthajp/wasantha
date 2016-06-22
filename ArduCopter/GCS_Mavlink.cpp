@@ -1948,7 +1948,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
     // send or receive fence points with GCS
     case MAVLINK_MSG_ID_FENCE_POINT:            // MAV ID: 160
     case MAVLINK_MSG_ID_FENCE_FETCH_POINT:
-        //copter.fence.handle_msg(chan, msg);
+        copter.fence.handle_msg(chan, msg);
         break;
 #endif // AC_FENCE == ENABLED
 
