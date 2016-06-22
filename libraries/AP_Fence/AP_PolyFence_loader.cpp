@@ -54,7 +54,7 @@ bool AP_PolyFence_loader::boundary_valid(uint16_t num_points, const Vector2l* po
     }
 
     // point 1 and last point must be the same.  Note: 0th point is reserved as the return point
-    if (!Polygon_complete(points[start_num], num_points-1)) {
+    if (!Polygon_complete(&points[start_num], num_points-1)) {
         return false;
     }
 
@@ -77,7 +77,7 @@ bool AP_PolyFence_loader::boundary_valid(uint16_t num_points, const Vector2f* po
     }
 
     // point 1 and last point must be the same.  Note: 0th point is reserved as the return point
-    if (!Polygon_complete(points[start_num], num_points-1)) {
+    if (!Polygon_complete(&points[start_num], num_points-1)) {
         return false;
     }
 
