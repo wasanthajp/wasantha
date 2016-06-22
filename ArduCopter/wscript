@@ -27,7 +27,7 @@ def build(bld):
             'AP_RCMapper',
             'AP_Relay',
             'AP_ServoRelayEvents',
-            'AP_PolyFence_loader'
+            'AP_Fence'
         ],
         use='mavlink',
     )
