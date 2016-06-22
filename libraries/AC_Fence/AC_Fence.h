@@ -6,6 +6,7 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
 #include <AP_InertialNav/AP_InertialNav.h>     // Inertial Navigation library
+#include <AP_Fence/AP_PolyFence_loader.h>
 
 // bit masks for enabled fence types.  Used for TYPE parameter
 #define AC_FENCE_TYPE_NONE                          0       // fence disabled
@@ -101,6 +102,9 @@ private:
     /// clear_breach - update breach bitmask, time and count
     void clear_breach(uint8_t fence_type);
 
+    /// load polygon points stored in eeprom into boundary array and perform validation.  returns true if load successfully completed
+    bool load_polygon_from_eeprom(bool force_reload = false);
+
     // pointers to other objects we depend upon
     const AP_InertialNav& _inav;
 
@@ -132,5 +136,10 @@ private:
     uint32_t        _manual_recovery_start_ms;  // system time in milliseconds that pilot re-took manual control
 
     // polygon fence variables
+    AP_PolyFence_loader _poly_loader;                   // helper for loading/saving polygon points
     Vector2f        _boundary[AC_FENCE_POLYGON_MAX];    // array of boundary points.  Note: point 0 is the return point
+    uint8_t         _boundary_num_points = 0;           // number of points in the boundary array (should equal _total parameter after load has completed)
+    bool            _boundary_loaded = false;           // true if boundary array has been loaded from eeprom
+    bool            _boundary_valid = false;            // true if boundary forms a closed polygon
+    bool            _boundary_revalidate = false;       // set to true when we need to revalidate the boundary (required after a point is changed)
 };

@@ -198,11 +198,32 @@ uint8_t AC_Fence::check_fence(float curr_alt)
         }
     }
 
+    // polygon fence check
+    if ((_enabled_fences & AC_FENCE_TYPE_POLYGON) != 0 ) {
+        // load fence if necessary
+        if (!_boundary_loaded) {
+            load_polygon_from_eeprom();
+        } else if (_boundary_valid) {
+            // check if vehicle is outside the polygon fence
+            const Vector3f& position = _inav.get_position();
+            if (_poly_loader.boundary_breached(Vector2f(position.x, position.y), _boundary_num_points, _boundary, false)) {
+                // check if this is a new breach
+                if ((_breached_fences & AC_FENCE_TYPE_POLYGON) == 0) {
+                    // record that we have breached the polygon
+                    record_breach(AC_FENCE_TYPE_POLYGON);
+                    ret = ret | AC_FENCE_TYPE_POLYGON;
+                }
+            } else {
+                // clear breach if present
+                if ((_breached_fences & AC_FENCE_TYPE_POLYGON) != 0) {
+                    clear_breach(AC_FENCE_TYPE_POLYGON);
+                }
+            }
+        }
+    }
+
     // return any new breaches that have occurred
     return ret;
-
-    // To-Do: add min alt and polygon check
-    //outside = Polygon_outside(location, &geofence_state->boundary[1], geofence_state->num_points-1);
 }
 
 // returns true if the destination is within fence (used to reject waypoints outside the fence)
@@ -279,4 +300,41 @@ void AC_Fence::manual_recovery_start()
 
     // record time pilot began manual recovery
     _manual_recovery_start_ms = AP_HAL::millis();
+}
+
+/// load polygon points stored in eeprom into boundary array and perform validation
+bool AC_Fence::load_polygon_from_eeprom(bool force_reload)
+{
+    // exit immediately if already loaded
+    if (_boundary_loaded && !force_reload) {
+        return true;
+    }
+
+    // get current location from EKF
+    Location temp_loc;
+    if (!_inav.get_location(temp_loc)) {
+        return false;
+    }
+    const struct Location &ekf_origin = _inav.get_origin();
+
+    // sanity check total
+    _total = constrain_int16(_total, 0, _poly_loader.max_points());
+
+    // load each point from eeprom
+    Vector2l temp_latlon;
+    for (uint16_t index=0; index<_total; index++) {
+        // load boundary point as lat/lon point
+        _poly_loader.load_point_from_eeprom(index, temp_latlon);
+        // move into location structure and convert to offset from ekf origin
+        temp_loc.lat = temp_latlon.x;
+        temp_loc.lng = temp_latlon.y;
+        _boundary[index] = location_diff(temp_loc, ekf_origin);
+    }
+    _boundary_num_points = _total;
+    _boundary_loaded = true;
+
+    // update validity of polygon
+    _boundary_valid = _poly_loader.boundary_valid(_boundary_num_points, _boundary, false);
+
+    return true;
 }
