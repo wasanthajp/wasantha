@@ -1,6 +1,8 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #include <AP_HAL/AP_HAL.h>
 #include "AC_Fence.h"
+#include <GCS_MAVLink/GCS_MAVLink.h>
+#include <GCS_MAVLink/GCS.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -300,6 +302,52 @@ void AC_Fence::manual_recovery_start()
 
     // record time pilot began manual recovery
     _manual_recovery_start_ms = AP_HAL::millis();
+}
+
+/// handler for polygon fence messages with GCS
+void AC_Fence::handle_msg(mavlink_channel_t chan, mavlink_message_t* msg)
+{
+    // exit immediately if null message
+    if (msg == NULL) {
+        return;
+    }
+
+    switch (msg->msgid) {
+        // receive a fence point from GCS and store in EEPROM
+        case MAVLINK_MSG_ID_FENCE_POINT: {
+            mavlink_fence_point_t packet;
+            mavlink_msg_fence_point_decode(msg, &packet);
+            if (!check_latlng(packet.lat,packet.lng)) {
+                GCS_MAVLINK::send_statustext_chan(MAV_SEVERITY_WARNING, chan, "Invalid fence point, lat or lng too large");
+            } else {
+                Vector2l point;
+                point.x = packet.lat*1.0e7f;
+                point.y = packet.lng*1.0e7f;
+                if (!_poly_loader.save_point_to_eeprom(packet.idx, point)) {
+                    GCS_MAVLINK::send_statustext_chan(MAV_SEVERITY_WARNING, chan, "Failed to save polygon point, too many points?");
+                }
+            }
+            break;
+        }
+
+        // send a fence point to GCS
+        case MAVLINK_MSG_ID_FENCE_FETCH_POINT: {
+            mavlink_fence_fetch_point_t packet;
+            mavlink_msg_fence_fetch_point_decode(msg, &packet);
+            // attempt to retrieve from eeprom
+            Vector2l point;
+            if (_poly_loader.load_point_from_eeprom(packet.idx, point)) {
+                mavlink_msg_fence_point_send_buf(msg, chan, msg->sysid, msg->compid, packet.idx, _total, point.x*1.0e-7f, point.y*1.0e-7f);
+            } else {
+                GCS_MAVLINK::send_statustext_chan(MAV_SEVERITY_WARNING, chan, "Bad fence point");
+            }
+            break;
+        }
+
+        default:
+            // do nothing
+            break;
+    }
 }
 
 /// load polygon points stored in eeprom into boundary array and perform validation

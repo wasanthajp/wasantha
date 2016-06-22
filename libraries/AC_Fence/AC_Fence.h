@@ -5,6 +5,7 @@
 #include <AP_Common/AP_Common.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
+#include <GCS_MAVLink/GCS_MAVLink.h>
 #include <AP_InertialNav/AP_InertialNav.h>     // Inertial Navigation library
 #include <AP_Fence/AP_PolyFence_loader.h>
 
@@ -91,6 +92,9 @@ public:
 
     /// set_home_distance - update vehicle's distance from home in meters - required for circular horizontal fence monitoring
     void set_home_distance(float distance) { _home_distance = distance; }
+
+    /// handler for polygon fence messages with GCS
+    void handle_msg(mavlink_channel_t chan, mavlink_message_t* msg);
 
     static const struct AP_Param::GroupInfo var_info[];
 
