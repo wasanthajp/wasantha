@@ -678,6 +678,13 @@ void NavEKF2_core::selectHeightForFusion()
         activeHgtSource = HGT_SOURCE_BARO;
     }
 
+    // Use Baro alt as a fallback if we lose range finder or GPS
+    bool lostRngHgt = ((activeHgtSource == HGT_SOURCE_RNG) && ((imuSampleTime_ms - rngValidMeaTime_ms) > 500));
+    bool lostGpsHgt = ((activeHgtSource == HGT_SOURCE_GPS) && ((imuSampleTime_ms - lastTimeGpsReceived_ms) > 2000));
+    if (lostRngHgt || lostGpsHgt) {
+        activeHgtSource = HGT_SOURCE_BARO;
+    }
+
     // if there is new baro data to fuse, calculate filtered baro data required by other processes
     if (baroDataToFuse) {
         // calculate offset to baro data that enables us to switch to Baro height use during operation
