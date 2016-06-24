@@ -103,12 +103,20 @@ void NavEKF2_core::ResetHeight(void)
 {
     // write to the state vector
     stateStruct.position.z = -hgtMea;
-    terrainState = stateStruct.position.z + rngOnGnd;
+    outputDataNew.position.z = stateStruct.position.z;
+    outputDataDelayed.position.z = stateStruct.position.z;
+
+    // reset the terrain state height
+    if (onGround) {
+        // assume vehicle is sitting on the ground
+        terrainState = stateStruct.position.z + rngOnGnd;
+    } else {
+        // can make no assumption other than vehicle is not below ground level
+        terrainState = MAX(stateStruct.position.z + rngOnGnd , terrainState);
+    }
     for (uint8_t i=0; i<imu_buffer_length; i++) {
         storedOutput[i].position.z = stateStruct.position.z;
     }
-    outputDataNew.position.z = stateStruct.position.z;
-    outputDataDelayed.position.z = stateStruct.position.z;
 
     // reset the corresponding covariances
     zeroRows(P,8,8);
