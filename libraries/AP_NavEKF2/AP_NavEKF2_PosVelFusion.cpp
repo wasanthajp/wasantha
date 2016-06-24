@@ -670,9 +670,9 @@ void NavEKF2_core::selectHeightForFusion()
         activeHgtSource = HGT_SOURCE_BARO;
     }
 
-    // if there is new baro data to fuse, calculate filterred baro data required by other processes
+    // if there is new baro data to fuse, calculate filtered baro data required by other processes
     if (baroDataToFuse) {
-        // calculate offset to baro data that enables baro to be used as a backup if we are using other height sources
+        // calculate offset to baro data that enables us to switch to Baro height use during operation
         if  (activeHgtSource != HGT_SOURCE_BARO) {
             calcFiltBaroOffset();
         }
@@ -684,6 +684,11 @@ void NavEKF2_core::selectHeightForFusion()
             float alpha = constrain_float(dtBaro / (dtBaro+gndHgtFiltTC),0.0f,1.0f);
             meaHgtAtTakeOff += (baroDataDelayed.hgt-meaHgtAtTakeOff)*alpha;
         }
+    }
+
+    // calculate offset to GPS height data that enables us to switch to GPS height during operation
+    if (gpsDataToFuse && (activeHgtSource != HGT_SOURCE_GPS)) {
+            calcFiltGpsHgtOffset();
     }
 
     // Select the height measurement source

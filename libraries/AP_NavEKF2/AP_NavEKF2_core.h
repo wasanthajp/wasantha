@@ -623,6 +623,9 @@ private:
     // calculate a filtered offset between baro height measurement and EKF height estimate
     void calcFiltBaroOffset();
 
+    // calculate a filtered offset between GPS height measurement and EKF height estimate
+    void calcFiltGpsHgtOffset();
+
     // Select height data to be fused from the available baro, range finder and GPS sources
     void selectHeightForFusion();
 
@@ -809,6 +812,8 @@ private:
     bool magFieldLearned;           // true when the magnetic field has been learned
     Vector3f earthMagFieldVar;      // NED earth mag field variances for last learned field (mGauss^2)
     Vector3f bodyMagFieldVar;       // XYZ body mag field variances for last learned field (mGauss^2)
+    float ekfOriginHgtVar;          // Variance of the the EKF WGS-84 origin height estimate (m^2)
+    uint32_t lastOriginHgtTime_ms;  // last time the ekf's WGS-84 origin height was corrected
 
     Vector3f outputTrackError;
 
@@ -886,9 +891,9 @@ private:
     float delTimeOF;                // time that delAngBodyOF is summed across
 
     // Range finder
-    float baroHgtOffset;                    // offset applied when baro height used as a backup height reference if range-finder fails
+    float baroHgtOffset;                    // offset applied when when switching to use of Baro height
     float rngOnGnd;                         // Expected range finder reading in metres when vehicle is on ground
-    float storedRngMeas[2][3];                 // Ringbuffer of stored range measurements for dual range sensors
+    float storedRngMeas[2][3];              // Ringbuffer of stored range measurements for dual range sensors
     uint32_t storedRngMeasTime_ms[2][3];    // Ringbuffers of stored range measurement times for dual range sensors
     uint32_t lastRngMeasTime_ms;            // Timestamp of last range measurement
     uint8_t rngMeasIndex[2];                // Current range measurement ringbuffer index for dual range sensors

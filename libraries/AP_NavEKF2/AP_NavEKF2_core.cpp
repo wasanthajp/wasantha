@@ -266,6 +266,7 @@ void NavEKF2_core::InitialiseVariables()
     memset(&storedRngMeasTime_ms, 0, sizeof(storedRngMeasTime_ms));
     memset(&storedRngMeas, 0, sizeof(storedRngMeas));
     terrainHgtStable = true;
+    ekfOriginHgtVar = 0.0f;
 
     // zero data buffers
     storedIMU.reset();
