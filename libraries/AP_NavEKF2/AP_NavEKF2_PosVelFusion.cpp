@@ -708,9 +708,12 @@ void NavEKF2_core::selectHeightForFusion()
         hgtMea = gpsDataDelayed.hgt;
         // enable fusion
         fuseHgtData = true;
-        // set the observation noise to the horizontal GPS noise plus a scaler because GPS vertical position is usually less accurate
-        // TODO use VDOP/HDOP, reported accuracy or a separate parameter
-        posDownObsNoise = sq(constrain_float(frontend->_gpsHorizPosNoise * 1.5f, 0.1f, 10.0f));
+        // set the observation noise using receiver reported accuracy or the horizontal noise scaled for typical VDOP/HDOP ratio
+        if (gpsHgtAccuracy > 0.0f) {
+            posDownObsNoise = sq(constrain_float(gpsHgtAccuracy, 1.5f * frontend->_gpsHorizPosNoise, 100.0f));
+        } else {
+            posDownObsNoise = sq(constrain_float(1.5f * frontend->_gpsHorizPosNoise, 0.1f, 10.0f));
+        }
     } else if (baroDataToFuse && (activeHgtSource == HGT_SOURCE_BARO)) {
         // using Baro data
         hgtMea = baroDataDelayed.hgt - baroHgtOffset;

@@ -415,6 +415,14 @@ void NavEKF2_core::readGpsData()
                 gpsPosAccuracy = MAX(gpsPosAccuracy,gpsPosAccRaw);
                 gpsPosAccuracy = MIN(gpsPosAccuracy,100.0f);
             }
+            gpsHgtAccuracy *= (1.0f - alpha);
+            float gpsHgtAccRaw;
+            if (!_ahrs->get_gps().vertical_accuracy(gpsHgtAccRaw)) {
+                gpsHgtAccuracy = 0.0f;
+            } else {
+                gpsHgtAccuracy = MAX(gpsHgtAccuracy,gpsHgtAccRaw);
+                gpsHgtAccuracy = MIN(gpsHgtAccuracy,100.0f);
+            }
 
             // check if we have enough GPS satellites and increase the gps noise scaler if we don't
             if (_ahrs->get_gps().num_sats() >= 6 && (PV_AidingMode == AID_ABSOLUTE)) {

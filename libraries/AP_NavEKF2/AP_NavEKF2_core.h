@@ -738,6 +738,7 @@ private:
     bool validOrigin;               // true when the EKF origin is valid
     float gpsSpdAccuracy;           // estimated speed accuracy in m/s returned by the GPS receiver
     float gpsPosAccuracy;           // estimated position accuracy in m returned by the GPS receiver
+    float gpsHgtAccuracy;           // estimated height accuracy in m returned by the GPS receiver
     uint32_t lastGpsVelFail_ms;     // time of last GPS vertical velocity consistency check fail
     uint32_t lastGpsAidBadTime_ms;  // time in msec gps aiding was last detected to be bad
     float posDownAtTakeoff;         // flight vehicle vertical position sampled at transition from on-ground to in-air and used as a reference (m)
