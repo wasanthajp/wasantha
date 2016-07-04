@@ -91,6 +91,7 @@ public:
         k_rcin14                = 64,
         k_rcin15                = 65,
         k_rcin16                = 66,
+        k_demanded_yaw_rate     = 67,   ///< copter yaw control pass through for sevo based yaw authority augmentation)
         k_nr_aux_servo_functions         ///< This must be the last enum value (only add new values _before_ this one)
     } Aux_servo_function_t;
 
