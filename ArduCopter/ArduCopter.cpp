@@ -259,6 +259,9 @@ void Copter::fast_loop()
     // send outputs to the motors library
     motors_output();
 
+    // drive augmented yaw authority servo
+    RC_Channel_aux::set_servo_out_for(RC_Channel_aux::k_demanded_yaw_rate,1000*motors.get_yaw());
+
     // Inertial Nav
     // --------------------
     read_inertia();
