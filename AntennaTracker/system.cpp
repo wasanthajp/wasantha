@@ -152,6 +152,12 @@ void Tracker::set_home_eeprom(struct Location temp)
     g.command_total.set_and_save(1); // At most 1 entry for HOME
 }
 
+// initialise home from gps location
+void Tracker::init_home()
+{
+    set_home(gps.location());
+}
+
 void Tracker::set_home(struct Location temp)
 {
     set_home_eeprom(temp);

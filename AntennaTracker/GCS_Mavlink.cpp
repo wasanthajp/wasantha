@@ -122,11 +122,6 @@ void Tracker::send_hwstatus(mavlink_channel_t chan)
         hal.i2c->lockup_count());
 }
 
-void Tracker::send_waypoint_request(mavlink_channel_t chan)
-{
-    gcs[chan-MAVLINK_COMM_0].queued_waypoint_send();
-}
-
 void Tracker::send_nav_controller_output(mavlink_channel_t chan)
 {
 	float alt_diff = (g.alt_source == ALT_SOURCE_BARO) ? nav_status.alt_difference_baro : nav_status.alt_difference_gps;
@@ -228,11 +223,6 @@ bool GCS_MAVLINK_Tracker::try_send_message(enum ap_message id)
         queued_param_send();
         break;
 
-    case MSG_NEXT_WAYPOINT:
-        CHECK_PAYLOAD_SIZE(MISSION_REQUEST);
-        tracker.send_waypoint_request(chan);
-        break;
-
     case MSG_STATUSTEXT:
         // depreciated, use GCS_MAVLINK::send_statustext*
         return false;
@@ -262,6 +252,7 @@ bool GCS_MAVLINK_Tracker::try_send_message(enum ap_message id)
         break;
 
     case MSG_SERVO_OUT:
+    case MSG_NEXT_WAYPOINT:
     case MSG_EXTENDED_STATUS1:
     case MSG_EXTENDED_STATUS2:
     case MSG_RETRY_DEFERRED:
@@ -575,7 +566,28 @@ void GCS_MAVLINK_Tracker::handleMessage(mavlink_message_t* msg)
         send_text(MAV_SEVERITY_INFO,"Command received: ");
         
         switch(packet.command) {
-            
+
+        case MAV_CMD_DO_SET_HOME:
+            // param1 : use current (1=use current location, 0=use specified location)
+            // param5 : latitude
+            // param6 : longitude
+            // param7 : altitude (absolute)
+            if(is_equal(packet.param1,1.0f) || (is_zero(packet.param5) && is_zero(packet.param6) && is_zero(packet.param7))) {
+                tracker.init_home();
+            } else {
+                // sanity check location
+                if (!check_latlng(packet.param5, packet.param6)) {
+                    break;
+                }
+                Location new_home_loc {};
+                new_home_loc.lat = (int32_t)(packet.param5 * 1.0e7f);
+                new_home_loc.lng = (int32_t)(packet.param6 * 1.0e7f);
+                new_home_loc.alt = (int32_t)(packet.param7 * 100.0f);
+                tracker.set_home(new_home_loc);
+            }
+            result = MAV_RESULT_ACCEPTED;
+            break;
+
             case MAV_CMD_PREFLIGHT_CALIBRATION:
             {
                 if (is_equal(packet.param1,1.0f)) {
@@ -711,108 +723,16 @@ void GCS_MAVLINK_Tracker::handleMessage(mavlink_message_t* msg)
         break;
     }
          
-    // When mavproxy 'wp sethome' 
+    // unsupported mission commands
     case MAVLINK_MSG_ID_MISSION_WRITE_PARTIAL_LIST:
-    {
-        // decode
-        mavlink_mission_write_partial_list_t packet;
-        mavlink_msg_mission_write_partial_list_decode(msg, &packet);
-        if (packet.start_index == 0)
-        {
-            // New home at wp index 0. Ask for it
-            waypoint_receiving = true;
-            waypoint_request_i = 0;
-            waypoint_request_last = 0;
-            send_message(MSG_NEXT_WAYPOINT);
-            waypoint_receiving = true;
-        }
-        break;
-    }
-
-    // XXX receive a WP from GCS and store in EEPROM if it is HOME
     case MAVLINK_MSG_ID_MISSION_ITEM:
     {
-        // decode
-        mavlink_mission_item_t packet;
-        uint8_t result = MAV_MISSION_ACCEPTED;
-
-        mavlink_msg_mission_item_decode(msg, &packet);
-
-        struct Location tell_command = {};
-
-        switch (packet.frame)
-        {
-        case MAV_FRAME_MISSION:
-        case MAV_FRAME_GLOBAL:
-        {
-            tell_command.lat = 1.0e7f*packet.x;                                     // in as DD converted to * t7
-            tell_command.lng = 1.0e7f*packet.y;                                     // in as DD converted to * t7
-            tell_command.alt = packet.z*1.0e2f;                                     // in as m converted to cm
-            tell_command.options = 0;                                     // absolute altitude
-            break;
-        }
-
-#ifdef MAV_FRAME_LOCAL_NED
-        case MAV_FRAME_LOCAL_NED:                         // local (relative to home position)
-        {
-            tell_command.lat = 1.0e7f*ToDeg(packet.x/
-                                           (RADIUS_OF_EARTH*cosf(ToRad(home.lat/1.0e7f)))) + home.lat;
-            tell_command.lng = 1.0e7f*ToDeg(packet.y/RADIUS_OF_EARTH) + home.lng;
-            tell_command.alt = -packet.z*1.0e2f;
-            tell_command.options = MASK_OPTIONS_RELATIVE_ALT;
-            break;
-        }
-#endif
-
-#ifdef MAV_FRAME_LOCAL
-        case MAV_FRAME_LOCAL:                         // local (relative to home position)
-        {
-            tell_command.lat = 1.0e7f*ToDeg(packet.x/
-                                           (RADIUS_OF_EARTH*cosf(ToRad(home.lat/1.0e7f)))) + home.lat;
-            tell_command.lng = 1.0e7f*ToDeg(packet.y/RADIUS_OF_EARTH) + home.lng;
-            tell_command.alt = packet.z*1.0e2f;
-            tell_command.options = MASK_OPTIONS_RELATIVE_ALT;
-            break;
-        }
-#endif
-
-        case MAV_FRAME_GLOBAL_RELATIVE_ALT:                         // absolute lat/lng, relative altitude
-        {
-            tell_command.lat = 1.0e7f * packet.x;                                     // in as DD converted to * t7
-            tell_command.lng = 1.0e7f * packet.y;                                     // in as DD converted to * t7
-            tell_command.alt = packet.z * 1.0e2f;
-            tell_command.options = MASK_OPTIONS_RELATIVE_ALT;                                     // store altitude relative!! Always!!
-            break;
-        }
-
-        default:
-            result = MAV_MISSION_UNSUPPORTED_FRAME;
-            break;
-        }
-
-        if (result != MAV_MISSION_ACCEPTED) goto mission_failed;
-
-        // Check if receiving waypoints (mission upload expected)
-        if (!waypoint_receiving) {
-            result = MAV_MISSION_ERROR;
-            goto mission_failed;
-        }
-
-        // check if this is the HOME wp
-        if (packet.seq == 0) {
-            tracker.set_home(tell_command); // New home in EEPROM
-            send_text(MAV_SEVERITY_INFO,"New HOME received");
-            waypoint_receiving = false;
-        }
-
-mission_failed:
         // we are rejecting the mission/waypoint
         mavlink_msg_mission_ack_send(
             chan,
             msg->sysid,
             msg->compid,
-            result);
-        break;
+            MAV_RESULT_UNSUPPORTED);
     }
 
     case MAVLINK_MSG_ID_MANUAL_CONTROL:

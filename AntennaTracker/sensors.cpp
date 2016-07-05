@@ -114,8 +114,7 @@ void Tracker::update_GPS(void)
             } else {
                 // Now have an initial GPS position
                 // use it as the HOME position in future startups
-                current_loc = gps.location();
-                set_home(current_loc);
+                init_home();
 
                 // set system clock for log timestamps
                 uint64_t gps_timestamp = gps.time_epoch_usec();
