@@ -261,6 +261,12 @@ void Copter::fast_loop()
 
     // drive augmented yaw authority servo
     RC_Channel_aux::set_servo_out_for(RC_Channel_aux::k_demanded_yaw_rate,1000*motors.get_yaw());
+    static uint8_t counter = 0;
+    counter++;
+    if (counter > 100) {
+        counter = 0;
+        ::printf("y:%4.2f\n",(double)1000.0f*motors.get_yaw());
+    }
 
     // Inertial Nav
     // --------------------
