@@ -492,6 +492,9 @@ void AP_Avoidance::update()
 
     check_for_threats();
 
+    // notify GCS of most serious thread
+    handle_threat_gcs_notify(most_serious_threat());
+
     handle_avoidance(most_serious_threat());
 }
 
@@ -506,8 +509,6 @@ MAV_COLLISION_ACTION AP_Avoidance::mav_avoidance_action() {
 
 void AP_Avoidance::handle_avoidance(AP_Avoidance::Obstacle *threat)
 {
-    handle_threat_gcs_notify(threat);
-
     if (threat == nullptr) {
         if (_current_avoidance_handler != nullptr) {
             _current_avoidance_handler->exit();
