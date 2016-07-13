@@ -1,6 +1,6 @@
 #include <AP_gtest.h>
 
-#include <AP_Avoidance/AvoidanceHandler.h>
+#include <AP_Avoidance/AP_Avoidance.h>
 
 #define SQRT_2 0.70710677
 
@@ -28,7 +28,7 @@
         loc2.alt = loc2_alt;                                                   \
         Vector3f expected=Vector3f(expected_x,expected_y,expected_z);   \
         Vector3f result;                                                \
-        result = AvoidanceHandler::perpendicular_xyz(loc1, vel1, loc2); \
+        result = Avoidance::perpendicular_xyz(loc1, vel1, loc2); \
         result.normalize();                                             \
         EXPECT_VECTOR3F_EQ(expected, result);                           \
     } while (0)
