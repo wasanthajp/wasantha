@@ -34,6 +34,7 @@ class AP_Avoidance {
 
 public:
 
+    // obstacle class to hold latest information for a known obstacles
     class Obstacle {
     public:
         MAV_COLLISION_SRC src;
@@ -52,11 +53,10 @@ public:
         uint32_t last_gcs_report_time; // millis
     };
 
+    // constructor
     AP_Avoidance(AP_AHRS &ahrs, class AP_ADSB &adsb);
 
-    // for holding parameters
-    static const struct AP_Param::GroupInfo var_info[];
-
+    // add obstacle to the list of known obstacles
     void add_obstacle(uint32_t obstacle_timestamp_ms,
                       const MAV_COLLISION_SRC src,
                       uint32_t src_id,
@@ -71,46 +71,41 @@ public:
                       float hspeed,
                       float vspeed);
 
+    // update should be called at 10hz or higher
     void update();
 
-    static AP_Avoidance *instance(void) {
-        return _instance;
-    }
-
+    // enable or disable avoidance
     void enable() { _enabled = true; };
     void disable() { _enabled = false; };
 
-    // add obstacles into the Avoidance system from MAVLink messages
-    void MAVLink_packetReceived(const mavlink_message_t &msg);
-
-    AP_Int8     _enabled;
-    AP_Int8     _obstacles_max;
-
-    AP_Int8     _fail_action;
-    AP_Int8     _fail_recovery;
-    AP_Int8     _fail_time_horizon;
-    AP_Int16    _fail_distance_xy;
-    AP_Int16    _fail_distance_z;
-
-    AP_Int8     _warn_action;
-    AP_Int8     _warn_recovery;
-    AP_Int8     _warn_time_horizon;
-    AP_Float    _warn_distance_xy;
-    AP_Float    _warn_distance_z;
-
+    // current overall threat level
     MAV_COLLISION_THREAT_LEVEL current_threat_level() const;
 
+    // add obstacles into the Avoidance system from MAVLink messages
+    void handle_msg(const mavlink_message_t &msg);
+
+    // for holding parameters
+    static const struct AP_Param::GroupInfo var_info[];
+
 protected:
+
+    // top level avoidance handler.  This calls the vehicle specific handle_avoidance with requested action
+    void handle_avoidance_local(AP_Avoidance::Obstacle *threat);
+
+    // avoid the most significant threat.  child classes must override this method
+    // function returns the action that it is actually taking
+    virtual MAV_COLLISION_ACTION handle_avoidance(const AP_Avoidance::Obstacle *obstacle, MAV_COLLISION_ACTION requested_action) = 0;
 
     enum state_t {
         STATE_CLEAR = 0,
         STATE_WARN = 1,
         STATE_FAIL = 2,
     };
+
     // contains English names corresponding to state_t entries
     static const char *_state_names[];
 
-    uint32_t _last_state_change_ms;
+    uint32_t _last_state_change_ms = 0;
     // we will not recover from a state any faster than this
     static const uint8_t _state_recovery_hysteresis = 20; // seconds
     state_t _old_state = STATE_CLEAR;
@@ -119,45 +114,46 @@ protected:
         AVOIDANCE_RECOVERY_F_CONTINUE_FAIL,
         AVOIDANCE_RECOVERY_F_MOVE_TO_WARN,
     };
-    enum avoidance_recovery_w_t {
-        AVOIDANCE_RECOVERY_W_RESUME,
-        AVOIDANCE_RECOVERY_W_CONTINUE_ACTION
-    };
 
-    uint32_t _gcs_cleared_messages_first_sent;
+    // gcs notification
     // specifies how long we should continue sending messages about a threat after it has cleared
     static const uint8_t _gcs_cleared_messages_duration = 5; // seconds
-
+    uint32_t _gcs_cleared_messages_first_sent;
 
     void handle_threat_gcs_notify(AP_Avoidance::Obstacle *threat);
 
     AP_Avoidance::Obstacle *most_serious_threat();
 
-    // reference to AHRS, so we can ask for our position, heading and
-    // speed
-    const AP_AHRS &_ahrs;
-
-    void internal_error();
-
-    // Deal with the most significant threat
-    virtual void handle_avoidance(AP_Avoidance::Obstacle *threat);
-
     // returns an entry from the MAV_COLLISION_ACTION representative
-    // of what the curent avoidance handler is up to.
-    MAV_COLLISION_ACTION mav_avoidance_action();
+    // of what the current avoidance handler is up to.
+    MAV_COLLISION_ACTION mav_avoidance_action() { return _latest_action; }
 
-    // returns an object which is responsible for avoiding the most significant threat
-    virtual class AvoidanceHandler &handler_for_action(MAV_COLLISION_ACTION action) = 0;
+    // get target destination that best gets vehicle away from the nearest obstacle
+    bool get_destination_perpendicular(const AP_Avoidance::Obstacle *obstacle, Vector3f &newdest_neu, const float wp_speed_xy, const float wp_speed_z, const uint8_t _minimum_avoid_height);
+
+    // helper functions to calculate destination to get us away from obstacle
+    // Note: v1 is NED
+    static Vector3f perpendicular_xyz(const Location &p1, const Vector3f &v1, const Location &p2);
+    static Vector2f perpendicular_xy(const Location &p1, const Vector3f &v1, const Location &p2);
+
+    // reference to AHRS, so we can ask for our position, heading and speed
+    const AP_AHRS &_ahrs;
 
 private:
 
-    class AP_ADSB &_adsb;
+    // constants
+    const uint32_t MAX_OBSTACLE_AGE_MS = 60000;
+    const static uint8_t _gcs_notify_interval = 1; // seconds
 
-    static AP_Avoidance *_instance;
+    // in SITL, at least, the threat level never remains higher for
+    // more than a fraction of a second.  This could potentially lead
+    // to an aircraft switching rapidly between its avoidance
+    // action and its recovery action.
+    const static uint8_t _minimum_handler_duration = 1; // seconds
 
-    uint8_t _obstacles_allocated;
-    uint8_t _obstacle_count;
-    AP_Avoidance::Obstacle *_obstacles;
+    // speed below which we will fly directly away from a threat
+    // rather than perpendicular to its velocity:
+    const uint8_t _low_velocity_threshold = 1; // meters/second
 
     // check to see if we are initialised (and possibly do initialisation)
     bool check_startup();
@@ -168,9 +164,7 @@ private:
     // free _obstacle_list
     void deinit();
 
-    const uint32_t MAX_OBSTACLE_AGE_MS = 60000;
-//    const uint32_t MAX_OBSTACLE_AGE_MS = 1000; 
-
+    // get unique id for adsb
     uint32_t src_id_for_adsb_vehicle(AP_ADSB::adsb_vehicle_t vehicle) const;
 
     void check_for_threats();
@@ -181,21 +175,34 @@ private:
     // calls into the AP_ADSB library to retrieve vehicle data
     void get_adsb_samples();
 
-    const static uint8_t _gcs_notify_interval = 1; // seconds
-
-    // in SITL, at least, the threat level never remains higher for
-    // more than a fraction of a second.  This could potentially lead
-    // to an aircraft switching rapidly between its avoidance
-    // action and its recovery action.
-    const static uint8_t _minimum_handler_duration = 1; // seconds
-
-    int8_t _current_most_serious_threat;
-
-    class AvoidanceHandler *_current_avoidance_handler = nullptr;
-
     // returns true if the obstacle should be considered more of a
     // threat than the current most serious threat
     bool obstacle_is_more_serious_threat(const AP_Avoidance::Obstacle &obstacle) const;
+
+    // internal variables
+    AP_Avoidance::Obstacle *_obstacles;
+    uint8_t _obstacles_allocated;
+    uint8_t _obstacle_count;
+    int8_t _current_most_serious_threat;
+    MAV_COLLISION_ACTION _latest_action = MAV_COLLISION_ACTION_NONE;
+
+    // external references
+    class AP_ADSB &_adsb;
+
+    // parameters
+    AP_Int8     _enabled;
+    AP_Int8     _obstacles_max;
+
+    AP_Int8     _fail_action;
+    AP_Int8     _fail_recovery;
+    AP_Int8     _fail_time_horizon;
+    AP_Int16    _fail_distance_xy;
+    AP_Int16    _fail_distance_z;
+
+    AP_Int8     _warn_action;
+    AP_Int8     _warn_time_horizon;
+    AP_Float    _warn_distance_xy;
+    AP_Float    _warn_distance_z;
 };
 
 float closest_distance_between_radial_and_point(const Vector2f &w,
