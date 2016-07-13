@@ -909,7 +909,7 @@ const AP_Param::Info Copter::var_info[] = {
 
     // @Group: AVD_
     // @Path: ../libraries/AP_Avoidance/AP_Avoidance.cpp
-    GOBJECT(avoidance,                "AVD_", AP_Avoidance),
+    GOBJECT(avoidance_adsb, "AVD_", AP_Avoidance_Copter),
 
     // @Param: AUTOTUNE_AXES
     // @DisplayName: Autotune axis bitmask

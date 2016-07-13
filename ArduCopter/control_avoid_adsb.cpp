@@ -8,10 +8,8 @@
  * This is a heavily-cut-down version of GUIDED mode
  */
 
-static Vector3f posvel_pos_target_cm;
-
-// avoid_init - initialise avoid controller
-bool Copter::avoid_init(const bool ignore_checks)
+// initialise avoid_adsb controller
+bool Copter::avoid_adsb_init(const bool ignore_checks)
 {
     if (!(position_ok() || ignore_checks)) {
         return false;
@@ -39,9 +37,8 @@ bool Copter::avoid_init(const bool ignore_checks)
 
 // avoid_set_destination - sets AVOID mode's target destination
 // (distance from home, in cm)
-bool Copter::avoid_set_destination(const Vector3f& destination)
+bool Copter::avoid_adsb_set_destination(const Vector3f& destination)
 {
-
     if (!wp_nav.set_wp_destination(destination, false)) {
         return false;
     }
@@ -51,9 +48,19 @@ bool Copter::avoid_set_destination(const Vector3f& destination)
     return true;
 }
 
-// avoid_run - runs the AVOID controller
-// should be called at 100hz or more
-void Copter::avoid_run()
+bool Copter::avoid_adsb_set_target_alt(int32_t target_alt_cm)
+{
+    //if (!wp_nav.set_wp_destination(destination, false)) {
+    //    return false;
+    //}
+
+    // log target
+    // Log_Write_GuidedTarget(guided_mode, destination, Vector3f());
+    return true;
+}
+
+// runs the AVOID_ADSB controller
+void Copter::avoid_adsb_run()
 {
     // if not auto armed or motors not enabled set throttle to zero and exit immediately
     if (!motors.armed() || !ap.auto_armed || !motors.get_interlock() || ap.land_complete) {

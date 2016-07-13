@@ -68,7 +68,7 @@ enum aux_sw_func {
     AUXSW_RELAY3 =              35, // Relay3 pin on/off (in Mission planner set CH9_OPT  = 35)
     AUXSW_RELAY4 =              36, // Relay4 pin on/off (in Mission planner set CH10_OPT = 36)
     AUXSW_THROW =               37,  // change to THROW flight mode
-    AUXSW_AVOID =               38,  // enable AP_Avoidance library
+    AUXSW_AVOID_ADSB =          38,  // enable AP_Avoidance library
 };
 
 // Frame types
@@ -105,7 +105,7 @@ enum control_mode_t {
     POSHOLD =      16,  // automatic position hold with manual override, with automatic throttle
     BRAKE =        17,  // full-brake using inertial/GPS system, no pilot input
     THROW =        18,  // throw to launch mode using inertial/GPS system, no pilot input
-    AVOID =        19,  // automatic avoidance of obstacles in the macro scale - e.g. full-sized aircraft
+    AVOID_ADSB =   19,  // automatic avoidance of obstacles in the macro scale - e.g. full-sized aircraft
 };
 
 enum mode_reason_t {
@@ -355,8 +355,8 @@ enum ThrowModeState {
 #define DATA_EKF_ALT_RESET                  60
 #define DATA_LAND_CANCELLED_BY_PILOT        61
 #define DATA_EKF_YAW_RESET                  62
-#define DATA_AVOIDANCE_ENABLE               63
-#define DATA_AVOIDANCE_DISABLE              64
+#define DATA_AVOIDANCE_ADSB_ENABLE          63
+#define DATA_AVOIDANCE_ADSB_DISABLE         64
 
 // Centi-degrees to radians
 #define DEGX100 5729.57795f

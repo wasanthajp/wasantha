@@ -183,6 +183,7 @@ public:
         k_param_throw_motor_start,
         k_param_terrain_follow,    // 94
         k_param_avoid,
+        k_param_avoidance_adsb,
 
         // 97: RSSI
         k_param_rssi = 97,
@@ -364,8 +365,6 @@ public:
         k_param_DataFlash = 253, // 253 - Logging Group
 
         // 254,255: reserved
-
-        k_param_avoidance = 256, // AP_Avoidance
 
         // the k_param_* space is 9-bits in size
         // 511: reserved

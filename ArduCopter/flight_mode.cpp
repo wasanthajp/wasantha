@@ -103,8 +103,8 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             success = throw_init(ignore_checks);
             break;
 
-        case AVOID:
-            success = avoid_init(ignore_checks);
+        case AVOID_ADSB:
+            success = avoid_adsb_init(ignore_checks);
             break;
 
         default:
@@ -228,8 +228,8 @@ void Copter::update_flight_mode()
             throw_run();
             break;
 
-        case AVOID:
-            avoid_run();
+        case AVOID_ADSB:
+            avoid_adsb_run();
             break;
 
         default:
@@ -300,7 +300,7 @@ bool Copter::mode_requires_GPS(control_mode_t mode) {
         case DRIFT:
         case POSHOLD:
         case BRAKE:
-        case AVOID:
+        case AVOID_ADSB:
         case THROW:
             return true;
         default:
@@ -339,7 +339,7 @@ void Copter::notify_flight_mode(control_mode_t mode) {
         case GUIDED:
         case RTL:
         case CIRCLE:
-        case AVOID:
+        case AVOID_ADSB:
         case LAND:
             // autopilot modes
             AP_Notify::flags.autopilot_mode = true;
@@ -405,8 +405,8 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
     case THROW:
         port->print("THROW");
         break;
-    case AVOID:
-        port->print("AVOID");
+    case AVOID_ADSB:
+        port->print("AVOID_ADSB");
         break;
     default:
         port->printf("Mode(%u)", (unsigned)mode);
