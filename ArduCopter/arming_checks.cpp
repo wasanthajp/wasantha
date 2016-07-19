@@ -47,7 +47,7 @@ bool Copter::pre_arm_checks(bool display_failure)
         return false;
     }
 
-    if (avoidance_adsb.current_threat_level() != MAV_COLLISION_THREAT_LEVEL_NONE) {
+    if (failsafe.adsb || avoidance_adsb.current_threat_level() != MAV_COLLISION_THREAT_LEVEL_NONE) {
         if (display_failure) {
             gcs_send_text(MAV_SEVERITY_CRITICAL,"PreArm: Avoidance threat detected");
         }
