@@ -10,55 +10,83 @@ void Copter::avoidance_adsb_update(void)
 
 MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::Obstacle *obstacle, MAV_COLLISION_ACTION requested_action)
 {
-    // take no action if disarmed or landedok
+    bool action_implies_failsafe = requested_action > MAV_COLLISION_ACTION_REPORT;
+    MAV_COLLISION_ACTION actual_action = requested_action;
+    bool failsafe_state_change = false;
+
+    // check for changes in failsafe
+    if (copter.failsafe.adsb != action_implies_failsafe) {
+        copter.failsafe.adsb = action_implies_failsafe;
+        failsafe_state_change = true;
+    }
+
+    // take no action if disarmed or landed ok
     if (!copter.motors.armed() || copter.ap.land_complete) {
-        return MAV_COLLISION_ACTION_NONE;
+        actual_action = MAV_COLLISION_ACTION_NONE;
     }
 
     // take no action in some flight modes
     if (copter.control_mode == LAND ||
         copter.control_mode == THROW ||
         copter.control_mode == FLIP) {
-        return MAV_COLLISION_ACTION_NONE;
+        actual_action = MAV_COLLISION_ACTION_NONE;
     }
 
-    // take action based on requested action
-    switch (requested_action) {
+    // if landed and we will take some kind of action, just disarm
+    if ((actual_action > MAV_COLLISION_ACTION_REPORT) && copter.should_disarm_on_failsafe()) {
+        copter.init_disarm_motors();
+        actual_action = MAV_COLLISION_ACTION_NONE;
+    } else {
 
-        case MAV_COLLISION_ACTION_RTL:
-            if (copter.set_mode(RTL, MODE_REASON_AVOIDANCE)) {
-                return MAV_COLLISION_ACTION_RTL;
-            }
-            break;
+        // take action based on requested action
+        switch (actual_action) {
 
-        case MAV_COLLISION_ACTION_HOVER:
-            if (copter.set_mode(LOITER, MODE_REASON_AVOIDANCE)) {
-                return MAV_COLLISION_ACTION_HOVER;
-            }
-            break;
+            case MAV_COLLISION_ACTION_RTL:
+                // attempt to switch to RTL, if this fails (i.e. flying in manual mode with bad position) do nothing
+                if (failsafe_state_change) {
+                    if (!copter.set_mode(RTL, MODE_REASON_AVOIDANCE)) {
+                        actual_action = MAV_COLLISION_ACTION_NONE;
+                    }
+                }
+                break;
 
-        case MAV_COLLISION_ACTION_TCAS:
-            // update target
-            if (handle_avoidance_tcas(obstacle)) {
-                return MAV_COLLISION_ACTION_TCAS;
-            }
-            break;
+            case MAV_COLLISION_ACTION_HOVER:
+                // attempt to switch to Loiter, if this fails (i.e. flying in manual mode with bad position) do nothing
+                if (failsafe_state_change) {
+                    if (!copter.set_mode(LOITER, MODE_REASON_AVOIDANCE)) {
+                        actual_action = MAV_COLLISION_ACTION_NONE;
+                    }
+                }
+                break;
 
-        case MAV_COLLISION_ACTION_MOVE_PERPENDICULAR:
-            if (handle_avoidance_perpendicular(obstacle)) {
-                return MAV_COLLISION_ACTION_MOVE_PERPENDICULAR;
-            }
-            break;
+            case MAV_COLLISION_ACTION_TCAS:
+                // update target
+                if (!handle_avoidance_tcas(obstacle)) {
+                    actual_action = MAV_COLLISION_ACTION_NONE;
+                }
+                break;
 
-        // unsupported actions and those that require no response
-        case MAV_COLLISION_ACTION_NONE:
-        case MAV_COLLISION_ACTION_REPORT:
-        default:
-            break;
+            case MAV_COLLISION_ACTION_MOVE_PERPENDICULAR:
+                if (!handle_avoidance_perpendicular(obstacle)) {
+                    actual_action = MAV_COLLISION_ACTION_NONE;
+                }
+                break;
+
+            // unsupported actions and those that require no response
+            case MAV_COLLISION_ACTION_NONE:
+            case MAV_COLLISION_ACTION_REPORT:
+            default:
+                break;
+        }
     }
 
-    // if we got this far we failed to take any action
-    return MAV_COLLISION_ACTION_NONE;
+    // log to dataflash
+    if (failsafe_state_change) {
+        copter.Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_ADSB, actual_action);
+    }
+
+    // return with action taken
+    return actual_action;
 }
 
 bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle)
