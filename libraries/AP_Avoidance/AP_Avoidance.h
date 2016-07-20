@@ -30,6 +30,14 @@
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_ADSB/AP_ADSB.h>
 
+// F_RCVRY possible parameter values
+#define AP_AVOIDANCE_RECOVERY_NONE                          0
+#define AP_AVOIDANCE_RECOVERY_RETURN_TO_PREVIOUS_FLIGHTMODE 1
+
+#define AP_AVOIDANCE_STATE_RECOVERY_TIME_MS                 2000    // we will not downgrade state any faster than this (2 seconds)
+
+#define AP_AVOIDANCE_ESCAPE_TIME_SEC                        2       // vehicle runs from thread for 2 seconds
+
 class AP_Avoidance {
 
 public:
@@ -96,24 +104,12 @@ protected:
     // function returns the action that it is actually taking
     virtual MAV_COLLISION_ACTION handle_avoidance(const AP_Avoidance::Obstacle *obstacle, MAV_COLLISION_ACTION requested_action) = 0;
 
-    enum state_t {
-        STATE_CLEAR = 0,
-        STATE_WARN = 1,
-        STATE_FAIL = 2,
-    };
-
-    // contains English names corresponding to state_t entries
-    static const char *_state_names[];
+    // recover after all threats have cleared.  child classes must override this method
+    // recovery_action is from F_RCVRY parameter
+    virtual void handle_recovery(uint8_t recovery_action) = 0;
 
     uint32_t _last_state_change_ms = 0;
-    // we will not recover from a state any faster than this
-    static const uint8_t _state_recovery_hysteresis = 20; // seconds
-    state_t _old_state = STATE_CLEAR;
-
-    enum avoidance_recovery_f_t {
-        AVOIDANCE_RECOVERY_F_CONTINUE_FAIL,
-        AVOIDANCE_RECOVERY_F_MOVE_TO_WARN,
-    };
+    MAV_COLLISION_THREAT_LEVEL _threat_level = MAV_COLLISION_THREAT_LEVEL_NONE;
 
     // gcs notification
     // specifies how long we should continue sending messages about a threat after it has cleared
@@ -144,12 +140,6 @@ private:
     // constants
     const uint32_t MAX_OBSTACLE_AGE_MS = 60000;
     const static uint8_t _gcs_notify_interval = 1; // seconds
-
-    // in SITL, at least, the threat level never remains higher for
-    // more than a fraction of a second.  This could potentially lead
-    // to an aircraft switching rapidly between its avoidance
-    // action and its recovery action.
-    const static uint8_t _minimum_handler_duration = 1; // seconds
 
     // speed below which we will fly directly away from a threat
     // rather than perpendicular to its velocity:

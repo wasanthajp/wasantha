@@ -43,9 +43,9 @@ const AP_Param::GroupInfo AP_Avoidance::var_info[] = {
     // @Param: F_RCVRY
     // @DisplayName: Recovery behaviour after a fail event
     // @Description: Determines what the aircraft will do after a fail event is resolved
-    // @Values: 0:Continue collision avoidance ACTION_F,1:Move to collision avoidance W_ACTION
+    // @Values: 0:Continue collision avoidance ACTION_F,1:Resume previous flight mode
     // @User: Advanced
-    AP_GROUPINFO("F_RCVRY",   4, AP_Avoidance, _fail_recovery, AVOIDANCE_RECOVERY_F_MOVE_TO_WARN),
+    AP_GROUPINFO("F_RCVRY",   4, AP_Avoidance, _fail_recovery, AP_AVOIDANCE_RECOVERY_NONE),
 
     // @Param: OBS_MAX
     // @DisplayName: Maximum number of obstacles to track
@@ -77,7 +77,6 @@ const AP_Param::GroupInfo AP_Avoidance::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("F_DIST_XY",     9, AP_Avoidance, _fail_distance_xy,    100),
 
-
     // @Param: W_DIST_Z
     // @DisplayName: Distance Warn Z
     // @Description: Closest allowed projected distance before BEHAVIOUR_W is undertaken
@@ -92,8 +91,6 @@ const AP_Param::GroupInfo AP_Avoidance::var_info[] = {
 
     AP_GROUPEND
 };
-
-const char *AP_Avoidance::_state_names[] = { "CLEAR", "WARN", "FAIL" };
 
 AP_Avoidance::AP_Avoidance(AP_AHRS &ahrs, AP_ADSB &adsb) :
     _ahrs(ahrs),
@@ -122,7 +119,7 @@ void AP_Avoidance::init(void)
     }
     _obstacle_count = 0;
     _last_state_change_ms = 0;
-    _old_state = STATE_CLEAR;
+    _threat_level = MAV_COLLISION_THREAT_LEVEL_NONE;
     _gcs_cleared_messages_first_sent = std::numeric_limits<uint32_t>::max();
     _current_most_serious_threat = -1;
 }
@@ -480,51 +477,37 @@ void AP_Avoidance::update()
 
 void AP_Avoidance::handle_avoidance_local(AP_Avoidance::Obstacle *threat)
 {
+    MAV_COLLISION_THREAT_LEVEL new_threat_level = MAV_COLLISION_THREAT_LEVEL_NONE;
     MAV_COLLISION_ACTION action = MAV_COLLISION_ACTION_NONE;
-    state_t new_state = STATE_CLEAR;
 
     if (threat != nullptr) {
-        // determine action based on threat level
-        switch (threat->threat_level) {
-        case MAV_COLLISION_THREAT_LEVEL_LOW:
-            new_state = STATE_WARN;
-            action = MAV_COLLISION_ACTION_NONE;
-            break;
-        case MAV_COLLISION_THREAT_LEVEL_HIGH:
-            new_state = STATE_FAIL;
+        new_threat_level = threat->threat_level;
+        if (new_threat_level == MAV_COLLISION_THREAT_LEVEL_HIGH) {
             action = (MAV_COLLISION_ACTION)_fail_action.get();
-            break;
-        case MAV_COLLISION_THREAT_LEVEL_NONE:
-        default:
-            new_state = STATE_CLEAR;
-            action = MAV_COLLISION_ACTION_NONE;
-            break;
         }
     }
 
     uint32_t now = AP_HAL::millis();
-    bool should_change_state = false;
-    do {
-        if (new_state == _old_state) {
-            break;
-        }
-        // do not transition back from a fail or warn state too quickly:
-        if (now - _last_state_change_ms < _state_recovery_hysteresis*1000) {
-            if (new_state == STATE_CLEAR ||
-                (new_state == STATE_WARN && _old_state == STATE_FAIL)) {
-                break;
-            }
-        }
-        should_change_state = true;
-    } while(0);
 
-    if (should_change_state) {
-        _last_state_change_ms = now;
-        _old_state = new_state;
+    if (new_threat_level != _threat_level) {
+        // transition to higher states immediately, recovery to lower states more slowly
+        if (((now - _last_state_change_ms) > AP_AVOIDANCE_STATE_RECOVERY_TIME_MS) || (new_threat_level > _threat_level)) {
+            // handle recovery from high threat level
+            if (_threat_level == MAV_COLLISION_THREAT_LEVEL_HIGH) {
+                handle_recovery(_fail_recovery);
+                _latest_action = MAV_COLLISION_ACTION_NONE;
+            }
+
+            // update state
+            _last_state_change_ms = now;
+            _threat_level = new_threat_level;
+        }
     }
 
-    // call vehicle specific handler
-    _latest_action = handle_avoidance(threat, action);
+    // handle ongoing threat by calling vehicle specific handler
+    if ((threat != nullptr) && (_threat_level == MAV_COLLISION_THREAT_LEVEL_HIGH) && (action > MAV_COLLISION_ACTION_REPORT)) {
+        _latest_action = handle_avoidance(threat, action);
+    }
 }
 
 
@@ -593,12 +576,12 @@ bool AP_Avoidance::get_destination_perpendicular(const AP_Avoidance::Obstacle *o
         const float delta_pos_z = my_abs_pos.alt - obstacle->_location.alt;
         Vector3f delta_pos_xyz = Vector3f(delta_pos_xy[0],delta_pos_xy[1],delta_pos_z);
         delta_pos_xyz.normalize();
-        newdest_neu[0] = my_pos_ned[0]*100 + delta_pos_xyz[0] * wp_speed_xy * 10; // 10 second
-        newdest_neu[1] = my_pos_ned[1]*100 + delta_pos_xyz[1] * wp_speed_xy * 10; // 10 second
-        newdest_neu[2] = -my_pos_ned[2]*100 + delta_pos_xyz[2] * wp_speed_z * 10; // 10 seconds
+        newdest_neu[0] = my_pos_ned[0]*100 + delta_pos_xyz[0] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+        newdest_neu[1] = my_pos_ned[1]*100 + delta_pos_xyz[1] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+        newdest_neu[2] = -my_pos_ned[2]*100 + delta_pos_xyz[2] * wp_speed_z * AP_AVOIDANCE_ESCAPE_TIME_SEC;
         if(newdest_neu[2] < _minimum_avoid_height*100) {
-            newdest_neu[0] = my_pos_ned[0]*100 + delta_pos_xy[0] * wp_speed_xy * 10; // 10 second
-            newdest_neu[1] = my_pos_ned[1]*100 + delta_pos_xy[1] * wp_speed_xy * 10; // 10 second
+            newdest_neu[0] = my_pos_ned[0]*100 + delta_pos_xy[0] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+            newdest_neu[1] = my_pos_ned[1]*100 + delta_pos_xy[1] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
             newdest_neu[2] = -my_pos_ned[2]*100;
         }
         return true;
@@ -607,9 +590,9 @@ bool AP_Avoidance::get_destination_perpendicular(const AP_Avoidance::Obstacle *o
     {
         Vector3f perp_xyz = perpendicular_xyz(obstacle->_location, obstacle->_velocity, my_abs_pos);
         perp_xyz.normalize();
-        newdest_neu[0] = my_pos_ned[0]*100 + perp_xyz[1] * wp_speed_xy * 10; // ten seconds
-        newdest_neu[1] = my_pos_ned[1]*100 + perp_xyz[0] * wp_speed_xy * 10; // ten seconds
-        newdest_neu[2] =  -my_pos_ned[2]*100 + perp_xyz[2] * wp_speed_z * 10; // ten seconds
+        newdest_neu[0] = my_pos_ned[0]*100 + perp_xyz[1] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+        newdest_neu[1] = my_pos_ned[1]*100 + perp_xyz[0] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+        newdest_neu[2] =  -my_pos_ned[2]*100 + perp_xyz[2] * wp_speed_z * AP_AVOIDANCE_ESCAPE_TIME_SEC;
     }
 
     if (newdest_neu[2] < _minimum_avoid_height*100) {
@@ -617,8 +600,8 @@ bool AP_Avoidance::get_destination_perpendicular(const AP_Avoidance::Obstacle *o
         // GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_WARNING, "AVOID: PERPENDICULAR: 2D");
         Vector2f perp_xy = perpendicular_xy(obstacle->_location, obstacle->_velocity, my_abs_pos);
         perp_xy.normalize();
-        newdest_neu[0] = my_pos_ned[0]*100 + perp_xy[1] * wp_speed_xy * 10; // ten seconds
-        newdest_neu[1] = my_pos_ned[1]*100 + perp_xy[0] * wp_speed_xy * 10; // ten seconds
+        newdest_neu[0] = my_pos_ned[0]*100 + perp_xy[1] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+        newdest_neu[1] = my_pos_ned[1]*100 + perp_xy[0] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
         newdest_neu[2] = -my_pos_ned[2]*100;
     }
 
