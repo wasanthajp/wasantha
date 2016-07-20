@@ -10,19 +10,15 @@ void Copter::avoidance_adsb_update(void)
 
 MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::Obstacle *obstacle, MAV_COLLISION_ACTION requested_action)
 {
-    bool action_implies_failsafe = requested_action > MAV_COLLISION_ACTION_REPORT;
     MAV_COLLISION_ACTION actual_action = requested_action;
     bool failsafe_state_change = false;
 
     // check for changes in failsafe
-    if (copter.failsafe.adsb != action_implies_failsafe) {
-        copter.failsafe.adsb = action_implies_failsafe;
+    if (!copter.failsafe.adsb) {
+        copter.failsafe.adsb = true;
         failsafe_state_change = true;
-    }
-
-    // take no action if disarmed or landed ok
-    if (!copter.motors.armed() || copter.ap.land_complete) {
-        actual_action = MAV_COLLISION_ACTION_NONE;
+        // record flight mode in case it's required for the recovery
+        prev_control_mode = copter.control_mode;
     }
 
     // take no action in some flight modes
@@ -61,13 +57,13 @@ MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::O
 
             case MAV_COLLISION_ACTION_TCAS:
                 // update target
-                if (!handle_avoidance_tcas(obstacle)) {
+                if (!handle_avoidance_tcas(obstacle, failsafe_state_change)) {
                     actual_action = MAV_COLLISION_ACTION_NONE;
                 }
                 break;
 
             case MAV_COLLISION_ACTION_MOVE_PERPENDICULAR:
-                if (!handle_avoidance_perpendicular(obstacle)) {
+                if (!handle_avoidance_perpendicular(obstacle, failsafe_state_change)) {
                     actual_action = MAV_COLLISION_ACTION_NONE;
                 }
                 break;
@@ -89,14 +85,38 @@ MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::O
     return actual_action;
 }
 
-bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle)
+void AP_Avoidance_Copter::handle_recovery(uint8_t recovery_action)
+{
+    // check we are coming out of failsafe
+    if (copter.failsafe.adsb) {
+        copter.failsafe.adsb = false;
+        copter.Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_ADSB, ERROR_CODE_ERROR_RESOLVED);
+
+        // restore flight mode if requested and user has not changed mode since
+        if (recovery_action == AP_AVOIDANCE_RECOVERY_RETURN_TO_PREVIOUS_FLIGHTMODE && copter.control_mode_reason == MODE_REASON_AVOIDANCE) {
+            if (!copter.set_mode(prev_control_mode, MODE_REASON_AVOIDANCE_RECOVERY)) {
+                // on failure RTL or LAND
+                if (!copter.set_mode(RTL, MODE_REASON_AVOIDANCE_RECOVERY)) {
+                    copter.set_mode(LAND, MODE_REASON_AVOIDANCE_RECOVERY);
+                }
+            }
+        }
+    }
+}
+
+bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
 {
     // ensure copter is in avoid_adsb mode
-    if (copter.control_mode != AVOID_ADSB) {
+    if (allow_mode_change && copter.control_mode != AVOID_ADSB) {
         if (!copter.set_mode(AVOID_ADSB, MODE_REASON_AVOIDANCE)) {
             // failed to set mode so exit immediately
             return false;
         }
+    }
+
+    // check flight mode
+    if (copter.control_mode != AVOID_ADSB) {
+        return false;
     }
 
     // update new target
@@ -107,17 +127,22 @@ bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obs
     }
 
     // if we got this far we failed to set the new target
-    return false;
+    return true;
 }
 
-bool AP_Avoidance_Copter::handle_avoidance_tcas(const AP_Avoidance::Obstacle *obstacle)
+bool AP_Avoidance_Copter::handle_avoidance_tcas(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
 {
     // ensure copter is in avoid_adsb mode
-    if (copter.control_mode != AVOID_ADSB) {
+    if (allow_mode_change && copter.control_mode != AVOID_ADSB) {
         if (!copter.set_mode(AVOID_ADSB, MODE_REASON_AVOIDANCE)) {
             // failed to set mode so exit immediately
             return false;
         }
+    }
+
+    // check flight mode
+    if (copter.control_mode != AVOID_ADSB) {
+        return false;
     }
 
     // get new target destination based on tcas algorithm

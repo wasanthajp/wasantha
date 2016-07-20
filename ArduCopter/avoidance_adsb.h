@@ -18,11 +18,14 @@ protected:
     // override avoidance handler
     MAV_COLLISION_ACTION handle_avoidance(const AP_Avoidance::Obstacle *obstacle, MAV_COLLISION_ACTION requested_action) override;
 
+    // override recovery handler
+    void handle_recovery(uint8_t recovery_action) override;
+
     // perpendicular avoidance handler
-    bool handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle);
+    bool handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change);
 
     // handle tcas based avoidance
-    bool handle_avoidance_tcas(const AP_Avoidance::Obstacle *obstacle);
+    bool handle_avoidance_tcas(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change);
 
     // tcas avoidance handling
     // different types of TCAS resolution
@@ -48,5 +51,5 @@ protected:
     // lowest height avoidance will send the aircraft, in metres
     static const uint8_t _minimum_avoid_height = 10;
     uint32_t _last_wp_update = 0;
-
+    control_mode_t prev_control_mode = RTL;
 };
