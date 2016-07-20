@@ -39,6 +39,11 @@ bool Copter::avoid_adsb_init(const bool ignore_checks)
 // (distance from home, in cm)
 bool Copter::avoid_adsb_set_destination(const Vector3f& destination)
 {
+    // check flight mode
+    if (control_mode != AVOID_ADSB) {
+        return false;
+    }
+
     if (!wp_nav.set_wp_destination(destination, false)) {
         return false;
     }
