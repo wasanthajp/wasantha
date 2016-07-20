@@ -52,6 +52,11 @@ bool Copter::avoid_adsb_set_velocity(const Vector3f& velocity_neu)
 
 bool Copter::avoid_adsb_set_target_alt(int32_t target_alt_cm)
 {
+    // check flight mode
+    //if (control_mode != AVOID_ADSB) {
+    //    return false;
+    //}
+
     //if (!wp_nav.set_wp_destination(destination, false)) {
     //    return false;
     //}
