@@ -37,6 +37,13 @@ bool Copter::avoid_adsb_set_velocity(const Vector3f& velocity_neu)
         return false;
     }
 
+    // debug
+    static uint32_t last_time_ms = 0;
+    uint32_t now = AP_HAL::millis();
+    if (now - last_time_ms > 500) {
+        ::printf("Vel x:%4.2f y:%4.2f z:%4.2f\n",(double)velocity_neu.x,(double)velocity_neu.y,(double)velocity_neu.z);
+        last_time_ms = now;
+    }
 
     // re-use guided mode's velocity controller
     guided_set_velocity(velocity_neu);
