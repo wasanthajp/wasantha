@@ -95,7 +95,7 @@ public:
     // for holding parameters
     static const struct AP_Param::GroupInfo var_info[];
 
-protected:
+//protected:
 
     // top level avoidance handler.  This calls the vehicle specific handle_avoidance with requested action
     void handle_avoidance_local(AP_Avoidance::Obstacle *threat);
