@@ -121,15 +121,29 @@ bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obs
         return false;
     }
 
-    // update new target
-    Vector3f dest_neu;
-    if (get_destination_perpendicular(obstacle, dest_neu, copter.wp_nav.get_speed_xy(), copter.wp_nav.get_speed_up(), _minimum_avoid_height)) {
-        set_avoid_adsb_destination(dest_neu);
+    // get best vector away from obstacle
+    Vector3f velocity_neu;
+    if (get_vector_perpendicular(obstacle, velocity_neu)) {
+        // convert horizontal components to velocities
+        velocity_neu.x *= copter.wp_nav.get_speed_xy();
+        velocity_neu.y *= copter.wp_nav.get_speed_xy();
+        // use up and down waypoint speeds
+        if (velocity_neu.z > 0.0f) {
+            velocity_neu.z *= copter.wp_nav.get_speed_up();
+        } else {
+            velocity_neu.z *= copter.wp_nav.get_speed_down();
+            // do not descend if below RTL alt
+            if (copter.current_loc.alt < copter.g.rtl_altitude) {
+                velocity_neu.z = 0.0f;
+            }
+        }
+        // send target velocity
+        copter.avoid_adsb_set_velocity(velocity_neu);
         return true;
     }
 
     // if we got this far we failed to set the new target
-    return true;
+    return false;
 }
 
 bool AP_Avoidance_Copter::handle_avoidance_tcas(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
