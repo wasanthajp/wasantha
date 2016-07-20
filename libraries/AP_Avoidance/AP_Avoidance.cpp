@@ -575,6 +575,10 @@ bool AP_Avoidance::get_destination_perpendicular(const AP_Avoidance::Obstacle *o
         const Vector2f delta_pos_xy =  location_diff(obstacle->_location, my_abs_pos);
         const float delta_pos_z = my_abs_pos.alt - obstacle->_location.alt;
         Vector3f delta_pos_xyz = Vector3f(delta_pos_xy[0],delta_pos_xy[1],delta_pos_z);
+        // avoid divide by zero
+        if (delta_pos_xyz.is_zero()) {
+            return false;
+        }
         delta_pos_xyz.normalize();
         newdest_neu[0] = my_pos_ned[0]*100 + delta_pos_xyz[0] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
         newdest_neu[1] = my_pos_ned[1]*100 + delta_pos_xyz[1] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
