@@ -45,9 +45,6 @@ protected:
     // the identifier would be this aircraft's mavlink src id
     uint32_t my_src_id(const MAV_COLLISION_SRC src) const;
 
-    // send new destination to avoid_adsb mode's controller (and throttle updates if necessary)
-    void set_avoid_adsb_destination(const Vector3f &dest);
-
     // lowest height avoidance will send the aircraft, in metres
     static const uint8_t _minimum_avoid_height = 10;
     uint32_t _last_wp_update = 0;

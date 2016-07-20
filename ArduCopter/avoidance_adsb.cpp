@@ -250,14 +250,3 @@ bool AP_Avoidance_Copter::tcas_get_target_alt(const AP_Avoidance::Obstacle *obst
         return false;
     }
 }
-
-// send new destination to avoid_adsb mode's controller (and throttle updates if necessary)
-void AP_Avoidance_Copter::set_avoid_adsb_destination(const Vector3f &dest)
-{
-    // only update our destination once per second
-    uint32_t now = AP_HAL::millis();
-    if (now - _last_wp_update > 1000) {
-        _last_wp_update = now;
-        copter.avoid_adsb_set_destination(dest);
-    }
-}
