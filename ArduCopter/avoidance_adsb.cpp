@@ -79,6 +79,7 @@ MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::O
     // log to dataflash
     if (failsafe_state_change) {
         copter.Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_ADSB, actual_action);
+        ::printf("FS:1 Act:%d\n",(int)actual_action);
     }
 
     // return with action taken
@@ -102,6 +103,7 @@ void AP_Avoidance_Copter::handle_recovery(uint8_t recovery_action)
             }
         }
     }
+    ::printf("FS:0\n");
 }
 
 bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
