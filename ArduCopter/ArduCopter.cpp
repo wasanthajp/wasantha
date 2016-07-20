@@ -502,6 +502,20 @@ void Copter::one_hz_loop()
 
     // log terrain data
     terrain_logging();
+
+    // debug
+    AP_Avoidance::Obstacle *nearest_obj = avoidance_adsb.most_serious_threat();
+    if (nearest_obj != nullptr) {
+        Vector3f perp;
+        avoidance_adsb.get_vector_perpendicular(nearest_obj, perp);
+        ::printf("obj lat:%ld lon:%ld alt:%ld  Perp x:%4.2f y:%4.2f z:%4.2f\n",
+                (long)nearest_obj->_location.lat,
+                (long)nearest_obj->_location.lng,
+                (long)nearest_obj->_location.alt,
+                (double)perp.x,
+                (double)perp.y,
+                (double)perp.z);
+    }
 }
 
 // called at 50hz
