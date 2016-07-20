@@ -612,6 +612,46 @@ bool AP_Avoidance::get_destination_perpendicular(const AP_Avoidance::Obstacle *o
     return true;
 }
 
+// get unit vector away from the nearest obstacle
+bool AP_Avoidance::get_vector_perpendicular(const AP_Avoidance::Obstacle *obstacle, Vector3f &vec_neu)
+{
+    if (obstacle == nullptr) {
+        // why where we called?!
+        return false;
+    }
+
+    Location my_abs_pos;
+    if (!_ahrs.get_position(my_abs_pos)) {
+        // we should not get to here!  If we don't know our position
+        // we can't know if there are any threats, for starters!
+        return false;
+    }
+
+    // if their velocity is moving around close to zero then flying
+    // perpendicular to that velocity may mean we do weird things.
+    // Instead, we will fly directly away from them
+    if (obstacle->_velocity.length() < _low_velocity_threshold) {
+        const Vector2f delta_pos_xy =  location_diff(obstacle->_location, my_abs_pos);
+        const float delta_pos_z = my_abs_pos.alt - obstacle->_location.alt;
+        Vector3f delta_pos_xyz = Vector3f(delta_pos_xy.x, delta_pos_xy.y, delta_pos_z);
+        // avoid div by zero
+        if (delta_pos_xyz.is_zero()) {
+            return false;
+        }
+        delta_pos_xyz.normalize();
+        vec_neu = delta_pos_xyz;
+        return true;
+    } else {
+        vec_neu = perpendicular_xyz(obstacle->_location, obstacle->_velocity, my_abs_pos);
+        // avoid div by zero
+        if (vec_neu.is_zero()) {
+            return false;
+        }
+        vec_neu.normalize();
+        return true;
+    }
+}
+
 // helper functions to calculate 3D destination to get us away from obstacle
 // v1 is NED
 Vector3f AP_Avoidance::perpendicular_xyz(const Location &p1, const Vector3f &v1, const Location &p2)

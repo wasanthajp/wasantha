@@ -127,6 +127,9 @@ public:
     // get target destination that best gets vehicle away from the nearest obstacle
     bool get_destination_perpendicular(const AP_Avoidance::Obstacle *obstacle, Vector3f &newdest_neu, const float wp_speed_xy, const float wp_speed_z, const uint8_t _minimum_avoid_height);
 
+    // get unit vector away from the nearest obstacle
+    bool get_vector_perpendicular(const AP_Avoidance::Obstacle *obstacle, Vector3f &vec_neu);
+
     // helper functions to calculate destination to get us away from obstacle
     // Note: v1 is NED
     static Vector3f perpendicular_xyz(const Location &p1, const Vector3f &v1, const Location &p2);
