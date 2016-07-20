@@ -17,19 +17,6 @@ bool Copter::avoid_adsb_init(const bool ignore_checks)
     return guided_init(ignore_checks);
 }
 
-// avoid_set_destination - sets AVOID mode's target destination
-// (distance from home, in cm)
-bool Copter::avoid_adsb_set_destination(const Vector3f& destination)
-{
-    // check flight mode
-    if (control_mode != AVOID_ADSB) {
-        return false;
-    }
-
-    // re-use guided mode's position controller
-    return guided_set_destination(destination);
-}
-
 bool Copter::avoid_adsb_set_velocity(const Vector3f& velocity_neu)
 {
     // check flight mode
@@ -47,22 +34,6 @@ bool Copter::avoid_adsb_set_velocity(const Vector3f& velocity_neu)
 
     // re-use guided mode's velocity controller
     guided_set_velocity(velocity_neu);
-    return true;
-}
-
-bool Copter::avoid_adsb_set_target_alt(int32_t target_alt_cm)
-{
-    // check flight mode
-    //if (control_mode != AVOID_ADSB) {
-    //    return false;
-    //}
-
-    //if (!wp_nav.set_wp_destination(destination, false)) {
-    //    return false;
-    //}
-
-    // log target
-    // Log_Write_GuidedTarget(guided_mode, destination, Vector3f());
     return true;
 }
 

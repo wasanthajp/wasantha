@@ -233,29 +233,3 @@ AP_Avoidance_Copter::tcas_resolution_t AP_Avoidance_Copter::tcas_get_resolution(
     // if lower then descend
     return tcas_resolution_descend;
 }
-
-// get target altitude to execute TCAS style avoidance
-// ideas adopted from: http://wiki.paparazziuav.org/wiki/MultiUAV
-bool AP_Avoidance_Copter::tcas_get_target_alt(const AP_Avoidance::Obstacle *obstacle, int32_t &target_alt)
-{
-    // decide on whether we should climb or descend
-    tcas_resolution_t rr = tcas_get_resolution(obstacle);
-
-    // get current target altitude.  Note: vector is NEU offset from EKF origin
-    int32_t delta_m = 10.0f;
-    if (rr == tcas_resolution_descend) {
-        delta_m = -delta_m;
-    }
-
-    // ::fprintf(stderr, "tcas_resolution=%d delta_cm=%f\n", rr, delta_cm);
-
-    // calculate new target altitude
-    Vector3f my_pos;
-    if (_ahrs.get_relative_position_NED(my_pos)) {
-        target_alt = -my_pos[2] + delta_m;
-        return true;
-    } else {
-        // we don't know our current height, return failure
-        return false;
-    }
-}

@@ -34,9 +34,6 @@ protected:
         tcas_resolution_ascend = 3,
     } tcas_resolution_t ;
 
-    // get best target destination using tcas avoidance
-    bool tcas_get_target_alt(const AP_Avoidance::Obstacle *obstacle, int32_t &target_alt);
-
     // returns the action we should take based on the TCAS algorithm
     tcas_resolution_t tcas_get_resolution(const AP_Avoidance::Obstacle *obstacle);
 

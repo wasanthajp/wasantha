@@ -871,9 +871,7 @@ private:
     // support for AP_Avoidance custom flight mode, AVOID_ADSB
     bool avoid_adsb_init(bool ignore_checks);
     void avoid_adsb_run();
-    bool avoid_adsb_set_destination(const Vector3f& destination);
     bool avoid_adsb_set_velocity(const Vector3f& velocity_neu);
-    bool avoid_adsb_set_target_alt(int32_t target_alt_cm);
 
     void ekf_check();
     bool ekf_over_threshold();
