@@ -594,8 +594,8 @@ bool AP_Avoidance::get_destination_perpendicular(const AP_Avoidance::Obstacle *o
     {
         Vector3f perp_xyz = perpendicular_xyz(obstacle->_location, obstacle->_velocity, my_abs_pos);
         perp_xyz.normalize();
-        newdest_neu[0] = my_pos_ned[0]*100 + perp_xyz[1] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
-        newdest_neu[1] = my_pos_ned[1]*100 + perp_xyz[0] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+        newdest_neu[0] = my_pos_ned[0]*100 + perp_xyz[0] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+        newdest_neu[1] = my_pos_ned[1]*100 + perp_xyz[1] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
         newdest_neu[2] =  -my_pos_ned[2]*100 + perp_xyz[2] * wp_speed_z * AP_AVOIDANCE_ESCAPE_TIME_SEC;
     }
 
@@ -604,8 +604,8 @@ bool AP_Avoidance::get_destination_perpendicular(const AP_Avoidance::Obstacle *o
         // GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_WARNING, "AVOID: PERPENDICULAR: 2D");
         Vector2f perp_xy = perpendicular_xy(obstacle->_location, obstacle->_velocity, my_abs_pos);
         perp_xy.normalize();
-        newdest_neu[0] = my_pos_ned[0]*100 + perp_xy[1] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
-        newdest_neu[1] = my_pos_ned[1]*100 + perp_xy[0] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+        newdest_neu[0] = my_pos_ned[0]*100 + perp_xy[0] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
+        newdest_neu[1] = my_pos_ned[1]*100 + perp_xy[1] * wp_speed_xy * AP_AVOIDANCE_ESCAPE_TIME_SEC;
         newdest_neu[2] = -my_pos_ned[2]*100;
     }
 
@@ -617,8 +617,8 @@ bool AP_Avoidance::get_destination_perpendicular(const AP_Avoidance::Obstacle *o
 Vector3f AP_Avoidance::perpendicular_xyz(const Location &p1, const Vector3f &v1, const Location &p2)
 {
     Vector2f delta_p_2d = location_diff(p1, p2);
-    Vector3f delta_p_xyz = Vector3f(delta_p_2d[1],delta_p_2d[0],(p2.alt-p1.alt)/100.0f); //check this line
-    Vector3f v1_xyz = Vector3f(v1[1], v1[0], -v1[2]);
+    Vector3f delta_p_xyz = Vector3f(delta_p_2d[0],delta_p_2d[1],(p2.alt-p1.alt)/100.0f); //check this line
+    Vector3f v1_xyz = Vector3f(v1[0], v1[1], -v1[2]);
     Vector3f ret = Vector3f::perpendicular(delta_p_xyz, v1_xyz);
     return ret;
 }
@@ -628,8 +628,8 @@ Vector3f AP_Avoidance::perpendicular_xyz(const Location &p1, const Vector3f &v1,
 Vector2f AP_Avoidance::perpendicular_xy(const Location &p1, const Vector3f &v1, const Location &p2)
 {
     Vector2f delta_p = location_diff(p1, p2);
-    Vector2f delta_p_n = Vector2f(delta_p[1],delta_p[0]);
-    Vector2f v1n(v1[1],v1[0]);
+    Vector2f delta_p_n = Vector2f(delta_p[0],delta_p[1]);
+    Vector2f v1n(v1[0],v1[1]);
     Vector2f ret_xy = Vector2f::perpendicular(delta_p_n, v1n);
     return ret_xy;
 }
