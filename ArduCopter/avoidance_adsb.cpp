@@ -161,15 +161,24 @@ bool AP_Avoidance_Copter::handle_avoidance_tcas(const AP_Avoidance::Obstacle *ob
         return false;
     }
 
-    // get new target destination based on tcas algorithm
-    int32_t target_alt_m;
-    if (tcas_get_target_alt(obstacle, target_alt_m)) {
-        copter.avoid_adsb_set_target_alt(target_alt_m * 100.0f);
-        return true;
+    // decide on whether we should climb or descend
+    tcas_resolution_t rr = tcas_get_resolution(obstacle);
+
+    // get best vector away from obstacle
+    Vector3f velocity_neu;
+    if (rr == tcas_resolution_ascend) {
+        velocity_neu.z = copter.wp_nav.get_speed_up();
+    } else {
+        velocity_neu.z = -copter.wp_nav.get_speed_down();
+        // do not descend if below RTL alt
+        if (copter.current_loc.alt < copter.g.rtl_altitude) {
+            velocity_neu.z = 0.0f;
+        }
     }
 
-    // if we got this far we failed to set the new target
-    return false;
+    // send target velocity
+    copter.avoid_adsb_set_velocity(velocity_neu);
+    return true;
 }
 
 uint32_t AP_Avoidance_Copter::my_src_id(const MAV_COLLISION_SRC src) const
