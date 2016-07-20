@@ -440,7 +440,23 @@ void Copter::guided_vel_control_run()
     // set velocity to zero if no updates received for 3 seconds
     uint32_t tnow = millis();
     if (tnow - vel_update_time_ms > GUIDED_POSVEL_TIMEOUT_MS && !pos_control.get_desired_velocity().is_zero()) {
-        pos_control.set_desired_velocity(Vector3f(0,0,0));
+        // get current desired velocity
+        Vector3f vel_des = pos_control.get_desired_velocity();
+        if (!is_zero(vel_des.x) || !is_zero(vel_des.y)) {
+            float speed_xy = safe_sqrt(sq(vel_des.x)+sq(vel_des.y));
+            float speed_xy_reduced = speed_xy - (G_Dt * pos_control.get_accel_xy());
+            speed_xy_reduced = MAX(speed_xy_reduced, 0.0f);
+            float ratio_xy = speed_xy_reduced / speed_xy;
+            vel_des.x *= ratio_xy;
+            vel_des.y *= ratio_xy;
+        }
+        if (!is_zero(vel_des.z)) {
+            float speed_z = fabsf(vel_des.z);
+            float speed_z_reduced = speed_z - (G_Dt * pos_control.get_accel_xy());
+            speed_z_reduced = MAX(speed_z_reduced, 0.0f);
+            vel_des.z *= (speed_z_reduced / speed_z);
+        }
+        pos_control.set_desired_velocity(vel_des);
     }
 
     // call velocity controller which includes z axis controller
