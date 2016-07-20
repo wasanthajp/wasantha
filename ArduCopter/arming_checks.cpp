@@ -47,13 +47,6 @@ bool Copter::pre_arm_checks(bool display_failure)
         return false;
     }
 
-    if (failsafe.adsb || avoidance_adsb.current_threat_level() != MAV_COLLISION_THREAT_LEVEL_NONE) {
-        if (display_failure) {
-            gcs_send_text(MAV_SEVERITY_CRITICAL,"PreArm: Avoidance threat detected");
-        }
-        return false;
-    }
-
     // check if motor interlock aux switch is in use
     // if it is, switch needs to be in disabled position to arm
     // otherwise exit immediately.  This check to be repeated,
@@ -350,6 +343,14 @@ bool Copter::pre_arm_checks(bool display_failure)
 
         // check for missing terrain data
         if (!pre_arm_terrain_check(display_failure)) {
+            return false;
+        }
+
+        // check adsb avoidance failsafe
+        if (failsafe.adsb) {
+            if (display_failure) {
+                gcs_send_text(MAV_SEVERITY_CRITICAL,"Arm: ADSB threat detected");
+            }
             return false;
         }
     }
@@ -715,6 +716,16 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
     // check for missing terrain data
     if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_PARAMETERS)) {
         if (!pre_arm_terrain_check(display_failure)) {
+            return false;
+        }
+    }
+
+    // check adsb
+    if ((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_PARAMETERS)) {
+        if (failsafe.adsb) {
+            if (display_failure) {
+                gcs_send_text(MAV_SEVERITY_CRITICAL,"PreArm: ADSB threat detected");
+            }
             return false;
         }
     }
