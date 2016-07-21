@@ -56,9 +56,16 @@ MAV_COLLISION_ACTION AP_Avoidance_Copter::handle_avoidance(const AP_Avoidance::O
                 }
                 break;
 
-            case MAV_COLLISION_ACTION_TCAS:
-                // update target
-                if (!handle_avoidance_tcas(obstacle, failsafe_state_change)) {
+            case MAV_COLLISION_ACTION_ASCEND_OR_DESCEND:
+                // climb or descend to avoid obstacle
+                if (!handle_avoidance_vertical(obstacle, failsafe_state_change)) {
+                    actual_action = MAV_COLLISION_ACTION_NONE;
+                }
+                break;
+
+            case MAV_COLLISION_ACTION_MOVE_HORIZONTALLY:
+                // move horizontally to avoid obstacle
+                if (!handle_avoidance_horizontal(obstacle, failsafe_state_change)) {
                     actual_action = MAV_COLLISION_ACTION_NONE;
                 }
                 break;
@@ -107,7 +114,8 @@ void AP_Avoidance_Copter::handle_recovery(uint8_t recovery_action)
     ::printf("FS:0\n");
 }
 
-bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
+// check flight mode is avoid_adsb
+bool AP_Avoidance_Copter::check_flightmode(bool allow_mode_change)
 {
     // ensure copter is in avoid_adsb mode
     if (allow_mode_change && copter.control_mode != AVOID_ADSB) {
@@ -118,7 +126,74 @@ bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obs
     }
 
     // check flight mode
-    if (copter.control_mode != AVOID_ADSB) {
+    return (copter.control_mode == AVOID_ADSB);
+}
+
+bool AP_Avoidance_Copter::handle_avoidance_vertical(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
+{
+    // ensure copter is in avoid_adsb mode
+    if (!check_flightmode(allow_mode_change)) {
+        return false;
+    }
+
+    // decide on whether we should climb or descend
+    bool should_climb = false;
+    Location my_loc;
+    if (_ahrs.get_position(my_loc)) {
+        should_climb = my_loc.alt > obstacle->_location.alt;
+    }
+
+    // get best vector away from obstacle
+    Vector3f velocity_neu;
+    if (should_climb) {
+        velocity_neu.z = copter.wp_nav.get_speed_up();
+    } else {
+        velocity_neu.z = -copter.wp_nav.get_speed_down();
+        // do not descend if below RTL alt
+        if (copter.current_loc.alt < copter.g.rtl_altitude) {
+            velocity_neu.z = 0.0f;
+        }
+    }
+
+    // send target velocity
+    copter.avoid_adsb_set_velocity(velocity_neu);
+    return true;
+}
+
+bool AP_Avoidance_Copter::handle_avoidance_horizontal(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
+{
+    // ensure copter is in avoid_adsb mode
+    if (!check_flightmode(allow_mode_change)) {
+        return false;
+    }
+
+    // get best vector away from obstacle
+    Vector3f velocity_neu;
+    if (get_vector_perpendicular(obstacle, velocity_neu)) {
+        // remove vertical component
+        velocity_neu.z = 0.0f;
+        // check for divide by zero
+        if (is_zero(velocity_neu.x) && is_zero(velocity_neu.y)) {
+            return false;
+        }
+        // re-normalise
+        velocity_neu.normalize();
+        // convert horizontal components to velocities
+        velocity_neu.x *= copter.wp_nav.get_speed_xy();
+        velocity_neu.y *= copter.wp_nav.get_speed_xy();
+        // send target velocity
+        copter.avoid_adsb_set_velocity(velocity_neu);
+        return true;
+    }
+
+    // if we got this far we failed to set the new target
+    return false;
+}
+
+bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
+{
+    // ensure copter is in avoid_adsb mode
+    if (!check_flightmode(allow_mode_change)) {
         return false;
     }
 
@@ -145,92 +220,4 @@ bool AP_Avoidance_Copter::handle_avoidance_perpendicular(const AP_Avoidance::Obs
 
     // if we got this far we failed to set the new target
     return false;
-}
-
-bool AP_Avoidance_Copter::handle_avoidance_tcas(const AP_Avoidance::Obstacle *obstacle, bool allow_mode_change)
-{
-    // ensure copter is in avoid_adsb mode
-    if (allow_mode_change && copter.control_mode != AVOID_ADSB) {
-        if (!copter.set_mode(AVOID_ADSB, MODE_REASON_AVOIDANCE)) {
-            // failed to set mode so exit immediately
-            return false;
-        }
-    }
-
-    // check flight mode
-    if (copter.control_mode != AVOID_ADSB) {
-        return false;
-    }
-
-    // decide on whether we should climb or descend
-    tcas_resolution_t rr = tcas_get_resolution(obstacle);
-
-    // get best vector away from obstacle
-    Vector3f velocity_neu;
-    if (rr == tcas_resolution_ascend) {
-        velocity_neu.z = copter.wp_nav.get_speed_up();
-    } else {
-        velocity_neu.z = -copter.wp_nav.get_speed_down();
-        // do not descend if below RTL alt
-        if (copter.current_loc.alt < copter.g.rtl_altitude) {
-            velocity_neu.z = 0.0f;
-        }
-    }
-
-    // send target velocity
-    copter.avoid_adsb_set_velocity(velocity_neu);
-    return true;
-}
-
-uint32_t AP_Avoidance_Copter::my_src_id(const MAV_COLLISION_SRC src) const
-{
-    switch (src) {
-    case MAV_COLLISION_SRC_ADSB:
-        // if we are actively broadcasting ADSB then we should have an ID.  Return that here
-        return 0; // should we return MAX_UINT32/2 here?
-    case MAV_COLLISION_SRC_MAVLINK_GPS_GLOBAL_INT:
-        return mavlink_system.sysid;
-    case MAV_COLLISION_SRC_ENUM_END:
-        break;
-    }
-    return 0;
-}
-
-AP_Avoidance_Copter::tcas_resolution_t AP_Avoidance_Copter::tcas_get_resolution(const AP_Avoidance::Obstacle *obstacle)
-{
-    if (obstacle == nullptr) {
-        // invalid object so default to descending
-        return tcas_resolution_descend;
-    }
-
-    Location my_loc;
-    if (!_ahrs.get_position(my_loc)) {
-        // descend if we don't know our position (we should never get here)
-        return tcas_resolution_descend;
-    }
-
-    // ::fprintf(stderr, "heights: me=%d threat=%d\n", my_alt, threat_alt);
-
-    if (labs(my_loc.alt - obstacle->_location.alt) <= 100) {
-       // the aircraft are within 1m of each other.  Treat this as equal
-       // vehicle with higher adsb id climbs
-       // Note that if these are coming from different sources (ADSB vs MAVLink sysid)
-       // then this comparison doesn't make a great deal of sense.
-       if (obstacle->src_id < my_src_id(obstacle->src)) {
-           return tcas_resolution_ascend;
-       } else if (obstacle->src_id > my_src_id(obstacle->src)) {
-           return tcas_resolution_descend;
-       }
-       // We have the same src id as the threat.
-       // Flip a coin as to whether to go up or down.
-       return ((my_loc.alt % 2 == 0) ? tcas_resolution_descend : tcas_resolution_ascend);
-    }
-
-    // if higher than obstacle climb
-    if (my_loc.alt > obstacle->_location.alt) {
-        return tcas_resolution_ascend;
-    }
-
-    // if lower then descend
-    return tcas_resolution_descend;
 }
