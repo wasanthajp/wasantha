@@ -18,11 +18,11 @@ extern const AP_HAL::HAL& hal;
 const AP_Param::GroupInfo AP_Avoidance::var_info[] = {
 
     // @Param: ENABLE
-    // @DisplayName: Enable AVOIDANCE
-    // @Description: Enable Avoidance
+    // @DisplayName: Enable Avoidance using ADSB
+    // @Description: Enable Avoidance using ADSB
     // @Values: 0:Disabled,1:Enabled
     // @User: Advanced
-    AP_GROUPINFO("ENABLE",     0, AP_Avoidance, _enabled,    0),
+    AP_GROUPINFO("ENABLE",      1, AP_Avoidance, _enabled,    0),
 
     // @Param: F_ACTION
     // @DisplayName: Collision Avoidance Behavior
@@ -30,7 +30,7 @@ const AP_Param::GroupInfo AP_Avoidance::var_info[] = {
     // The following values should come from the mavlink COLLISION_ACTION enum
     // @Values: 0:None,1:Report,2:Climb Or Descend,3:Move Horizontally,4:Move Perpendicularly in 3D,5:RTL,6:Hover
     // @User: Advanced
-    AP_GROUPINFO("F_ACTION",   1, AP_Avoidance, _fail_action, MAV_COLLISION_ACTION_REPORT),
+    AP_GROUPINFO("F_ACTION",    2, AP_Avoidance, _fail_action, MAV_COLLISION_ACTION_REPORT),
 
     // @Param: W_ACTION
     // @DisplayName: Collision Avoidance Behavior - Warn
@@ -38,56 +38,56 @@ const AP_Param::GroupInfo AP_Avoidance::var_info[] = {
     // The following values should come from the mavlink COLLISION_ACTION enum
     // @Values: 0:None,1:Report
     // @User: Advanced
-    AP_GROUPINFO("W_ACTION",   2, AP_Avoidance, _warn_action, MAV_COLLISION_ACTION_REPORT),
+    AP_GROUPINFO("W_ACTION",    3, AP_Avoidance, _warn_action, MAV_COLLISION_ACTION_REPORT),
 
     // @Param: F_RCVRY
     // @DisplayName: Recovery behaviour after a fail event
     // @Description: Determines what the aircraft will do after a fail event is resolved
-    // @Values: 0:Continue collision avoidance ACTION_F,1:Resume previous flight mode
+    // @Values: 0:Continue failsafe action,1:Resume previous flight mode
     // @User: Advanced
-    AP_GROUPINFO("F_RCVRY",   4, AP_Avoidance, _fail_recovery, AP_AVOIDANCE_RECOVERY_NONE),
+    AP_GROUPINFO("F_RCVRY",     4, AP_Avoidance, _fail_recovery, AP_AVOIDANCE_RECOVERY_NONE),
 
     // @Param: OBS_MAX
     // @DisplayName: Maximum number of obstacles to track
     // @Description: Maximum number of obstacles to track
     // @User: Advanced
-    AP_GROUPINFO("OBS_MAX",   5, AP_Avoidance, _obstacles_max, 20),
+    AP_GROUPINFO("OBS_MAX",     5, AP_Avoidance, _obstacles_max, 20),
 
     // @Param: W_TIME
     // @DisplayName: Time Horizon Warn
     // @Description: Aircraft velocity vectors are multiplied by this time to determine closest approach.  If this results in an approach closer than W_DIST_XY or W_DIST_Z then W_ACTION is undertaken (assuming F_ACTION is not undertaken)
     // @User: Advanced
-    AP_GROUPINFO("W_TIME",     6, AP_Avoidance, _warn_time_horizon,    30),
+    AP_GROUPINFO("W_TIME",      6, AP_Avoidance, _warn_time_horizon,    30),
 
     // @Param: F_TIME
     // @DisplayName: Time Horizon Fail
     // @Description: Aircraft velocity vectors are multiplied by this time to determine closest approach.  If this results in an approach closer than F_DIST_XY or F_DIST_Z then F_ACTION is undertaken
     // @User: Advanced
-    AP_GROUPINFO("F_TIME",     7, AP_Avoidance, _fail_time_horizon,    30),
+    AP_GROUPINFO("F_TIME",      7, AP_Avoidance, _fail_time_horizon,    30),
 
     // @Param: W_DIST_XY
     // @DisplayName: Distance Warn XY
     // @Description: Closest allowed projected distance before W_ACTION is undertaken
     // @User: Advanced
-    AP_GROUPINFO("W_DIST_XY",     8, AP_Avoidance, _warn_distance_xy,    300),
+    AP_GROUPINFO("W_DIST_XY",   8, AP_Avoidance, _warn_distance_xy,    300),
 
     // @Param: F_DIST_XY
     // @DisplayName: Distance Fail XY
     // @Description: Closest allowed projected distance before F_ACTION is undertaken
     // @User: Advanced
-    AP_GROUPINFO("F_DIST_XY",     9, AP_Avoidance, _fail_distance_xy,    100),
+    AP_GROUPINFO("F_DIST_XY",   9, AP_Avoidance, _fail_distance_xy,    100),
 
     // @Param: W_DIST_Z
     // @DisplayName: Distance Warn Z
     // @Description: Closest allowed projected distance before BEHAVIOUR_W is undertaken
     // @User: Advanced
-    AP_GROUPINFO("W_DIST_Z",     10, AP_Avoidance, _warn_distance_z,    300),
+    AP_GROUPINFO("W_DIST_Z",    10, AP_Avoidance, _warn_distance_z,    300),
 
     // @Param: F_DIST_Z
     // @DisplayName: Distance Fail Z
     // @Description: Closest allowed projected distance before BEHAVIOUR_F is undertaken
     // @User: Advanced
-    AP_GROUPINFO("F_DIST_Z",     11, AP_Avoidance, _fail_distance_z,    100),
+    AP_GROUPINFO("F_DIST_Z",    11, AP_Avoidance, _fail_distance_z,    100),
 
     AP_GROUPEND
 };
