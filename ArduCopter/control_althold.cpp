@@ -73,6 +73,13 @@ void Copter::althold_run()
         althold_state = AltHold_Flying;
     }
 
+    // debug
+    static AltHoldModeState althold_state_last = AltHold_MotorStopped;
+    if (althold_state_last != althold_state) {
+        althold_state_last = althold_state;
+        Log_Write_Event(65+(int)althold_state);
+    }
+
     // Alt Hold State Machine
     switch (althold_state) {
 
