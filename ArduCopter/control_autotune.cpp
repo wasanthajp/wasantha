@@ -333,6 +333,10 @@ void Copter::autotune_run()
         // set motors to full range
         motors.set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
+        // call position controller
+        pos_control.set_alt_target_from_climb_rate_ff(target_climb_rate, G_Dt, false);
+        pos_control.update_z_controller();
+
         // if pilot override call attitude controller
         if (autotune_state.pilot_override || autotune_state.mode != AUTOTUNE_MODE_TUNING) {
             attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
@@ -340,10 +344,6 @@ void Copter::autotune_run()
             // somehow get attitude requests from autotuning
             autotune_attitude_control();
         }
-
-        // call position controller
-        pos_control.set_alt_target_from_climb_rate_ff(target_climb_rate, G_Dt, false);
-        pos_control.update_z_controller();
     }
 }
 
@@ -436,6 +436,9 @@ void Copter::autotune_attitude_control()
 
         // disable rate limits
         attitude_control.use_ff_and_input_shaping(false);
+
+        // remove average throttle constraint during twitch
+        motors.set_throttle_avg_max(0.5f);
 
         if ((autotune_state.tune_type == AUTOTUNE_TYPE_SP_DOWN) || (autotune_state.tune_type == AUTOTUNE_TYPE_SP_UP)) {
             // Testing increasing stabilize P gain so will set lean angle target
