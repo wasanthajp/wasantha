@@ -25,6 +25,7 @@
 #include "AP_RangeFinder_LightWareSerial.h"
 #include "AP_RangeFinder_Bebop.h"
 #include "AP_RangeFinder_MAVLink.h"
+#include "AP_RangeFinder_LightWareSF40C.h"
 
 extern const AP_HAL::HAL &hal;
 
@@ -551,6 +552,13 @@ void RangeFinder::detect_instance(uint8_t instance)
         if (AP_RangeFinder_MAVLink::detect(*this, instance)) {
             state[instance].instance = instance;
             drivers[instance] = new AP_RangeFinder_MAVLink(*this, instance, state[instance]);
+            return;
+        }
+    }
+    if (type == RangeFinder_TYPE_LWSF40C) {
+        if (AP_RangeFinder_LightWareSF40C::detect(*this, instance, serial_manager)) {
+            state[instance].instance = instance;
+            drivers[instance] = new AP_RangeFinder_LightWareSF40C(*this, instance, state[instance], serial_manager);
             return;
         }
     }
