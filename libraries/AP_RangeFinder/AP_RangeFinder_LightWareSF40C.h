@@ -42,7 +42,7 @@ private:
     // send request for something from sensor
     void request_new_data();
     void send_request_for_health();
-    bool send_request_for_distance(uint8_t sector);
+    bool send_request_for_distance();
 
     // check and process replies from sensor
     bool check_for_reply();
@@ -52,9 +52,10 @@ private:
 
     // reply related variables
     AP_HAL::UARTDriver *uart = nullptr;
-    char element_buf[2][8];
+    char element_buf[2][10];
     uint8_t element_len[2];
     uint8_t element_num;
+    bool ignore_reply;                      // true if we should ignore the incoming message (because it is just echoing our command)
 
     // request related variables
     enum RequestType _last_request_type;    // last request made to sensor
@@ -62,7 +63,7 @@ private:
     uint32_t _last_request_angle;           // angle of last request for distance measurement
     uint32_t _last_request_ms;              // system time of last request
     uint32_t _last_distance_received_ms;    // system time of last distance measurement received from sensor
-    uint8_t  _request_count;                // counter used to interleave requests for distance with health requests
+    uint16_t _request_count;                // counter used to interleave requests for distance with health requests
 
     // sensor health register
     union {

@@ -20,6 +20,8 @@
 #include <ctype.h>
 #include <stdio.h>
 
+// debug
+#include <GCS_MAVLink/GCS.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -71,7 +73,11 @@ void AP_RangeFinder_LightWareSF40C::update(void)
         return;
     }
 
-    if (initialise() && check_for_reply()) {
+    // initialise sensor if necessary
+    initialise();
+
+    // process incoming messages
+    if (check_for_reply()) {
         // set global distance to shortest detected distance mostly for reporting purposes
         int16_t shortest_cm = 0;
         bool shortest_set = false;
@@ -86,6 +92,8 @@ void AP_RangeFinder_LightWareSF40C::update(void)
         }
         update_status();
     }
+
+    request_new_data();
 
     // check for timeout
     if (AP_HAL::millis() - _last_distance_received_ms > RANGEFINDER_SF40C_TIMEOUT_MS) {
@@ -117,6 +125,7 @@ void AP_RangeFinder_LightWareSF40C::set_motor_speed(bool on_off)
 
     if (on_off) {
         uart->write("#MBS,3\r\n");  // send request to spin motor at 4.5hz
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"Set Mot Speed");
     } else {
         uart->write("#MBS,0\r\n");  // send request to stop motor
     }
@@ -136,23 +145,25 @@ void AP_RangeFinder_LightWareSF40C::request_new_data()
 
     // after timeout assume no reply will ever come
     uint32_t now = AP_HAL::millis();
-    if ((_last_request_ms != 0) && (now - _last_request_ms > RANGEFINDER_SF40C_TIMEOUT_MS)) {
+    if ((_last_request_type != RequestType_None) && ((now - _last_request_ms) > RANGEFINDER_SF40C_TIMEOUT_MS)) {
         _last_request_type = RequestType_None;
         _last_request_ms = 0;
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"TO-ClearRequest");
     }
 
     // if we are not waiting for a reply, ask for something
     if (_last_request_type == RequestType_None) {
         _request_count++;
-        if (_request_count >= RANGEFINDER_SF40C_QUADRANTS*5) {
+        if (_request_count >= 5) {
             send_request_for_health();
+            _request_count = 0;
         } else {
             // request new distance measurement
-            uint8_t next_sector = _last_sector++;
-            if (next_sector >= RANGEFINDER_SF40C_QUADRANTS) {
-                next_sector = 0;
-            }
-            send_request_for_distance(next_sector);
+            //uint8_t next_sector = _last_sector++;
+            //if (next_sector >= RANGEFINDER_SF40C_QUADRANTS) {
+            //    next_sector = 0;
+            //}
+            send_request_for_distance();
         }
         _last_request_ms = now;
     }
@@ -166,53 +177,36 @@ void AP_RangeFinder_LightWareSF40C::send_request_for_health()
     }
 
     uart->write("?GS\r\n");
+    _last_request_type = RequestType_Health;
+    _last_request_ms = AP_HAL::millis();
+
+    // debug
+    GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"GetH");
 }
 
-bool AP_RangeFinder_LightWareSF40C::send_request_for_distance(uint8_t sector)
+bool AP_RangeFinder_LightWareSF40C::send_request_for_distance()
 {
     if (uart == nullptr) {
         return false;
     }
 
-    bool success = true;
+    uart->write("?TS,45,0\r\n");    // forward
+    uart->write("?TS,45,45\r\n");   // forward right
+    uart->write("?TS,45,90\r\n");   // right
+    uart->write("?TS,45,135\r\n");  // back right
+    uart->write("?TS,45,180\r\n");  // back
+    uart->write("?TS,45,225\r\n");  // back left
+    uart->write("?TS,45,270\r\n");  // left
+    uart->write("?TS,45,315\r\n");  // forward left
 
-    switch (sector) {
-        case 0: // forward
-            uart->write("?TS,45,0\r\n");
-            break;
-        case 1: // forward right
-            uart->write("?TS,45,45\r\n");
-            break;
-        case 2: // right
-            uart->write("?TS,45,90\r\n");
-            break;
-        case 3: // back right
-            uart->write("?TS,45,135\r\n");
-            break;
-        case 4: // back
-            uart->write("?TS,45,180\r\n");
-            break;
-        case 5: // back left
-            uart->write("?TS,45,225\r\n");
-            break;
-        case 6: // left
-            uart->write("?TS,45,270\r\n");
-            break;
-        case 7: // forward left
-            uart->write("?TS,45,315\r\n");
-            break;
-        default:
-            // invalid sector, do nothing
-            success = false;
-            break;
-    }
+    _last_request_type = RequestType_DistanceMeasurement;
+    _last_request_ms = AP_HAL::millis();
+    _last_sector = 0;
 
-    if (success) {
-        _last_request_type = RequestType_DistanceMeasurement;
-        _last_request_ms = AP_HAL::millis();
-        _last_sector = sector;
-    }
-    return success;
+    // debug
+    GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"GetD");
+
+    return true;
 }
 
 // check for replies from sensor
@@ -221,6 +215,13 @@ bool AP_RangeFinder_LightWareSF40C::check_for_reply()
     if (uart == nullptr) {
         return false;
     }
+
+    // debug
+    char print_buf[20];
+    char print_processed_buf[20];
+    uint8_t counter = 0;
+    memset(print_buf, 0, sizeof(print_buf));
+    memset(print_processed_buf, 0, sizeof(print_processed_buf));
 
     // read any available lines from the lidar
     // if see CR (i.e. \r), LF (\n) or Space it means we have consumed a line
@@ -233,31 +234,75 @@ bool AP_RangeFinder_LightWareSF40C::check_for_reply()
     int16_t nbytes = uart->available();
     while (nbytes-- > 0) {
         char c = uart->read();
-        if ((c == '\r' || c == '\n' || c == ' ')) {
+        // check for end of packet
+        if (c == '\r' || c == '\n') {
             if ((element_len[0] > 0)) {
                 if (process_reply()) {
                     count++;
                 }
+                // debug
+                print_processed_buf[counter] = 'D';
+            } else {
+                // debug
+                print_processed_buf[counter] = 'X';
             }
             // clear buffers after processing
             clear_buffers();
+            ignore_reply = false;
+
+        // if message starts with # ignore it
+        } else if (c == '#' || ignore_reply) {
+            ignore_reply = true;
+            // debug
+            print_processed_buf[counter] = 'I';
+
+        // if comma, move onto filling in 2nd element
         } else if (c == ',') {
-            // start filling in 2nd element
             if ((element_num == 0) && (element_len[0] > 0)) {
                 element_num++;
+                print_processed_buf[counter] = ',';
             } else {
                 // don't support 3rd element so clear buffers
                 clear_buffers();
+                ignore_reply = true;
+                print_processed_buf[counter] = 'Z';
             }
+
+        // if part of a number, add to element buffer
         } else if (isdigit(c) || c == '.') {
-            // add latest character to element1 or element2 buffer
             element_buf[element_num][element_len[element_num]] = c;
             element_len[element_num]++;
-            if (element_len[element_num] == sizeof(element_len[element_num])) {
+            print_processed_buf[counter] = c;
+            if (element_len[element_num] >= sizeof(element_buf[element_num])) {
                 // too long, discard the line
                 clear_buffers();
+                ignore_reply = true;
+                print_processed_buf[counter] = 'L';
             }
+        } else {
+            print_processed_buf[counter] = 'i';
         }
+
+        // debug
+        if (counter < 19) {
+            print_buf[counter] = c;
+            if (c == '\r') {
+                print_buf[counter] = 'R';
+            }
+            if (c == '\n') {
+                print_buf[counter] = 'N';
+            }
+            if (c == ' ') {
+                print_buf[counter] = '*';
+            }
+            counter++;
+        }
+        ////////
+    }
+
+    if (counter > 0) {
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"Buf:%s",print_buf);
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"PrB:%s",print_processed_buf);
     }
 
     return (count > 0);
@@ -272,6 +317,14 @@ bool AP_RangeFinder_LightWareSF40C::process_reply()
 
     bool success = false;
 
+    // debug
+    if (element_len[0] > 0) {
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"e1:%s",(int)element_len[0],element_buf[0]);
+    }
+    if (element_len[1] > 0) {
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"e2:%s",(int)element_len[1],element_buf[1]);
+    }
+
     switch (_last_request_type) {
         case RequestType_None:
             break;
@@ -285,10 +338,12 @@ bool AP_RangeFinder_LightWareSF40C::process_reply()
                     success = true;
                 }
             }
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"Health OK");
             break;
 
         case RequestType_MotorSpeed:
             _motor_speed = atoi(element_buf[0]);
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"Mot Speed OK");
             break;
 
         case RequestType_DistanceMeasurement:
@@ -301,6 +356,7 @@ bool AP_RangeFinder_LightWareSF40C::process_reply()
                 _distance_valid[sector] = true;
                 _last_distance_received_ms = AP_HAL::millis();
             }
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"Dist OK");
             break;
         }
 
