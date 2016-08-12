@@ -19,12 +19,12 @@ public:
     // static detection function
     static bool detect(RangeFinder &ranger, uint8_t instance, AP_SerialManager &serial_manager);
 
-    // update state
-    void update(void);
-
     // get distance in cm in a particular direction in degrees (0 is forward, clockwise)
     // returns true on successful read and places distance in distance_cm
     bool get_horizontal_distance(int16_t angle_deg, int16_t &distance_cm);
+
+    // update state
+    void update(void);
 
 private:
 
@@ -35,20 +35,26 @@ private:
         RequestType_DistanceMeasurement
     };
 
-    // set speed of rotating motor
-    bool set_motor_speed(bool on_off);
+    // initialise sensor (returns true if sensor is succesfully initialised)
+    bool initialise();
+    void set_motor_speed(bool on_off);
 
     // send request for something from sensor
-    bool send_request(RequestType req_type);
+    void request_new_data();
+    void send_request_for_health();
     bool send_request_for_distance(uint8_t sector);
 
-    // check for replies from sensor
+    // check and process replies from sensor
     bool check_for_reply();
+    bool process_reply();
+    void clear_buffers();
+    bool convert_angle_to_sector(float angle_degrees, uint8_t &sector);
 
     // reply related variables
     AP_HAL::UARTDriver *uart = nullptr;
-    char linebuf[10];
-    uint8_t linebuf_len;
+    char element_buf[2][8];
+    uint8_t element_len[2];
+    uint8_t element_num;
 
     // request related variables
     enum RequestType _last_request_type;    // last request made to sensor
@@ -56,8 +62,33 @@ private:
     uint32_t _last_request_angle;           // angle of last request for distance measurement
     uint32_t _last_request_ms;              // system time of last request
     uint32_t _last_distance_received_ms;    // system time of last distance measurement received from sensor
+    uint8_t  _request_count;                // counter used to interleave requests for distance with health requests
 
-    // recorded distances
+    // sensor health register
+    union {
+        struct PACKED {
+            uint16_t motor_stopped : 1;
+            uint16_t motor_dir : 1;          // 0 = clockwise, 1 = counter-clockwise
+            uint16_t motor_fault : 1;
+            uint16_t torque_control : 1;     // 0 = automatic, 1 = manual
+            uint16_t laser_fault : 1;
+            uint16_t low_battery : 1;
+            uint16_t flat_battery : 1;
+            uint16_t system_restarting : 1;
+            uint16_t no_results_available : 1;
+            uint16_t power_saving : 1;
+            uint16_t user_flag1 : 1;
+            uint16_t user_flag2 : 1;
+            uint16_t unused1 : 1;
+            uint16_t unused2 : 1;
+            uint16_t spare_input : 1;
+            uint16_t major_system_abnormal : 1;
+        } _flags;
+        uint16_t value;
+    } _sensor_status;
+
+    // sensor data
+    uint8_t _motor_speed;
     int16_t _distance_cm[RANGEFINDER_SF40C_QUADRANTS];
     int16_t _distance_valid[RANGEFINDER_SF40C_QUADRANTS];
 };

@@ -18,6 +18,8 @@
 #include "AP_RangeFinder_LightWareSF40C.h"
 #include <AP_SerialManager/AP_SerialManager.h>
 #include <ctype.h>
+#include <stdio.h>
+
 
 extern const AP_HAL::HAL& hal;
 
@@ -47,12 +49,29 @@ bool AP_RangeFinder_LightWareSF40C::detect(RangeFinder &_ranger, uint8_t instanc
     return serial_manager.find_serial(AP_SerialManager::SerialProtocol_Lidar, 0) != nullptr;
 }
 
+// get distance in cm in a particular direction in degrees (0 is forward, clockwise)
+bool AP_RangeFinder_LightWareSF40C::get_horizontal_distance(int16_t angle_deg, int16_t &distance_cm)
+{
+    uint8_t sector;
+    if (convert_angle_to_sector(angle_deg, sector)) {
+        if (_distance_valid[sector]) {
+            distance_cm = _distance_cm[sector];
+            return true;
+        }
+    }
+    return false;
+}
+
 /*
    update the state of the sensor
 */
 void AP_RangeFinder_LightWareSF40C::update(void)
 {
-    if (check_for_reply()) {
+    if (uart == nullptr) {
+        return;
+    }
+
+    if (initialise() && check_for_reply()) {
         // set global distance to shortest detected distance mostly for reporting purposes
         int16_t shortest_cm = 0;
         bool shortest_set = false;
@@ -66,57 +85,95 @@ void AP_RangeFinder_LightWareSF40C::update(void)
             state.distance_cm = shortest_cm;
         }
         update_status();
-    } else if (AP_HAL::millis() - _last_distance_received_ms > 200) {
+    }
+
+    // check for timeout
+    if (AP_HAL::millis() - _last_distance_received_ms > RANGEFINDER_SF40C_TIMEOUT_MS) {
         set_status(RangeFinder::RangeFinder_NoData);
     }
 }
 
-// get distance in cm in a particular direction in degrees (0 is forward, clockwise)
-bool AP_RangeFinder_LightWareSF40C::get_horizontal_distance(int16_t angle_deg, int16_t &distance_cm)
+// initialise sensor (returns true if sensor is succesfully initialised)
+bool AP_RangeFinder_LightWareSF40C::initialise()
 {
-    return false;
+    // request motors turn on for first 30 seconds then give up
+    if (_motor_speed == 0) {
+        // request motors spin up once per second
+        if ((_last_request_ms == 0) || AP_HAL::millis() - _last_request_ms > 1000) {
+            set_motor_speed(true);
+        }
+        return false;
+    }
+    return true;
 }
 
 // set speed of rotating motor
-bool AP_RangeFinder_LightWareSF40C::set_motor_speed(bool on_off)
+void AP_RangeFinder_LightWareSF40C::set_motor_speed(bool on_off)
 {
-    return send_request(RequestType_MotorSpeed);
+    // exit immediately if no uart
+    if (uart == nullptr) {
+        return;
+    }
+
+    if (on_off) {
+        uart->write("#MBS,3\r\n");  // send request to spin motor at 4.5hz
+    } else {
+        uart->write("#MBS,0\r\n");  // send request to stop motor
+    }
+
+    // re-request update motor speed
+    uart->write("?MBS\r\n");
+    _last_request_type = RequestType_MotorSpeed;
+    _last_request_ms = AP_HAL::millis();
 }
 
-// send request for something from sensor
-bool AP_RangeFinder_LightWareSF40C::send_request(RequestType req_type)
+// request new data if required
+void AP_RangeFinder_LightWareSF40C::request_new_data()
 {
-    // exit immediately if we are already waiting on another request
-    if (_last_request_type != RequestType_None) {
-        return false;
+    if (uart == nullptr) {
+        return;
     }
 
-    bool success = true;
-    switch (req_type) {
-        case RequestType_Health:
-            break;
-        case RequestType_MotorSpeed:
-            uart->write("?MBS,3\r\n");  // send request to spin motor at 4.5hz
-            uart->write("?MBS\r\n");    // request update on motor speed
-            break;
-        case RequestType_None:
-        case RequestType_DistanceMeasurement:
-        default:
-            // these messages not supported by this method - do nothing
-            success = false;
-            break;
+    // after timeout assume no reply will ever come
+    uint32_t now = AP_HAL::millis();
+    if ((_last_request_ms != 0) && (now - _last_request_ms > RANGEFINDER_SF40C_TIMEOUT_MS)) {
+        _last_request_type = RequestType_None;
+        _last_request_ms = 0;
     }
 
-    if (success) {
-        _last_request_type = req_type;
-        _last_request_ms = AP_HAL::millis();
+    // if we are not waiting for a reply, ask for something
+    if (_last_request_type == RequestType_None) {
+        _request_count++;
+        if (_request_count >= RANGEFINDER_SF40C_QUADRANTS*5) {
+            send_request_for_health();
+        } else {
+            // request new distance measurement
+            uint8_t next_sector = _last_sector++;
+            if (next_sector >= RANGEFINDER_SF40C_QUADRANTS) {
+                next_sector = 0;
+            }
+            send_request_for_distance(next_sector);
+        }
+        _last_request_ms = now;
+    }
+}
+
+// send request for sensor health
+void AP_RangeFinder_LightWareSF40C::send_request_for_health()
+{
+    if (uart == nullptr) {
+        return;
     }
 
-    return success;
+    uart->write("?GS\r\n");
 }
 
 bool AP_RangeFinder_LightWareSF40C::send_request_for_distance(uint8_t sector)
 {
+    if (uart == nullptr) {
+        return false;
+    }
+
     bool success = true;
 
     switch (sector) {
@@ -161,44 +218,121 @@ bool AP_RangeFinder_LightWareSF40C::send_request_for_distance(uint8_t sector)
 // check for replies from sensor
 bool AP_RangeFinder_LightWareSF40C::check_for_reply()
 {
-    if (uart == nullptr || _last_request_type == RequestType_None) {
+    if (uart == nullptr) {
         return false;
     }
 
     // read any available lines from the lidar
-    float sum = 0;
+    // if see CR (i.e. \r), LF (\n) or Space it means we have consumed a line
+    //    if zero length throw it away
+    //    comma separated first_element, optional 2nd element
+    //    stage = first element or second element
+    //    send to processor based on what it's looking for
+    // To-Do: handle timeout
     uint16_t count = 0;
     int16_t nbytes = uart->available();
     while (nbytes-- > 0) {
         char c = uart->read();
-        if (c == '\r') {
-            linebuf[linebuf_len] = 0;
-            sum += (float)atof(linebuf);
-            count++;
-            linebuf_len = 0;
+        if ((c == '\r' || c == '\n' || c == ' ')) {
+            if ((element_len[0] > 0)) {
+                if (process_reply()) {
+                    count++;
+                }
+            }
+            // clear buffers after processing
+            clear_buffers();
+        } else if (c == ',') {
+            // start filling in 2nd element
+            if ((element_num == 0) && (element_len[0] > 0)) {
+                element_num++;
+            } else {
+                // don't support 3rd element so clear buffers
+                clear_buffers();
+            }
         } else if (isdigit(c) || c == '.') {
-            linebuf[linebuf_len++] = c;
-            if (linebuf_len == sizeof(linebuf)) {
+            // add latest character to element1 or element2 buffer
+            element_buf[element_num][element_len[element_num]] = c;
+            element_len[element_num]++;
+            if (element_len[element_num] == sizeof(element_len[element_num])) {
                 // too long, discard the line
-                linebuf_len = 0;
+                clear_buffers();
             }
         }
     }
 
-    if (count == 0) {
+    return (count > 0);
+}
+
+// process reply
+bool AP_RangeFinder_LightWareSF40C::process_reply()
+{
+    if (uart == nullptr) {
         return false;
     }
-    //reading_cm = 100 * sum / count;
 
-    // update time last distance measurement was successful received
-    _last_distance_received_ms = AP_HAL::millis();
+    bool success = false;
 
-    // request new distance measurement
-    uint8_t next_sector = _last_sector++;
-    if (next_sector >= RANGEFINDER_SF40C_QUADRANTS) {
-        next_sector = 0;
+    switch (_last_request_type) {
+        case RequestType_None:
+            break;
+
+        case RequestType_Health:
+            // expect result in the form "0xhhhh"
+            if (element_len[0] > 0) {
+                int result;
+                if (sscanf(element_buf[0], "%x", &result) > 0) {
+                    _sensor_status.value = result;
+                    success = true;
+                }
+            }
+            break;
+
+        case RequestType_MotorSpeed:
+            _motor_speed = atoi(element_buf[0]);
+            break;
+
+        case RequestType_DistanceMeasurement:
+        {
+            float angle_deg = (float)atof(element_buf[0]);
+            float distance_m = (float)atof(element_buf[1]);
+            uint8_t sector;
+            if (convert_angle_to_sector(angle_deg, sector)) {
+                _distance_cm[sector] = distance_m * 100;
+                _distance_valid[sector] = true;
+                _last_distance_received_ms = AP_HAL::millis();
+            }
+            break;
+        }
+
+        default:
+            break;
     }
-    send_request_for_distance(next_sector);
 
-    return true;
+    return success;
+}
+
+// clear buffers ahead of processing next message
+void AP_RangeFinder_LightWareSF40C::clear_buffers()
+{
+    element_len[0] = 0;
+    element_len[1] = 0;
+    element_num = 0;
+    memset(element_buf, 0, sizeof(element_buf));
+}
+
+bool AP_RangeFinder_LightWareSF40C::convert_angle_to_sector(float angle_degrees, uint8_t &sector)
+{
+    // sanity check angle
+    if (angle_degrees > 360.0f || angle_degrees < 0.0f) {
+        return false;
+    }
+
+    // convert and range check sector
+    uint16_t sec = (angle_degrees / RANGEFINDER_SF40C_QUADRANT_WIDTH_DEG);
+    if (sec < RANGEFINDER_SF40C_QUADRANTS) {
+        sector = sec;
+        return true;
+    }
+
+    return false;
 }
