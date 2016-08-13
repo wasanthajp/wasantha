@@ -64,7 +64,7 @@ private:
     uint32_t _last_request_angle;           // angle of last request for distance measurement
     uint32_t _last_request_ms;              // system time of last request
     uint32_t _last_distance_received_ms;    // system time of last distance measurement received from sensor
-    uint16_t _request_count;                // counter used to interleave requests for distance with health requests
+    uint8_t _request_count;                 // counter used to interleave requests for distance with health requests
 
     // sensor health register
     union {

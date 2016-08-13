@@ -386,6 +386,7 @@ bool AP_RangeFinder_LightWareSF40C::process_reply()
 
         case RequestType_MotorSpeed:
             _motor_speed = atoi(element_buf[0]);
+            success = true;
             GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"Mot Speed OK");
             break;
 
@@ -398,6 +399,7 @@ bool AP_RangeFinder_LightWareSF40C::process_reply()
                 _distance_cm[sector] = distance_m * 100;
                 _distance_valid[sector] = true;
                 _last_distance_received_ms = AP_HAL::millis();
+                success = true;
             }
             GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"Dist OK %4.2f/%4.2f",(double)angle_deg,(double)distance_m);
             GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL,"DV:%d/%d/%d/%d/%d/%d/%d/%d",
@@ -414,6 +416,11 @@ bool AP_RangeFinder_LightWareSF40C::process_reply()
 
         default:
             break;
+    }
+
+    // mark request as cleared
+    if (success) {
+        _last_request_type = RequestType_None;
     }
 
     return success;
