@@ -4,9 +4,9 @@
 #include "RangeFinder.h"
 #include "RangeFinder_Backend.h"
 
-#define RANGEFINDER_SF40C_QUADRANTS             8                                   // number of quadrants
-#define RANGEFINDER_SF40C_QUADRANT_WIDTH_DEG    (360/RANGEFINDER_SF40C_QUADRANTS)   // angular width of each quadrant
-#define RANGEFINDER_SF40C_TIMEOUT_MS            200
+#define RANGEFINDER_SF40C_SECTORS               8                                   // number of sectors
+#define RANGEFINDER_SF40C_SECTOR_WIDTH_DEG      (360/RANGEFINDER_SF40C_SECTORS)   // angular width of each sector
+#define RANGEFINDER_SF40C_TIMEOUT_MS            1000
 
 class AP_RangeFinder_LightWareSF40C : public AP_RangeFinder_Backend
 {
@@ -56,6 +56,7 @@ private:
     uint8_t element_len[2];
     uint8_t element_num;
     bool ignore_reply;                      // true if we should ignore the incoming message (because it is just echoing our command)
+    bool wait_for_space;                    // space marks the start of returned data
 
     // request related variables
     enum RequestType _last_request_type;    // last request made to sensor
@@ -90,6 +91,6 @@ private:
 
     // sensor data
     uint8_t _motor_speed;
-    int16_t _distance_cm[RANGEFINDER_SF40C_QUADRANTS];
-    int16_t _distance_valid[RANGEFINDER_SF40C_QUADRANTS];
+    int16_t _distance_cm[RANGEFINDER_SF40C_SECTORS];
+    int16_t _distance_valid[RANGEFINDER_SF40C_SECTORS];
 };
