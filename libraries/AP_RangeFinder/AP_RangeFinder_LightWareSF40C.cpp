@@ -74,7 +74,7 @@ void AP_RangeFinder_LightWareSF40C::update(void)
     }
 
     // initialise sensor if necessary
-    initialise();
+    bool initialised = initialise();
 
     // process incoming messages
     if (check_for_reply()) {
@@ -93,7 +93,10 @@ void AP_RangeFinder_LightWareSF40C::update(void)
         update_status();
     }
 
-    request_new_data();
+    // request new data from sensor
+    if (initialised) {
+        request_new_data();
+    }
 
     // check for timeout
     if (AP_HAL::millis() - _last_distance_received_ms > RANGEFINDER_SF40C_TIMEOUT_MS) {
