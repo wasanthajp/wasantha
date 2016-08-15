@@ -504,6 +504,13 @@ void Copter::one_hz_loop()
     terrain_logging();
 
     adsb.set_is_flying(!ap.land_complete);
+
+    // debug
+#if PROXIMITY_ENABLED == ENABLED
+    float dist = 0;
+    bool success = proximity.get_horizontal_distance(0, dist);
+    GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "succ:%d dist:%4.2f",(int)success, (double)(dist*100.0f));
+#endif
 }
 
 // called at 50hz
