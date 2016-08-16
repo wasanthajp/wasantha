@@ -19,6 +19,7 @@
 #include <AP_SerialManager/AP_SerialManager.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <GCS_MAVLink/GCS.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -295,6 +296,7 @@ bool AP_Proximity_LightWareSF40C::process_reply()
                 if (sscanf(element_buf[0], "%x", &result) > 0) {
                     _sensor_status.value = result;
                     success = true;
+                    GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "HealthOK");
                 }
             }
             break;
@@ -302,6 +304,7 @@ bool AP_Proximity_LightWareSF40C::process_reply()
         case RequestType_MotorSpeed:
             _motor_speed = atoi(element_buf[0]);
             success = true;
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "MotSpeedOK");
             break;
 
         case RequestType_DistanceMeasurement:
