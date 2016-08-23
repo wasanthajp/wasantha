@@ -4,6 +4,7 @@
 #include "version.h"
 
 #include "GCS_Mavlink.h"
+#include <stdio.h>
 
 // default sensors are present and healthy: gyro, accelerometer, rate_control, attitude_stabilization, yaw_position, altitude control, x/y position control, motor_control
 #define MAVLINK_SENSOR_PRESENT_DEFAULT (MAV_SYS_STATUS_SENSOR_3D_GYRO | MAV_SYS_STATUS_SENSOR_3D_ACCEL | MAV_SYS_STATUS_SENSOR_ANGULAR_RATE_CONTROL | MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION | MAV_SYS_STATUS_SENSOR_YAW_POSITION | MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL | MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS | MAV_SYS_STATUS_AHRS)
@@ -1278,6 +1279,9 @@ void GCS_MAVLINK_Rover::handleMessage(mavlink_message_t* msg)
             if ((packet.type_mask & (1<<2)) == 0) {
                 use_yaw_rate = true;
             }
+
+            // debug
+            ::printf("spd:%4.2f use-yaw:%d\n", (double)ground_speed_cms, (int)use_yaw_rate);
 
             // convert attitude into heading
             // set vehicle heading target and speed
