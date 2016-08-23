@@ -1261,13 +1261,13 @@ void GCS_MAVLINK_Rover::handleMessage(mavlink_message_t* msg)
 
             // convert thrust to ground speed
             packet.thrust = constrain_float(packet.thrust, 0.0f, 1.0f);
-            float ground_speed_cms = 0.0f;
+            float ground_speed = 0.0f;
             if (is_equal(packet.thrust, 0.5f)) {
-                ground_speed_cms = 0.0f;
+                ground_speed = 0.0f;
             } else if (packet.thrust > 0.5f) {
-                ground_speed_cms = (packet.thrust - 0.5f);
+                ground_speed = (packet.thrust - 0.5f) * 2.0f * rover.g.speed_cruise;
             } else {
-                ground_speed_cms = (0.5f - packet.thrust);
+                ground_speed = (0.5f - packet.thrust) * 2.0f * rover.g.speed_cruise;
             }
 
             // if the body_yaw_rate field is ignored, use the commanded yaw position
@@ -1276,6 +1276,10 @@ void GCS_MAVLINK_Rover::handleMessage(mavlink_message_t* msg)
             if ((packet.type_mask & (1<<2)) == 0) {
                 use_yaw_rate = true;
             }
+
+            // convert quaternion to heading
+            int32_t target_heading_cd = degrees(Quaternion(packet.q[0],packet.q[1],packet.q[2],packet.q[3]).get_euler_yaw()) * 100;
+            rover.set_guided_velocity(target_heading_cd, ground_speed);
 
             // debug
             ::printf("spd:%4.2f use-yaw:%d\n", (double)ground_speed_cms, (int)use_yaw_rate);
