@@ -202,14 +202,14 @@ void Rover::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     // this is the distance we travel past the waypoint - not there yet so 0 initially
     distance_past_wp = 0;
 
-	set_next_WP(cmd.content.location);
+	set_auto_WP(cmd.content.location);
 }
 
 void Rover::do_loiter_unlimited(const AP_Mission::Mission_Command& cmd)
 {
     Location cmdloc = cmd.content.location;
     location_sanitize(current_loc, cmdloc);
-    set_next_WP(cmdloc);
+    set_auto_WP(cmdloc);
     loiter_time_max = 100; // an arbitrary large loiter time
     distance_past_wp = 0;
 }
