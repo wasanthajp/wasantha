@@ -1282,7 +1282,7 @@ void GCS_MAVLINK_Rover::handleMessage(mavlink_message_t* msg)
             rover.set_guided_velocity(target_heading_cd, ground_speed);
 
             // debug
-            ::printf("spd:%4.2f use-yaw:%d\n", (double)ground_speed_cms, (int)use_yaw_rate);
+            ::printf("spd:%4.2f use-yaw:%d\n", (double)ground_speed, (int)use_yaw_rate);
 
             // convert attitude into heading
             // set vehicle heading target and speed
