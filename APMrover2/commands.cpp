@@ -39,7 +39,7 @@ void Rover::set_next_WP(const struct Location& loc)
 	wp_distance 		= wp_totalDistance;
 }
 
-void Rover::set_guided_WP(void)
+void Rover::set_guided_WP(const struct Location& loc)
 {
 	// copy the current location into the OldWP slot
 	// ---------------------------------------
@@ -47,11 +47,13 @@ void Rover::set_guided_WP(void)
 
 	// Load the next_WP slot
 	// ---------------------
-	next_WP = guided_WP;
+	next_WP = loc;
 
 	// this is handy for the groundstation
 	wp_totalDistance 	= get_distance(current_loc, next_WP);
 	wp_distance 		= wp_totalDistance;
+
+    rover.rtl_complete = false;
 }
 
 // run this at setup on the ground
@@ -79,7 +81,7 @@ void Rover::init_home()
 
 	// Load home for a default guided_WP
 	// -------------
-	guided_WP = home;
+	set_guided_WP(home);
 }
 
 void Rover::restart_nav()
