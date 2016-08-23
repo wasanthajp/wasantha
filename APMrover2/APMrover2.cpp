@@ -429,7 +429,7 @@ void Rover::update_current_mode(void)
         } else {
             calc_lateral_acceleration();
             calc_nav_steer();
-            calc_throttle(g.speed_cruise);
+            calc_throttle(guided_target_speed);
         }
         break;
 

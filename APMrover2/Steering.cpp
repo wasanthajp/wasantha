@@ -210,7 +210,12 @@ void Rover::calc_nav_steer() {
     // constrain to max G force
     lateral_acceleration = constrain_float(lateral_acceleration, -g.turn_max_g*GRAVITY_MSS, g.turn_max_g*GRAVITY_MSS);
 
-    channel_steer->set_servo_out(steerController.get_steering_out_lat_accel(lateral_acceleration));
+    if (control_mode == GUIDED && guided_mode == Guided_Velocity) {
+        int32_t bearing_error_cd = wrap_180_cd(guided_target_bearing_cd - ahrs.yaw_sensor);
+        channel_steer->set_servo_out(steerController.get_steering_out_angle_error(bearing_error_cd));
+    } else {
+        channel_steer->set_servo_out(steerController.get_steering_out_lat_accel(lateral_acceleration));
+    }
 }
 
 /*****************************************

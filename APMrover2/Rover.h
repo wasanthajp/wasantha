@@ -367,6 +367,11 @@ private:
     // we need to run the speed controller
     bool auto_throttle_mode;
 
+    // Guided control
+    GuidedMode guided_mode;             // controls which controller is run (waypoint or velocity)
+    int32_t guided_target_bearing_cd;   // target heading in centi-degrees
+    float guided_target_speed;          // target speed in m/s
+
     // Store the time the last GPS message was received.
     uint32_t last_gps_msg_ms{0}; 
 
@@ -436,6 +441,7 @@ private:
     void set_servos(void);
     void set_auto_WP(const struct Location& loc);
     void set_guided_WP(const struct Location& loc);
+    void set_guided_velocity(float target_heading, float target_speed);
     void init_home();
     void restart_nav();
     void exit_mission();

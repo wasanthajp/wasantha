@@ -41,6 +41,8 @@ void Rover::set_auto_WP(const struct Location& loc)
 
 void Rover::set_guided_WP(const struct Location& loc)
 {
+    guided_mode = Guided_WP;
+
 	// copy the current location into the OldWP slot
 	// ---------------------------------------
 	prev_WP = current_loc;
@@ -49,9 +51,24 @@ void Rover::set_guided_WP(const struct Location& loc)
 	// ---------------------
 	next_WP = loc;
 
+	guided_target_speed = g.speed_cruise;
+
 	// this is handy for the groundstation
 	wp_totalDistance 	= get_distance(current_loc, next_WP);
 	wp_distance 		= wp_totalDistance;
+
+    rover.rtl_complete = false;
+}
+
+void Rover::set_guided_velocity(float target_heading, float target_speed)
+{
+    guided_mode = Guided_Velocity;
+    guided_target_bearing_cd = target_heading;
+    guided_target_speed = target_speed;
+
+    // this is handy for the groundstation
+    wp_totalDistance    = 0;
+    wp_distance         = 0;
 
     rover.rtl_complete = false;
 }
