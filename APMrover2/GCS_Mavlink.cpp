@@ -1245,6 +1245,46 @@ void GCS_MAVLINK_Rover::handleMessage(mavlink_message_t* msg)
             break;
         }
 
+    case MAVLINK_MSG_ID_SET_ATTITUDE_TARGET:   // MAV ID: 82
+        {
+            // decode packet
+            mavlink_set_attitude_target_t packet;
+            mavlink_msg_set_attitude_target_decode(msg, &packet);
+
+            // exit if vehicle is not in Guided mode
+            if (rover.control_mode != GUIDED) {
+                break;
+            }
+
+            // ensure type_mask specifies to use attitude and thrust
+            if ((packet.type_mask & ((1<<7)|(1<<6))) != 0) {
+                break;
+            }
+
+            // convert thrust to ground speed
+            packet.thrust = constrain_float(packet.thrust, 0.0f, 1.0f);
+            float ground_speed_cms = 0.0f;
+            if (is_equal(packet.thrust, 0.5f)) {
+                ground_speed_cms = 0.0f;
+            } else if (packet.thrust > 0.5f) {
+                ground_speed_cms = (packet.thrust - 0.5f);
+            } else {
+                ground_speed_cms = (0.5f - packet.thrust);
+            }
+
+            // if the body_yaw_rate field is ignored, use the commanded yaw position
+            // otherwise use the commanded yaw rate
+            bool use_yaw_rate = false;
+            if ((packet.type_mask & (1<<2)) == 0) {
+                use_yaw_rate = true;
+            }
+
+            // convert attitude into heading
+            // set vehicle heading target and speed
+
+            break;
+        }
+
     case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED:     // MAV ID: 84
         {
             // decode packet
