@@ -4,9 +4,9 @@
 #include "AP_Proximity.h"
 #include "AP_Proximity_Backend.h"
 
-#define PROXIMITY_SF40C_SECTORS               8                                   // number of sectors
-#define PROXIMITY_SF40C_SECTOR_WIDTH_DEG      (360/PROXIMITY_SF40C_SECTORS)     // angular width of each sector
-#define PROXIMITY_SF40C_TIMEOUT_MS            200                                 // requests timeout after 0.2 seconds
+#define PROXIMITY_SF40C_SECTORS_MAX           8                                 // maximum number of sectors
+#define PROXIMITY_SF40C_SECTOR_WIDTH_DEG      (360/PROXIMITY_SF40C_SECTORS_MAX) // angular width of each sector
+#define PROXIMITY_SF40C_TIMEOUT_MS            200                               // requests timeout after 0.2 seconds
 
 class AP_Proximity_LightWareSF40C : public AP_Proximity_Backend
 {
@@ -89,6 +89,9 @@ private:
 
     // sensor data
     uint8_t _motor_speed;
-    float _distance[PROXIMITY_SF40C_SECTORS];
-    bool _distance_valid[PROXIMITY_SF40C_SECTORS];
+    uint8_t _num_sectors = PROXIMITY_SF40C_SECTORS_MAX;
+    uint16_t _sector_middle_deg[PROXIMITY_SF40C_SECTORS_MAX] = {0, 45, 90, 135, 180, 225, 270, 315};
+    uint8_t _sector_width_deg[PROXIMITY_SF40C_SECTORS_MAX] = {45, 45, 45, 45, 45, 45, 45, 45};
+    float _distance[PROXIMITY_SF40C_SECTORS_MAX];
+    bool _distance_valid[PROXIMITY_SF40C_SECTORS_MAX];
 };

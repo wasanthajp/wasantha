@@ -166,40 +166,15 @@ bool AP_Proximity_LightWareSF40C::send_request_for_distance()
 
     // increment sector
     _last_sector++;
-    if (_last_sector >= PROXIMITY_SF40C_SECTORS) {
+    if (_last_sector >= _num_sectors) {
         _last_sector = 0;
     }
 
-    // send request
-    switch (_last_sector) {
-        case 0:
-            uart->write("?TS,45,0\r\n");    // forward
-            break;
-        case 1:
-            uart->write("?TS,45,45\r\n");   // forward right
-            break;
-        case 2:
-            uart->write("?TS,45,90\r\n");   // right
-            break;
-        case 3:
-            uart->write("?TS,45,135\r\n");  // back right
-            break;
-        case 4:
-            uart->write("?TS,45,180\r\n");  // back
-            break;
-        case 5:
-            uart->write("?TS,45,225\r\n");  // back left
-            break;
-        case 6:
-            uart->write("?TS,45,270\r\n");  // left
-            break;
-        case 7:
-            uart->write("?TS,45,315\r\n");  // forward left
-            break;
-        default:
-            // invalid sector do nothing
-            break;
-    }
+    // prepare request
+    char request_str[15];
+    sprintf(request_str, "?TS,%d,%d\r\n", (int)(_sector_width_deg[_last_sector]), (int)(_sector_middle_deg[_last_sector]));
+    uart->write(request_str);
+
 
     // record request for distance
     _last_request_type = RequestType_DistanceMeasurement;
@@ -346,16 +321,30 @@ bool AP_Proximity_LightWareSF40C::convert_angle_to_sector(float angle_degrees, u
         return false;
     }
 
-    // increase angle by 1/2 sector size
-    angle_degrees += (PROXIMITY_SF40C_SECTOR_WIDTH_DEG / 2.0f);
-    if (angle_degrees > 360.0f) {
-        angle_degrees -= 360.0f;
+    bool closest_found = false;
+    uint8_t closest_sector;
+    float closest_angle;
+
+    // search for which sector angle_degrees falls into
+    for (uint8_t i = 0; i < _num_sectors; i++) {
+        float angle_diff = fabsf(wrap_180(_sector_middle_deg[i] - angle_degrees));
+
+        // record if closest
+        if (!closest_found || angle_diff < closest_angle) {
+            closest_found = true;
+            closest_sector = i;
+            closest_angle = angle_diff;
+        }
+
+        if (fabsf(angle_diff) <= _sector_width_deg[i] / 2.0f) {
+            sector = i;
+            return true;
+        }
     }
 
-    // convert and range check sector
-    uint16_t sec = (angle_degrees / PROXIMITY_SF40C_SECTOR_WIDTH_DEG);
-    if (sec < PROXIMITY_SF40C_SECTORS) {
-        sector = sec;
+    // angle_degrees might have been within a gap between sectors
+    if (closest_found) {
+        sector = closest_sector;
         return true;
     }
 
