@@ -51,6 +51,9 @@ public:
     // update state of all rangefinders. Should be called at high rate from main loop
     void update(void);
 
+    // return sensor orientation
+    uint8_t get_orientation(uint8_t instance) const;
+
     // return sensor health
     Proximity_Status get_status(uint8_t instance) const;
     Proximity_Status get_status() const;
@@ -83,6 +86,7 @@ private:
 
     // parameters for all instances
     AP_Int8  _type[PROXIMITY_MAX_INSTANCES];
+    AP_Int8  _orientation[PROXIMITY_MAX_INSTANCES];
 
     void detect_instance(uint8_t instance);
     void update_instance(uint8_t instance);  

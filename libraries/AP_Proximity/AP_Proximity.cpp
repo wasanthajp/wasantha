@@ -30,13 +30,27 @@ const AP_Param::GroupInfo AP_Proximity::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_TYPE",   1, AP_Proximity, _type[0], 0),
 
+    // @Param: _ORIENT
+    // @DisplayName: Proximity sensor orientation
+    // @Description: Proximity sensor orientation
+    // @Values: 0:Default,1:Upside Down
+    // @User: Standard
+    AP_GROUPINFO("_ORIENT", 2, AP_Proximity, _orientation[0], 0),
+
 #if PROXIMITY_MAX_INSTANCES > 1
     // @Param: 2_TYPE
     // @DisplayName: Second Proximity type
     // @Description: What type of proximity sensor is connected
     // @Values: 0:None,1:LightWareSF40C
     // @User: Advanced
-    AP_GROUPINFO("2_TYPE",  2, AP_Proximity, _type[1], 0),
+    AP_GROUPINFO("2_TYPE", 3, AP_Proximity, _type[1], 0),
+
+    // @Param: _ORIENT
+    // @DisplayName: Second Proximity sensor orientation
+    // @Description: Second Proximity sensor orientation
+    // @Values: 0:Default,1:Upside Down
+    // @User: Standard
+    AP_GROUPINFO("2_ORIENT", 4, AP_Proximity, _orientation[1], 0),
 #endif
 
     AP_GROUPEND
@@ -93,6 +107,16 @@ void AP_Proximity::update(void)
     }
 }
 
+// return sensor orientation
+uint8_t AP_Proximity::get_orientation(uint8_t instance) const
+{
+    if (instance >= PROXIMITY_MAX_INSTANCES) {
+        return 0;
+    }
+
+    return _orientation[instance].get();
+}
+
 // return sensor health
 AP_Proximity::Proximity_Status AP_Proximity::get_status(uint8_t instance) const
 {
@@ -116,7 +140,7 @@ void AP_Proximity::detect_instance(uint8_t instance)
     if (type == Proximity_Type_SF40C) {
         if (AP_Proximity_LightWareSF40C::detect(serial_manager)) {
             state[instance].instance = instance;
-            drivers[instance] = new AP_Proximity_LightWareSF40C(state[instance], serial_manager);
+            drivers[instance] = new AP_Proximity_LightWareSF40C(*this, state[instance], serial_manager);
             return;
         }
     }

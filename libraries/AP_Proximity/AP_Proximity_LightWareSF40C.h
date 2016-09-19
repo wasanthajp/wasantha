@@ -13,7 +13,7 @@ class AP_Proximity_LightWareSF40C : public AP_Proximity_Backend
 
 public:
     // constructor
-    AP_Proximity_LightWareSF40C(AP_Proximity::Proximity_State &_state, AP_SerialManager &serial_manager);
+    AP_Proximity_LightWareSF40C(AP_Proximity &_frontend, AP_Proximity::Proximity_State &_state, AP_SerialManager &serial_manager);
 
     // static detection function
     static bool detect(AP_SerialManager &serial_manager);
@@ -31,12 +31,14 @@ private:
         RequestType_None = 0,
         RequestType_Health,
         RequestType_MotorSpeed,
+        RequestType_MotorDirection,
         RequestType_DistanceMeasurement
     };
 
     // initialise sensor (returns true if sensor is succesfully initialised)
     bool initialise();
     void set_motor_speed(bool on_off);
+    void set_motor_direction();
 
     // send request for something from sensor
     void request_new_data();
@@ -89,6 +91,7 @@ private:
 
     // sensor data
     uint8_t _motor_speed;
+    uint8_t _motor_direction = 99;
     uint8_t _num_sectors = PROXIMITY_SF40C_SECTORS_MAX;
     uint16_t _sector_middle_deg[PROXIMITY_SF40C_SECTORS_MAX] = {0, 45, 90, 135, 180, 225, 270, 315};
     uint8_t _sector_width_deg[PROXIMITY_SF40C_SECTORS_MAX] = {45, 45, 45, 45, 45, 45, 45, 45};

@@ -23,7 +23,8 @@
   base class constructor. 
   This incorporates initialisation as well.
 */
-AP_Proximity_Backend::AP_Proximity_Backend(AP_Proximity::Proximity_State &_state) :
+AP_Proximity_Backend::AP_Proximity_Backend(AP_Proximity &_frontend, AP_Proximity::Proximity_State &_state) :
+        frontend(_frontend),
         state(_state)
 {
 }

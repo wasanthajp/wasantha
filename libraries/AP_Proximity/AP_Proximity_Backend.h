@@ -23,7 +23,7 @@ class AP_Proximity_Backend
 {
 public:
     // constructor. This incorporates initialisation as well.
-	AP_Proximity_Backend(AP_Proximity::Proximity_State &_state);
+	AP_Proximity_Backend(AP_Proximity &_frontend, AP_Proximity::Proximity_State &_state);
 
     // we declare a virtual destructor so that Proximity drivers can
     // override with a custom destructor if need be
@@ -41,5 +41,6 @@ protected:
     // set status and update valid_count
     void set_status(AP_Proximity::Proximity_Status status);
 
+    AP_Proximity &frontend;
     AP_Proximity::Proximity_State &state;   // reference to this instances state
 };

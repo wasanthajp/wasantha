@@ -27,9 +27,10 @@ extern const AP_HAL::HAL& hal;
    constructor is not called until detect() returns true, so we
    already know that we should setup the proximity sensor
 */
-AP_Proximity_LightWareSF40C::AP_Proximity_LightWareSF40C(AP_Proximity::Proximity_State &_state,
+AP_Proximity_LightWareSF40C::AP_Proximity_LightWareSF40C(AP_Proximity &_frontend,
+                                                         AP_Proximity::Proximity_State &_state,
                                                          AP_SerialManager &serial_manager) :
-    AP_Proximity_Backend(_state)
+    AP_Proximity_Backend(_frontend, _state)
 {
     uart = serial_manager.find_serial(AP_SerialManager::SerialProtocol_Lidar360, 0);
     if (uart != nullptr) {
@@ -85,9 +86,14 @@ void AP_Proximity_LightWareSF40C::update(void)
 // initialise sensor (returns true if sensor is succesfully initialised)
 bool AP_Proximity_LightWareSF40C::initialise()
 {
-    // request motors turn on for first 30 seconds then give up
+    // set motor direction once per second
+    if (_motor_direction > 1) {
+        if ((_last_request_ms == 0) || AP_HAL::millis() - _last_request_ms > 1000) {
+            set_motor_direction();
+        }
+    }
+    // request motors turn on once per second
     if (_motor_speed == 0) {
-        // request motors spin up once per second
         if ((_last_request_ms == 0) || AP_HAL::millis() - _last_request_ms > 1000) {
             set_motor_speed(true);
         }
@@ -114,6 +120,27 @@ void AP_Proximity_LightWareSF40C::set_motor_speed(bool on_off)
     // request update motor speed
     uart->write("?MBS\r\n");
     _last_request_type = RequestType_MotorSpeed;
+    _last_request_ms = AP_HAL::millis();
+}
+
+// set spin direction of motor
+void AP_Proximity_LightWareSF40C::set_motor_direction()
+{
+    // exit immediately if no uart
+    if (uart == nullptr) {
+        return;
+    }
+
+    // set motor update speed
+    if (frontend.get_orientation(state.instance) == 0) {
+        uart->write("#MBD,0\r\n");  // spin clockwise
+    } else {
+        uart->write("#MBD,1\r\n");  // spin counter clockwise
+    }
+
+    // request update on motor direction
+    uart->write("?MBD\r\n");
+    _last_request_type = RequestType_MotorDirection;
     _last_request_ms = AP_HAL::millis();
 }
 
@@ -276,6 +303,11 @@ bool AP_Proximity_LightWareSF40C::process_reply()
 
         case RequestType_MotorSpeed:
             _motor_speed = atoi(element_buf[0]);
+            success = true;
+            break;
+
+        case RequestType_MotorDirection:
+            _motor_direction = atoi(element_buf[0]);
             success = true;
             break;
 
