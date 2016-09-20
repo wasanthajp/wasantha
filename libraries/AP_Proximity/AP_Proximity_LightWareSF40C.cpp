@@ -348,6 +348,7 @@ bool AP_Proximity_LightWareSF40C::process_reply()
             float distance_m = (float)atof(element_buf[1]);
             uint8_t sector;
             if (convert_angle_to_sector(angle_deg, sector)) {
+                _angle[sector] = angle_deg;
                 _distance[sector] = distance_m;
                 _distance_valid[sector] = true;
                 _last_distance_received_ms = AP_HAL::millis();
