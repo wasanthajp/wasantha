@@ -32,6 +32,7 @@ private:
         RequestType_Health,
         RequestType_MotorSpeed,
         RequestType_MotorDirection,
+        RequestType_ForwardDirection,
         RequestType_DistanceMeasurement
     };
 
@@ -39,6 +40,7 @@ private:
     bool initialise();
     void set_motor_speed(bool on_off);
     void set_motor_direction();
+    void set_forward_direction();
 
     // send request for something from sensor
     void request_new_data();
@@ -97,4 +99,5 @@ private:
     uint8_t _sector_width_deg[PROXIMITY_SF40C_SECTORS_MAX] = {45, 45, 45, 45, 45, 45, 45, 45};
     float _distance[PROXIMITY_SF40C_SECTORS_MAX];
     bool _distance_valid[PROXIMITY_SF40C_SECTORS_MAX];
+    int16_t _forward_direction = 999;   // forward direction as reported by lidar
 };

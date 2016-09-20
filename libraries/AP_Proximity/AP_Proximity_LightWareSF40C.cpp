@@ -92,6 +92,12 @@ bool AP_Proximity_LightWareSF40C::initialise()
             set_motor_direction();
         }
     }
+    // set forward direction once per second
+    if (_forward_direction != frontend.get_yaw_correction(state.instance)) {
+        if ((_last_request_ms == 0) || AP_HAL::millis() - _last_request_ms > 1000) {
+            set_forward_direction();
+        }
+    }
     // request motors turn on once per second
     if (_motor_speed == 0) {
         if ((_last_request_ms == 0) || AP_HAL::millis() - _last_request_ms > 1000) {
@@ -141,6 +147,26 @@ void AP_Proximity_LightWareSF40C::set_motor_direction()
     // request update on motor direction
     uart->write("?MBD\r\n");
     _last_request_type = RequestType_MotorDirection;
+    _last_request_ms = AP_HAL::millis();
+}
+
+// set forward direction (to allow rotating lidar)
+void AP_Proximity_LightWareSF40C::set_forward_direction()
+{
+    // exit immediately if no uart
+    if (uart == nullptr) {
+        return;
+    }
+
+    // set forward direction
+    char request_str[15];
+    int16_t yaw_corr = frontend.get_yaw_correction(state.instance);
+    sprintf(request_str, "#MBF,%d\r\n", (int)yaw_corr);
+    uart->write(request_str);
+
+    // request update on motor direction
+    uart->write("?MBF\r\n");
+    _last_request_type = RequestType_ForwardDirection;
     _last_request_ms = AP_HAL::millis();
 }
 
@@ -263,7 +289,7 @@ bool AP_Proximity_LightWareSF40C::check_for_reply()
             }
 
         // if part of a number, add to element buffer
-        } else if (isdigit(c) || c == '.') {
+        } else if (isdigit(c) || c == '.' || c == '-') {
             element_buf[element_num][element_len[element_num]] = c;
             element_len[element_num]++;
             if (element_len[element_num] >= sizeof(element_buf[element_num])-1) {
@@ -308,6 +334,11 @@ bool AP_Proximity_LightWareSF40C::process_reply()
 
         case RequestType_MotorDirection:
             _motor_direction = atoi(element_buf[0]);
+            success = true;
+            break;
+
+        case RequestType_ForwardDirection:
+            _forward_direction = atoi(element_buf[0]);
             success = true;
             break;
 

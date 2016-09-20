@@ -37,20 +37,34 @@ const AP_Param::GroupInfo AP_Proximity::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("_ORIENT", 2, AP_Proximity, _orientation[0], 0),
 
+    // @Param: _YAW_CORR
+    // @DisplayName: Proximity sensor yaw correction
+    // @Description: Proximity sensor yaw correction
+    // @Range: -180 180
+    // @User: Standard
+    AP_GROUPINFO("_YAW_CORR", 3, AP_Proximity, _yaw_correction[0], PROXIMITY_YAW_CORRECTION_DEFAULT),
+
 #if PROXIMITY_MAX_INSTANCES > 1
     // @Param: 2_TYPE
     // @DisplayName: Second Proximity type
     // @Description: What type of proximity sensor is connected
     // @Values: 0:None,1:LightWareSF40C
     // @User: Advanced
-    AP_GROUPINFO("2_TYPE", 3, AP_Proximity, _type[1], 0),
+    AP_GROUPINFO("2_TYPE", 4, AP_Proximity, _type[1], 0),
 
     // @Param: _ORIENT
     // @DisplayName: Second Proximity sensor orientation
     // @Description: Second Proximity sensor orientation
     // @Values: 0:Default,1:Upside Down
     // @User: Standard
-    AP_GROUPINFO("2_ORIENT", 4, AP_Proximity, _orientation[1], 0),
+    AP_GROUPINFO("2_ORIENT", 5, AP_Proximity, _orientation[1], 0),
+
+    // @Param: _YAW_CORR
+    // @DisplayName: Second Proximity sensor yaw correction
+    // @Description: Second Proximity sensor yaw correction
+    // @Range: -180 180
+    // @User: Standard
+    AP_GROUPINFO("2_YAW_CORR", 6, AP_Proximity, _yaw_correction[1], PROXIMITY_YAW_CORRECTION_DEFAULT),
 #endif
 
     AP_GROUPEND
@@ -115,6 +129,16 @@ uint8_t AP_Proximity::get_orientation(uint8_t instance) const
     }
 
     return _orientation[instance].get();
+}
+
+// return sensor yaw correction
+int16_t AP_Proximity::get_yaw_correction(uint8_t instance) const
+{
+    if (instance >= PROXIMITY_MAX_INSTANCES) {
+        return 0;
+    }
+
+    return _yaw_correction[instance].get();
 }
 
 // return sensor health
