@@ -773,11 +773,11 @@ void Copter::Log_Write_Proximity()
     proximity.get_horizontal_distance(0, sector_distance[0]);
     proximity.get_horizontal_distance(45, sector_distance[1]);
     proximity.get_horizontal_distance(90, sector_distance[2]);
-    proximity.get_horizontal_distance(135, sector_distance[4]);
-    proximity.get_horizontal_distance(180, sector_distance[5]);
-    proximity.get_horizontal_distance(225, sector_distance[6]);
-    proximity.get_horizontal_distance(270, sector_distance[7]);
-    proximity.get_horizontal_distance(315, sector_distance[8]);
+    proximity.get_horizontal_distance(135, sector_distance[3]);
+    proximity.get_horizontal_distance(180, sector_distance[4]);
+    proximity.get_horizontal_distance(225, sector_distance[5]);
+    proximity.get_horizontal_distance(270, sector_distance[6]);
+    proximity.get_horizontal_distance(315, sector_distance[7]);
 
     struct log_Proximity pkt = {
         LOG_PACKET_HEADER_INIT(LOG_PROXIMITY_MSG),
