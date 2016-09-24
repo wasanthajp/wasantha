@@ -169,7 +169,7 @@ void AC_Avoid::adjust_velocity_proximity(const float kP, const float accel_cmss,
     Vector2f vel_dir = desired_vel.normalized();
 
     // get angle of desired velocity
-    float heading_rad = vel_dir.angle(Vector2f(1.0f,0.0f));
+    float heading_rad = atan2f(vel_dir.y, vel_dir.x);
 
     // rotate desired velocity angle into body-frame angle
     float heading_bf_rad = wrap_PI(heading_rad - _ahrs.yaw);
