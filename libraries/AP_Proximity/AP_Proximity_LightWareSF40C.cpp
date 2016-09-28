@@ -381,8 +381,13 @@ void AP_Proximity_LightWareSF40C::clear_buffers()
 bool AP_Proximity_LightWareSF40C::convert_angle_to_sector(float angle_degrees, uint8_t &sector) const
 {
     // sanity check angle
-    if (angle_degrees > 360.0f || angle_degrees < 0.0f) {
+    if (angle_degrees > 360.0f || angle_degrees < -180.0f) {
         return false;
+    }
+
+    // convert to 0 ~ 360
+    if (angle_degrees < 0.0f) {
+        angle_degrees += 360.0f;
     }
 
     bool closest_found = false;
