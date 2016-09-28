@@ -177,7 +177,7 @@ void AC_Avoid::adjust_velocity_proximity(const float kP, const float accel_cmss,
     // get nearest object using body-frame angle and shorten desired velocity (which must remain in earth-frame)
     float distance_m;
     if (_proximity.get_horizontal_distance(degrees(heading_bf_rad), distance_m)) {
-        limit_velocity(kP, accel_cmss, desired_vel, vel_dir, distance_m*100.0f);
+        limit_velocity(kP, accel_cmss, desired_vel, vel_dir, MAX(distance_m*100.0f - 200.0f, 0.0f));
     }
 }
 
