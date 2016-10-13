@@ -1014,6 +1014,10 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     AP_SUBGROUPINFO(proximity, "PRX_", 8, ParametersG2, AP_Proximity),
 #endif
 
+    // @Group: STAT
+    // @Path: ../libraries/AP_Stats/AP_Stats.cpp
+    AP_SUBGROUPINFO(stats, "STAT", 9, ParametersG2, AP_Stats),
+
     AP_GROUPEND
 };
 

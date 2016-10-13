@@ -551,6 +551,9 @@ public:
     // button checking
     AP_Button button;
 
+    // vehicle statistics
+    AP_Stats stats;
+
     // Throw mode parameters
     AP_Int8 throw_nextmode;
     AP_Int8 throw_type;

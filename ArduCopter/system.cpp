@@ -110,6 +110,9 @@ void Copter::init_ardupilot()
     // load parameters from EEPROM
     load_parameters();
 
+    // initialise stats module
+    g2.stats.init();
+
     GCS_MAVLINK::set_dataflash(&DataFlash);
 
     // initialise serial ports
