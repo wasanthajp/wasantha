@@ -82,6 +82,7 @@ public:
         SerialProtocol_Lidar = 9,
         SerialProtocol_FrSky_SPort_Passthrough = 10, // FrSky SPort Passthrough (OpenTX) protocol (X-receivers)
         SerialProtocol_Lidar360 = 11,
+        SerialProtocol_Beacon = 12
     };
 
     // Constructor
