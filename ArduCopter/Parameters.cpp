@@ -1034,7 +1034,11 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @Values: 0:NotEnforced,1:Enforced
     // @User: Advanced
     AP_GROUPINFO("SYSID_ENFORCE", 11, ParametersG2, sysid_enforce, 0),
-    
+
+    // @Group: BCN
+    // @Path: ../libraries/AP_Beacon/AP_Beacon.cpp
+    AP_SUBGROUPINFO(beacon, "BCN", 12, ParametersG2, AP_Beacon),
+
     AP_GROUPEND
 };
 
@@ -1043,7 +1047,8 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
   constructor for g2 object
  */
 ParametersG2::ParametersG2(void)
-    : proximity(copter.serial_manager)
+    : proximity(copter.serial_manager),
+      beacon(copter.serial_manager)
 #if ADVANCED_FAILSAFE == ENABLED
      ,afs(copter.mission, copter.barometer, copter.gps, copter.rcmap)
 #endif
