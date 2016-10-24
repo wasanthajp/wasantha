@@ -61,6 +61,7 @@
 #include <AP_Motors/AP_Motors.h>          // AP Motors library
 #include <AP_RangeFinder/AP_RangeFinder.h>     // Range finder library
 #include <AP_Proximity/AP_Proximity.h>
+#include <AP_Beacon/AP_Beacon.h>
 #include <AP_OpticalFlow/AP_OpticalFlow.h>     // Optical Flow library
 #include <AP_RSSI/AP_RSSI.h>                   // RSSI Library
 #include <Filter/Filter.h>             // Filter library
@@ -713,6 +714,8 @@ private:
     void button_update();
     void init_proximity();
     void update_proximity();
+    void init_beacon();
+    void update_beacon();
     void send_pid_tuning(mavlink_channel_t chan);
     void gcs_send_message(enum ap_message id);
     void gcs_send_mission_item_reached_message(uint16_t mission_index);
