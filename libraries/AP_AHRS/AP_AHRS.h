@@ -25,6 +25,7 @@
 #include <inttypes.h>
 #include <AP_Compass/AP_Compass.h>
 #include <AP_Airspeed/AP_Airspeed.h>
+#include <AP_Beacon/AP_Beacon.h>
 #include <AP_GPS/AP_GPS.h>
 #include <AP_InertialSensor/AP_InertialSensor.h>
 #include <AP_Baro/AP_Baro.h>
@@ -58,6 +59,7 @@ public:
         _compass(NULL),
         _optflow(NULL),
         _airspeed(NULL),
+        _beacon(NULL),
         _compass_last_update(0),
         _ins(ins),
         _baro(baro),
@@ -150,8 +152,16 @@ public:
         _airspeed = airspeed;
     }
 
+    void set_beacon(AP_Beacon *beacon) {
+        _beacon = beacon;
+    }
+
     const AP_Airspeed *get_airspeed(void) const {
         return _airspeed;
+    }
+
+    const AP_Beacon *get_beacon(void) const {
+        return _beacon;
     }
 
     const AP_GPS &get_gps() const {
@@ -507,6 +517,9 @@ protected:
 
     // pointer to airspeed object, if available
     AP_Airspeed     * _airspeed;
+
+    // pointer to beacon object, if available
+    AP_Beacon     * _beacon;
 
     // time in microseconds of last compass update
     uint32_t _compass_last_update;
