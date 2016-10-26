@@ -180,6 +180,9 @@ private:
     // Dataflash
     DataFlash_Class DataFlash;
 
+    // Range Beacon Sensors
+    AP_Beacon beacon;
+
     AP_GPS gps;
 
     // flight modes convenience array

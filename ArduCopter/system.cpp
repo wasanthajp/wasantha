@@ -187,6 +187,9 @@ void Copter::init_ardupilot()
      */
     hal.scheduler->register_timer_failsafe(failsafe_check_static, 1000);
 
+    // give AHRS the rnage beacon sensor
+    ahrs.set_beacon(&beacon);
+
     // Do GPS init
     gps.init(&DataFlash, serial_manager);
 
