@@ -1041,7 +1041,7 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
 
     // @Group: BCN
     // @Path: ../libraries/AP_Beacon/AP_Beacon.cpp
-    AP_SUBGROUPINFO(beacon, "BCN", 12, ParametersG2, AP_Beacon),
+    AP_SUBGROUPINFO(beacon, "BCN", 13, ParametersG2, AP_Beacon),
 
     AP_GROUPEND
 };
