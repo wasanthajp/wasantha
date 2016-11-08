@@ -116,7 +116,7 @@ void AP_Proximity_LightWareSF40C::update_boundary_for_sector(uint8_t sector)
 
     // initialise sector_edge_vector if necessary
     if (_sector_edge_vector[sector].is_zero()) {
-        float angle_rad = radians(_sector_middle_deg[sector]-_sector_width_deg[sector]);
+        float angle_rad = radians((float)_sector_middle_deg[sector]-(float)_sector_width_deg[sector]/2.0f);
         _sector_edge_vector[sector].x = cosf(angle_rad);
         _sector_edge_vector[sector].y = sinf(angle_rad);
     }
