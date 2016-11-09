@@ -108,9 +108,13 @@ private:
     uint8_t _motor_speed;               // motor speed as reported by lidar
     uint8_t _motor_direction = 99;      // motor direction as reported by lidar
     int16_t _forward_direction = 999;   // forward direction as reported by lidar
+
+    // sectors
+    bool _sector_initialised = false;
     uint8_t _num_sectors = 8;           // number of sectors we will search
     uint16_t _sector_middle_deg[PROXIMITY_SF40C_SECTORS_MAX] = {0, 45, 90, 135, 180, 225, 270, 315, 0, 0, 0, 0};    // middle angle of each sector
     uint8_t _sector_width_deg[PROXIMITY_SF40C_SECTORS_MAX] = {45, 45, 45, 45, 45, 45, 45, 45, 0, 0, 0, 0};         // width (in degrees) of each sector
+
     // randy specific values to avoid legs
     //uint16_t _sector_middle_deg[PROXIMITY_SF40C_SECTORS_MAX] = {0,35,63,90,124,151,180,207,235,270,299,326};    // middle angle of each sector
     //uint8_t _sector_width_deg[PROXIMITY_SF40C_SECTORS_MAX] =   {45,26,8,45,23,11,45,10,24,45,13,21};            // width (in degrees) of each sector

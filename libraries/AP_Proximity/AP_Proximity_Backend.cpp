@@ -58,22 +58,24 @@ bool AP_Proximity_Backend::get_ignore_area(uint8_t index, uint16_t &angle_deg, u
     return true;
 }
 
-bool AP_Proximity_Backend::get_next_ignore_start(int16_t start_angle, int16_t &ignore_start) const
+// retrieve start or end angle of next ignore area (i.e. closest ignore area higher than the start_angle)
+// start_or_end = 0 to get start, 1 to retrieve end
+bool AP_Proximity_Backend::get_next_ignore_start_or_end(uint8_t start_or_end, int16_t start_angle, int16_t &ignore_start) const
 {
     bool found = false;
-    uint16_t smallest_angle_diff = 0;
-    uint16_t smallest_angle_start = 0;
+    int16_t smallest_angle_diff = 0;
+    int16_t smallest_angle_start = 0;
 
     for (uint8_t i=0; i < PROXIMITY_MAX_IGNORE; i++) {
-        if (frontend._ignore_width_deg[i] == 0) {
-            break;
-        }
-        uint16_t ignore_start_angle = wrap_360(frontend._ignore_angle_deg[i] - frontend._ignore_width_deg[i]/2.0f);
-        uint16_t ang_diff = wrap_360(ignore_start_angle - start_angle);
-        if (!found || ang_diff < smallest_angle_diff) {
-            smallest_angle_diff = ang_diff;
-            smallest_angle_start = ignore_start_angle;
-            found = true;
+        if (frontend._ignore_width_deg[i] != 0) {
+            int16_t offset = start_or_end == 0 ? -frontend._ignore_width_deg[i] : +frontend._ignore_width_deg[i];
+            int16_t ignore_start_angle = wrap_360(frontend._ignore_angle_deg[i] + offset/2.0f);
+            int16_t ang_diff = wrap_360(ignore_start_angle - start_angle);
+            if (!found || ang_diff < smallest_angle_diff) {
+                smallest_angle_diff = ang_diff;
+                smallest_angle_start = ignore_start_angle;
+                found = true;
+            }
         }
     }
 
@@ -83,7 +85,3 @@ bool AP_Proximity_Backend::get_next_ignore_start(int16_t start_angle, int16_t &i
     return found;
 }
 
-bool AP_Proximity_Backend::get_next_ignore_end(uint16_t start_angle, uint16_t &ignore_end) const
-{
-    return false;
-}

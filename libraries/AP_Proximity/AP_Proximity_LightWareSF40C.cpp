@@ -190,16 +190,19 @@ bool AP_Proximity_LightWareSF40C::initialise()
         return false;
     }
     // initialise sectors
-    init_sectors();
+    if (!_sector_initialised) {
+        init_sectors();
+        return false;
+    }
     return true;
 }
 
 // initialise sector angles using user defined ignore areas
 void AP_Proximity_LightWareSF40C::init_sectors()
 {
-    // if no ignore sectors use defaults
-    uint8_t ignore_count = get_ignore_angle_count();
-    if (ignore_count == 0) {
+    // use defaults if no ignore areas defined
+    if (get_ignore_angle_count() == 0) {
+        _sector_initialised = true;
         return;
     }
 
@@ -209,12 +212,12 @@ void AP_Proximity_LightWareSF40C::init_sectors()
     uint8_t sector = 0;
 
     // initialise current angle starting point to end of first ignore area
-    get_next_ignore_start(0, end_angle);
-    get_next_ignore_end(end_angle, curr_angle);
+    get_next_ignore_start_or_end(0, 0, end_angle);  // get start of first ignore area
+    get_next_ignore_start_or_end(1, end_angle, curr_angle); // start from end of first ignore area
 
     do {
         // calculate how many degrees of space we have until the start of the next ignore area
-        get_next_ignore_start(curr_angle, next_ignore_start);
+        get_next_ignore_start_or_end(0, curr_angle, next_ignore_start);
         int16_t degrees_to_fill = wrap_360(next_ignore_start - curr_angle);
 
         // divide up the area into sectors
@@ -241,7 +244,10 @@ void AP_Proximity_LightWareSF40C::init_sectors()
     } while (wrap_360(end_angle - curr_angle) > 0);
 
     // set num sectors
-    // record success (and failure?) so we know we have initialised ok
+    _num_sectors = sector;
+
+    // record success
+    _sector_initialised = true;
 }
 
 // set speed of rotating motor
