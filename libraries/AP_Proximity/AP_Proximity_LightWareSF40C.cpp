@@ -189,7 +189,59 @@ bool AP_Proximity_LightWareSF40C::initialise()
         }
         return false;
     }
+    // initialise sectors
+    init_sectors();
     return true;
+}
+
+// initialise sector angles using user defined ignore areas
+void AP_Proximity_LightWareSF40C::init_sectors()
+{
+    // if no ignore sectors use defaults
+    uint8_t ignore_count = get_ignore_angle_count();
+    if (ignore_count == 0) {
+        return;
+    }
+
+    // get end of first ignore area
+    int16_t curr_angle, end_angle;
+    int16_t next_ignore_start;
+    uint8_t sector = 0;
+
+    // initialise current angle starting point to end of first ignore area
+    get_next_ignore_start(0, end_angle);
+    get_next_ignore_end(end_angle, curr_angle);
+
+    do {
+        // calculate how many degrees of space we have until the start of the next ignore area
+        get_next_ignore_start(curr_angle, next_ignore_start);
+        int16_t degrees_to_fill = wrap_360(next_ignore_start - curr_angle);
+
+        // divide up the area into sectors
+        while (degrees_to_fill > 0) {
+            uint16_t sector_size;
+            if (degrees_to_fill >= 90) {
+                // set sector to maximum of 45 degrees
+                sector_size = 45;
+            } else if (degrees_to_fill > 45) {
+                // use half the remaining area to optimise size of this sector and the next
+                sector_size = degrees_to_fill / 2.0f;
+            } else  {
+                // 45 degrees or less are left so put it all into the next sector
+                sector_size = degrees_to_fill;
+            }
+            // record the sector middle and width
+            _sector_middle_deg[sector] = curr_angle + sector_size / 2.0f;
+            _sector_width_deg[sector] = sector_size;
+            // move onto next sector
+            curr_angle += sector_size;
+            sector++;
+            degrees_to_fill = next_ignore_start - curr_angle;
+        }
+    } while (wrap_360(end_angle - curr_angle) > 0);
+
+    // set num sectors
+    // record success (and failure?) so we know we have initialised ok
 }
 
 // set speed of rotating motor
