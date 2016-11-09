@@ -222,7 +222,7 @@ void AP_Proximity_LightWareSF40C::init_sectors()
 
     do {
         // calculate how many degrees of space we have until the start of the next ignore area
-        get_next_ignore_start_or_end(0, curr_angle, next_ignore_start);
+        get_next_ignore_start_or_end(0, curr_angle+1, next_ignore_start);
         int16_t degrees_to_fill = wrap_360(next_ignore_start - curr_angle);
 
         // debug
